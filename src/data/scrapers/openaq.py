@@ -5,11 +5,10 @@ This module is part of the NSC 2026 Category 14 entry:
 Explainable Spatio-Temporal GNN for PM2.5 in Northern Thailand.
 """
 
-import calendar
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -340,20 +339,36 @@ def backfill_station(
             logger.info("Skipping %s (already exists)", path)
             continue
 
-        # Fetch month by month — full-year range triggers 408 from OpenAQ
-        monthly_frames: list[pd.DataFrame] = []
-        for month in range(1, 13):
-            last_day = calendar.monthrange(year, month)[1]
-            df_month = fetch_measurements(
-                sensor_id,
-                datetime(year, month, 1),
-                datetime(year, month, last_day, 23, 59, 59),
+        # Fetch in 7-day windows — monthly ranges trigger 408 from OpenAQ
+        chunk_frames: list[pd.DataFrame] = []
+        chunk_start = datetime(year, 1, 1)
+        year_end = datetime(year, 12, 31, 23, 59, 59)
+        while chunk_start <= year_end:
+            chunk_end = min(
+                datetime(
+                    chunk_start.year,
+                    chunk_start.month,
+                    chunk_start.day,
+                    23,
+                    59,
+                    59,
+                )
+                + timedelta(days=6),
+                year_end,
             )
-            monthly_frames.append(df_month)
-            logger.info("sensor=%d %d-%02d: %d rows", sensor_id, year, month, len(df_month))
-            time.sleep(2)  # polite pause between months to avoid 408 timeouts
+            df_chunk = fetch_measurements(sensor_id, chunk_start, chunk_end)
+            chunk_frames.append(df_chunk)
+            logger.info(
+                "sensor=%d %s-%s: %d rows",
+                sensor_id,
+                chunk_start.strftime("%Y-%m-%d"),
+                chunk_end.strftime("%Y-%m-%d"),
+                len(df_chunk),
+            )
+            time.sleep(1)  # polite pause to avoid 408 timeouts
+            chunk_start = chunk_end + timedelta(seconds=1)
 
-        df = pd.concat(monthly_frames, ignore_index=True) if monthly_frames else pd.DataFrame()
+        df = pd.concat(chunk_frames, ignore_index=True) if chunk_frames else pd.DataFrame()
         df.to_parquet(path, index=False)
         logger.info("Saved %s (%d rows)", path, len(df))
 
