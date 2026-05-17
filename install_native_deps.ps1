@@ -44,7 +44,7 @@ Write-Host ""
 
 # --- Install torch-scatter and torch-sparse from PyG wheel index ---
 Write-Host "Installing torch-scatter and torch-sparse..." -ForegroundColor Yellow
-python -m pip install torch-scatter torch-sparse --index-url $wheelIndex
+python -m pip install torch-scatter torch-sparse --find-links $wheelIndex
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to install torch-scatter/torch-sparse. Verify wheels exist at $wheelIndex"
     exit 1
