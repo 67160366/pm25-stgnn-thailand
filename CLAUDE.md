@@ -99,7 +99,11 @@ pm25-stgnn-thailand/
 
 ## Commands
 
-- Install: `uv sync`
+- Install (two steps): `uv sync` then `./install_native_deps.ps1` (Windows)
+  or `./install_native_deps.sh` (Linux). The native step installs
+  torch-scatter, torch-sparse, and torch-geometric-temporal which cannot
+  go in pyproject.toml because they require torch to exist before they
+  build.
 - Add dep: `uv add <pkg>` (NEVER edit pyproject.toml deps manually)
 - Realtime snapshot: `uv run python scripts/01_download_all.py realtime`
 - Discover stations: `uv run python scripts/01_download_all.py discover`
@@ -109,6 +113,20 @@ pm25-stgnn-thailand/
 - Lint: `uv run ruff check src/ && uv run black --check src/`
 - Format: `uv run black src/ tests/ && uv run ruff check --fix src/`
 - Dashboard: `uv run streamlit run app/streamlit_app.py`
+
+## Native dependencies (read before `uv sync`)
+
+torch-scatter, torch-sparse, and torch-geometric-temporal are PyG
+extensions with native C++/CUDA code that need to link against an
+already-installed torch. Because uv resolves all dependencies before
+installing any, these cannot be in pyproject.toml.
+
+After cloning or pulling fresh:
+  1. `uv sync` — installs torch + all pure-Python deps
+  2. `./install_native_deps.ps1` (or `./install_native_deps.sh`) — installs the three native
+     packages from PyG's wheel index at https://data.pyg.org/whl/
+
+This is also documented in README.md Quickstart and docs/api_quirks.md.
 
 ## Data sources (verified 2026-05-17)
 
