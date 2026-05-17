@@ -38,11 +38,9 @@ class TestDiscoverLocations:
                     "id": 225579,
                     "name": "Yupparaj Wittayalai School",
                     "coordinates": {"latitude": 18.787, "longitude": 98.993},
-                    "providers": [{"name": "Air4Thai"}],
-                    "datetimes": {
-                        "first": "2020-01-01T00:00:00Z",
-                        "last": "2026-03-01T00:00:00Z",
-                    },
+                    "provider": {"id": 118, "name": "Air4Thai"},
+                    "datetimeFirst": {"utc": "2020-01-01T00:00:00Z"},
+                    "datetimeLast": {"utc": "2026-03-01T00:00:00Z"},
                     "sensors": [
                         {
                             "id": 1304368,
@@ -99,8 +97,9 @@ class TestDiscoverLocations:
                     "id": 123456,
                     "name": "Some Station",
                     "coordinates": {"latitude": 18.0, "longitude": 99.0},
-                    "providers": [{"name": "Other"}],
-                    "datetimes": {"first": "2020-01-01T00:00:00Z", "last": "2026-01-01T00:00:00Z"},
+                    "provider": {"id": 99, "name": "Other"},
+                    "datetimeFirst": {"utc": "2020-01-01T00:00:00Z"},
+                    "datetimeLast": {"utc": "2026-01-01T00:00:00Z"},
                     "sensors": [
                         {
                             "id": 999,
@@ -139,8 +138,9 @@ class TestDiscoverLocations:
                     "id": 111,
                     "name": "Test Station",
                     "coordinates": {"latitude": 18.0, "longitude": 99.0},
-                    "providers": [{"name": "Air4Thai"}],
-                    "datetimes": {"first": "2020-01-01T00:00:00Z", "last": "2026-01-01T00:00:00Z"},
+                    "provider": {"id": 118, "name": "Air4Thai"},
+                    "datetimeFirst": {"utc": "2020-01-01T00:00:00Z"},
+                    "datetimeLast": {"utc": "2026-01-01T00:00:00Z"},
                     "sensors": [
                         {
                             "id": 222,

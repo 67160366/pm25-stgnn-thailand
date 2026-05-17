@@ -5,8 +5,10 @@ This module is part of the NSC 2026 Category 14 entry:
 Explainable Spatio-Temporal GNN for PM2.5 in Northern Thailand.
 """
 
+import calendar
 import logging
 import os
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -44,14 +46,14 @@ def _is_retryable(exc: BaseException) -> bool:
     return (
         isinstance(exc, requests.HTTPError)
         and exc.response is not None
-        and exc.response.status_code in (429, 500, 502, 503, 504)
+        and exc.response.status_code in (408, 429, 500, 502, 503, 504)
     )
 
 
 @retry(
     retry=retry_if_exception(_is_retryable),
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=4),
+    wait=wait_exponential(multiplier=1, min=2, max=8),
 )
 def _fetch_locations_page(
     session: requests.Session,
@@ -91,7 +93,7 @@ def _fetch_locations_page(
 @retry(
     retry=retry_if_exception(_is_retryable),
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=4),
+    wait=wait_exponential(multiplier=1, min=2, max=8),
 )
 def _fetch_measurements_page(
     session: requests.Session,
@@ -175,11 +177,9 @@ def discover_locations(
             if sensor_id_pm25 is None:
                 continue  # Skip locations with no PM2.5 sensor
 
-            providers = loc.get("providers", [])
-            provider_name = providers[0]["name"] if providers else ""
+            provider_name = loc.get("provider", {}).get("name", "")
 
             coords = loc.get("coordinates", {})
-            datetimes = loc.get("datetimes", {})
 
             records.append(
                 {
@@ -188,8 +188,8 @@ def discover_locations(
                     "lat": coords.get("latitude"),
                     "lon": coords.get("longitude"),
                     "provider": provider_name,
-                    "datetime_first": datetimes.get("first"),
-                    "datetime_last": datetimes.get("last"),
+                    "datetime_first": loc.get("datetimeFirst", {}).get("utc"),
+                    "datetime_last": loc.get("datetimeLast", {}).get("utc"),
                     "sensor_id_pm25": sensor_id_pm25,
                 }
             )
@@ -315,7 +315,7 @@ def backfill_station(
 
     Iterates over each year in [start_year, end_year] (inclusive), skips
     years where the parquet file already exists, and calls
-    :func:`fetch_measurements` for the remaining years.
+    :func:`fetch_measurements` per month (OpenAQ times out on full-year ranges).
 
     Args:
         sensor_id: OpenAQ sensor ID for the PM2.5 instrument.
@@ -340,11 +340,20 @@ def backfill_station(
             logger.info("Skipping %s (already exists)", path)
             continue
 
-        df = fetch_measurements(
-            sensor_id,
-            datetime(year, 1, 1),
-            datetime(year, 12, 31, 23, 59, 59),
-        )
+        # Fetch month by month — full-year range triggers 408 from OpenAQ
+        monthly_frames: list[pd.DataFrame] = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(year, month)[1]
+            df_month = fetch_measurements(
+                sensor_id,
+                datetime(year, month, 1),
+                datetime(year, month, last_day, 23, 59, 59),
+            )
+            monthly_frames.append(df_month)
+            logger.info("sensor=%d %d-%02d: %d rows", sensor_id, year, month, len(df_month))
+            time.sleep(2)  # polite pause between months to avoid 408 timeouts
+
+        df = pd.concat(monthly_frames, ignore_index=True) if monthly_frames else pd.DataFrame()
         df.to_parquet(path, index=False)
         logger.info("Saved %s (%d rows)", path, len(df))
 
