@@ -1,0 +1,125 @@
+[project]
+name = "pm25-stgnn-thailand"
+version = "0.1.0"
+description = "Explainable Spatio-Temporal GNN for PM2.5 forecasting and source attribution in Northern Thailand. NSC 2026 entry."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "NSC 2026 Team" },
+]
+
+dependencies = [
+    # --- Core scientific stack ---
+    "numpy>=1.26,<2.0",
+    "pandas>=2.2",
+    "scipy>=1.12",
+    "scikit-learn>=1.4",
+    "pyarrow>=15.0",          # parquet
+    "xarray>=2024.0",         # ERA5 NetCDF
+    "netcdf4>=1.6",
+    "dask[complete]>=2024.0", # large xarray ops
+
+    # --- ML stack ---
+    # Pinned to PyG-Temporal compatibility (torch < 2.4)
+    "torch>=2.2,<2.4",
+    "torch-geometric>=2.5,<2.6",
+    "torch-geometric-temporal>=0.54",
+
+    # --- Data acquisition ---
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "cdsapi>=0.7",
+    "tenacity>=8.2",          # retry logic for scrapers
+
+    # --- Experiment tracking & config ---
+    "hydra-core>=1.3",
+    "omegaconf>=2.3",
+    "wandb>=0.16",
+
+    # --- Visualization ---
+    "matplotlib>=3.8",
+    "plotly>=5.20",
+    "folium>=0.16",
+    "seaborn>=0.13",
+
+    # --- Demo ---
+    "streamlit>=1.32",
+    "streamlit-folium>=0.18",
+
+    # --- XAI ---
+    "shap>=0.45",
+    "captum>=0.7",
+
+    # --- Utility ---
+    "typer>=0.12",            # CLI for scripts/
+    "rich>=13.7",             # nice logging output
+    "python-dotenv>=1.0",     # .env loading
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "pytest-mock>=3.12",
+    "requests-mock>=1.11",
+    "ruff>=0.4",
+    "black>=24.0",
+    "mypy>=1.9",
+    "ipykernel>=6.29",
+    "jupyterlab>=4.1",
+]
+
+[tool.uv]
+# CPU torch by default; for CUDA use:
+#   uv pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "C90", # mccabe complexity
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "S",   # bandit security
+    "ANN", # type annotations
+    "RUF", # ruff-specific
+]
+ignore = [
+    "ANN101", # missing type annotation for self
+    "ANN102", # missing type annotation for cls
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "ANN"]      # assert + missing types ok in tests
+"notebooks/**/*.py" = ["ANN", "E402"]  # noisy in notebooks
+"scripts/**/*.py" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=src --cov-report=term-missing --cov-report=html"
+python_files = ["test_*.py"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

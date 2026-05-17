@@ -1,0 +1,101 @@
+# --- Project data (NEVER commit) ---
+data/raw/
+data/interim/
+data/processed/
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# --- Model artifacts ---
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+wandb/
+lightning_logs/
+mlruns/
+
+# --- Cached intermediate ---
+*.parquet
+*.feather
+*.nc
+*.grib
+*.grib2
+
+# --- Secrets ---
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual envs ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- uv ---
+.uv/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# --- IDE ---
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Claude Code session data (keep agents, ignore session state) ---
+.claude/state/
+.claude/cache/
+.claude/sessions/
+
+# --- Reports — keep figures, ignore build artifacts ---
+reports/*.pdf
+!reports/.gitkeep
+reports/figures/
+!reports/figures/.gitkeep
