@@ -229,10 +229,12 @@ def curate_training_stations(
     Returns:
         Filtered DataFrame with reset index.
     """
+    first_before_ts = pd.to_datetime(first_before, utc=True)
+    last_after_ts = pd.to_datetime(last_after, utc=True)
     mask = (
         (df_locations["provider"] == provider)
-        & (pd.to_datetime(df_locations["datetime_first"]) < pd.to_datetime(first_before))
-        & (pd.to_datetime(df_locations["datetime_last"]) > pd.to_datetime(last_after))
+        & (pd.to_datetime(df_locations["datetime_first"], utc=True) < first_before_ts)
+        & (pd.to_datetime(df_locations["datetime_last"], utc=True) > last_after_ts)
     )
     result = df_locations[mask].reset_index(drop=True)
     logger.info(
@@ -279,7 +281,9 @@ def fetch_measurements(
                 "fetch_measurements sensor=%d: complete, %d total pages", sensor_id, page - 1
             )
             break
-        logger.info("fetch_measurements sensor=%d page=%d: %d results", sensor_id, page, len(results))
+        logger.info(
+            "fetch_measurements sensor=%d page=%d: %d results", sensor_id, page, len(results)
+        )
 
         for item in results:
             period = item.get("period", {})
