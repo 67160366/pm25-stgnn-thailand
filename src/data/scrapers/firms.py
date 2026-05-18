@@ -41,8 +41,10 @@ _VALID_SOURCES: frozenset[str] = _NRT_SOURCES | _SP_SOURCES
 
 # Conservative SP processing lag (days behind today).
 _SP_LAG_DAYS: int = 60
-# Maximum day_range the FIRMS area CSV API accepts.
+# Maximum day_range the FIRMS area CSV API accepts per product type.
+# NRT endpoint accepts up to 10; SP endpoint accepts only up to 5 (observed 2026-05-19).
 _NRT_WINDOW_DAYS: int = 10
+_SP_WINDOW_DAYS: int = 5
 
 
 def _effective_cache_dir(cache_dir: Path | None) -> Path:
@@ -168,10 +170,12 @@ def fetch_hotspots_historical(
 
     frames: list[pd.DataFrame] = []
     chunk_start = start
+    # SP endpoint caps day_range at 5; NRT allows up to 10.
+    max_chunk = _SP_WINDOW_DAYS if source in _SP_SOURCES else _NRT_WINDOW_DAYS
 
     while chunk_start <= end:
         days_remaining = (end - chunk_start).days + 1
-        days_in_chunk = min(_NRT_WINDOW_DAYS, days_remaining)
+        days_in_chunk = min(max_chunk, days_remaining)
         # The API date parameter is the END date of the window.
         chunk_end = chunk_start + timedelta(days=days_in_chunk - 1)
 
@@ -223,7 +227,7 @@ def fetch_hotspots_hybrid(
     sp_source: str = "VIIRS_NOAA20_SP",
     nrt_source: str = "VIIRS_NOAA20_NRT",
     sp_lag_days: int = _SP_LAG_DAYS,
-    nrt_window_days: int = _NRT_WINDOW_DAYS,
+    nrt_window_days: int = _NRT_WINDOW_DAYS,  # NRT max window
     cache_dir: Path | None = None,
 ) -> pd.DataFrame:
     """Fetch FIRMS hotspots using SP for history and NRT for recent days.

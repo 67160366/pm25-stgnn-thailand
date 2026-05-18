@@ -330,15 +330,19 @@ class TestFetchHotspotsHistorical:
         )
 
     def test_historical_chunks_25_day_range(self, requests_mock, mock_cache_dir, monkeypatch):
-        """A 25-day range should result in exactly 3 HTTP requests (10+10+5)."""
+        """A 25-day SP range should result in exactly 5 HTTP requests (5+5+5+5+5).
+
+        SP endpoint caps day_range at 5 (vs 10 for NRT); observed 2026-05-19.
+        """
         monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
 
         csv_response = "latitude,longitude\n18.5,99.5\n"
 
-        # Chunks: 2024-01-01 to 2024-01-10 (10d), 2024-01-11 to 2024-01-20 (10d),
-        #         2024-01-21 to 2024-01-25 (5d)
-        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 10), text=csv_response)
-        requests_mock.register_uri("GET", self._sp_url("2024-01-20", 10), text=csv_response)
+        # Chunks: Jan 1-5 (5d), Jan 6-10 (5d), Jan 11-15 (5d), Jan 16-20 (5d), Jan 21-25 (5d)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-05", 5), text=csv_response)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 5), text=csv_response)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-15", 5), text=csv_response)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-20", 5), text=csv_response)
         requests_mock.register_uri("GET", self._sp_url("2024-01-25", 5), text=csv_response)
 
         df = firms.fetch_hotspots_historical(
@@ -348,18 +352,21 @@ class TestFetchHotspotsHistorical:
             cache_dir=mock_cache_dir,
         )
 
-        assert len(requests_mock.request_history) == 3
-        assert len(df) == 3  # 1 row per chunk
+        assert len(requests_mock.request_history) == 5
+        assert len(df) == 5  # 1 row per chunk
 
     def test_historical_returns_combined_df(self, requests_mock, mock_cache_dir, monkeypatch):
-        """Rows from all chunks should be concatenated into a single DataFrame."""
+        """Rows from all SP chunks (5-day windows) should be concatenated."""
         monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
 
         csv_chunk1 = "latitude,longitude\n18.5,99.5\n18.6,99.6\n"
         csv_chunk2 = "latitude,longitude\n18.7,99.7\n"
+        csv_chunk3 = "latitude,longitude\n18.8,99.8\n"
 
-        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 10), text=csv_chunk1)
-        requests_mock.register_uri("GET", self._sp_url("2024-01-15", 5), text=csv_chunk2)
+        # 15-day range with 5-day SP chunks → 3 requests: Jan 1-5, Jan 6-10, Jan 11-15
+        requests_mock.register_uri("GET", self._sp_url("2024-01-05", 5), text=csv_chunk1)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 5), text=csv_chunk2)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-15", 5), text=csv_chunk3)
 
         df = firms.fetch_hotspots_historical(
             start_date="2024-01-01",
@@ -368,8 +375,8 @@ class TestFetchHotspotsHistorical:
             cache_dir=mock_cache_dir,
         )
 
-        assert len(df) == 3
-        assert list(df["latitude"]) == [18.5, 18.6, 18.7]
+        assert len(df) == 4  # 2 + 1 + 1
+        assert list(df["latitude"]) == [18.5, 18.6, 18.7, 18.8]
 
     def test_historical_single_day(self, requests_mock, mock_cache_dir, monkeypatch):
         """A single-day range should produce exactly one HTTP request."""
