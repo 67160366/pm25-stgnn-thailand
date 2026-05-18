@@ -90,4 +90,14 @@ print(f'  scatter smoke test:       PASS ({actual})')
 "@
 
 Write-Host ""
+
+# --- Set PYTHONUTF8=1 permanently for current user ---
+# Required on Windows when the repo path contains non-ASCII characters (e.g. Thai).
+# Without this, Python's site.py may fail to read the editable-install .pth file.
+Write-Host "Setting PYTHONUTF8=1 for current user..." -ForegroundColor Yellow
+[Environment]::SetEnvironmentVariable("PYTHONUTF8", "1", "User")
+Write-Host "  PYTHONUTF8=1 set in User environment." -ForegroundColor Green
+Write-Host "  IMPORTANT: restart your shell (or open a new terminal) for this to take effect." -ForegroundColor Yellow
+Write-Host ""
+
 Write-Host "=== Native deps installed successfully ===" -ForegroundColor Green

@@ -31,7 +31,8 @@ Three novelties:
 - 9 Northern provinces: Chiang Mai, Chiang Rai, Lampang, Lamphun,
   Mae Hong Son, Nan, Phayao, Phrae, Tak
 - Bounding box: lon 97.0–101.5, lat 16.0–21.0
-- 15 core + up to 10 extended stations, all from `provider.name == "Air4Thai"`
+- 18 curated stations (15 core + 3 extended, criteria documented in docs/DESIGN.md
+  section 3), all from `provider.name == "Air4Thai"`
 - Time range: 2022-01-01 → 2025-12-31 (3 train seasons + val + test)
 - Forecast horizons: 6h, 12h, 24h, 48h
 - Hourly resolution
