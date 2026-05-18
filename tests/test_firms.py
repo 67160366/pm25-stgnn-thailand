@@ -424,6 +424,113 @@ class TestFetchHotspotsHistorical:
         assert "VIIRS_NOAA20_SP" in requests_mock.request_history[0].url
 
 
+class TestFetchHotspotsHybrid:
+    """Tests for fetch_hotspots_hybrid()."""
+
+    _BBOX_STR = "97.0,16.0,101.5,21.0"
+
+    @staticmethod
+    def _patch_today(monkeypatch, fixed_today: date) -> None:
+        """Monkeypatch date.today() in the firms module to return a fixed date."""
+        import datetime as _dt
+
+        class _FakeDate(_dt.date):
+            @classmethod
+            def today(cls) -> date:
+                return fixed_today
+
+        monkeypatch.setattr(firms, "date", _FakeDate)
+
+    def test_invalid_sp_source_raises(self, monkeypatch) -> None:
+        """Invalid sp_source should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        with pytest.raises(ValueError, match="Unknown FIRMS source"):
+            firms.fetch_hotspots_hybrid(sp_source="INVALID_SP")
+
+    def test_invalid_nrt_source_raises(self, monkeypatch) -> None:
+        """Invalid nrt_source should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        with pytest.raises(ValueError, match="Unknown FIRMS source"):
+            firms.fetch_hotspots_hybrid(nrt_source="INVALID_NRT")
+
+    def test_end_before_start_raises(self, monkeypatch) -> None:
+        """end_date earlier than start_date should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        with pytest.raises(ValueError, match="end_date"):
+            firms.fetch_hotspots_hybrid(start_date="2024-03-10", end_date="2024-03-01")
+
+    def test_old_range_uses_sp_only(self, requests_mock, mock_cache_dir, monkeypatch) -> None:
+        """Dates well before the SP cutoff should only trigger SP requests, not NRT."""
+        import re
+
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        self._patch_today(monkeypatch, date(2024, 3, 15))
+        # fixed today: sp_cutoff=2024-01-15, nrt_start=2024-03-05
+        # Range 2022-01-01..2022-01-05 is before both → SP only
+        requests_mock.register_uri("GET", re.compile(".*"), text="latitude,longitude\n18.0,99.0\n")
+
+        firms.fetch_hotspots_hybrid(
+            start_date="2022-01-01",
+            end_date="2022-01-05",
+            sp_lag_days=60,
+            nrt_window_days=10,
+            cache_dir=mock_cache_dir,
+        )
+
+        urls = [r.url for r in requests_mock.request_history]
+        assert all("VIIRS_NOAA20_SP" in u for u in urls), "Only SP requests expected"
+        assert all("VIIRS_NOAA20_NRT" not in u for u in urls), "No NRT requests expected"
+
+    def test_recent_range_uses_nrt_only(self, requests_mock, mock_cache_dir, monkeypatch) -> None:
+        """Dates within the SP lag window should only trigger NRT requests."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        self._patch_today(monkeypatch, date(2024, 3, 15))
+        # sp_cutoff=2024-01-15, nrt_start=2024-03-05
+        # start=2024-03-08 > sp_cutoff → SP skipped; end=2024-03-15 → NRT fetched
+        # NRT day_range = (2024-03-15 - 2024-03-08).days + 1 = 8
+        nrt_url = (
+            f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/test-api-key"
+            f"/VIIRS_NOAA20_NRT/{self._BBOX_STR}/8/2024-03-15"
+        )
+        requests_mock.register_uri("GET", nrt_url, text="latitude,longitude\n18.0,99.0\n")
+
+        df = firms.fetch_hotspots_hybrid(
+            start_date="2024-03-08",
+            end_date="2024-03-15",
+            sp_lag_days=60,
+            nrt_window_days=10,
+            cache_dir=mock_cache_dir,
+        )
+
+        urls = [r.url for r in requests_mock.request_history]
+        assert all("VIIRS_NOAA20_NRT" in u for u in urls), "Only NRT request expected"
+        assert all("VIIRS_NOAA20_SP" not in u for u in urls), "No SP request expected"
+        assert len(df) == 1
+
+    def test_gap_warning_emitted(self, requests_mock, mock_cache_dir, monkeypatch, caplog) -> None:
+        """A gap between SP and NRT coverage should emit a WARNING log."""
+        import logging
+        import re
+
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+        self._patch_today(monkeypatch, date(2024, 3, 15))
+        # sp_cutoff=2024-01-15, nrt_start=2024-03-05 → uncoverable gap: 2024-01-16..2024-03-04
+        requests_mock.register_uri("GET", re.compile(".*"), text="latitude,longitude\n18.0,99.0\n")
+
+        with caplog.at_level(logging.WARNING, logger="src.data.scrapers.firms"):
+            firms.fetch_hotspots_hybrid(
+                start_date="2022-01-01",
+                end_date="2024-03-15",
+                sp_lag_days=60,
+                nrt_window_days=10,
+                cache_dir=mock_cache_dir,
+            )
+
+        assert any(
+            "uncoverable gap" in r.message for r in caplog.records
+        ), "Expected a gap warning in the log"
+
+
 class TestBboxConstant:
     """Tests for BBOX_NORTHERN_THAILAND constant."""
 

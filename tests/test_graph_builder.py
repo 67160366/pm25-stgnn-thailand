@@ -20,7 +20,6 @@ from src.data.graph_builder import (
     build_graph,
 )
 
-
 # ---------------------------------------------------------------------------
 # Test fixtures
 # ---------------------------------------------------------------------------
@@ -68,7 +67,7 @@ class TestTypeASymmetry:
         """For every (i,j) edge there must also be a (j,i) edge."""
         # Two stations 50 km apart — well within the 100 km cap
         df = _two_stations(18.0, 99.0, 18.45, 99.0)  # ~50 km north-south
-        ei, ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
+        ei, _ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
         assert ei.shape[0] == 2
         assert ei.shape[1] > 0, "Expected at least one edge pair"
         pairs = set(map(tuple, ei.T.tolist()))
@@ -78,7 +77,7 @@ class TestTypeASymmetry:
     def test_type_a_weight_same_both_directions(self) -> None:
         """Edge weight must be identical in both directions."""
         df = _two_stations(18.0, 99.0, 18.45, 99.0)
-        ei, ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
+        _ei, ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
         # weights should be identical for (0,1) and (1,0)
         assert ea[0].item() == pytest.approx(ea[1].item(), rel=1e-6)
 
@@ -124,8 +123,13 @@ class TestTypeBAlignmentThreshold:
         # alignment = cos(bearing - pi/2)
         # For target due north bearing=0: cos(0 - pi/2) = 0 < 0.3 -> excluded ✓
         df = _two_stations(18.0, 99.0, 19.0, 99.0)  # target due north
-        cfg = {"wind_mode": "constant_ne", "synthetic_u": 1.0, "synthetic_v": 0.0,
-               "type_b_max_km": 200.0, "type_b_min_alignment": 0.3}
+        cfg = {
+            "wind_mode": "constant_ne",
+            "synthetic_u": 1.0,
+            "synthetic_v": 0.0,
+            "type_b_max_km": 200.0,
+            "type_b_min_alignment": 0.3,
+        }
         ei, _ = _build_type_b_edges(df, None, cfg)
         assert ei.shape[1] == 0, "Perpendicular wind should produce no Type B edge"
 
@@ -141,8 +145,13 @@ class TestTypeCDistanceThreshold:
         df_s = pd.DataFrame({"station_id": [1], "lat": [18.0], "lon": [99.0]})
         # Hotspot 800 km away (roughly at lat 25, same lon)
         df_h = _hotspot_df(lat=25.0, lon=99.0, frp=500.0)
-        cfg = {"wind_mode": "constant_ne", "synthetic_u": 0.0, "synthetic_v": 1.0,
-               "type_c_max_km": 500.0, "type_c_min_alignment": 0.4}
+        cfg = {
+            "wind_mode": "constant_ne",
+            "synthetic_u": 0.0,
+            "synthetic_v": 1.0,
+            "type_c_max_km": 500.0,
+            "type_c_min_alignment": 0.4,
+        }
         ei, _ = _build_type_c_edges(df_s, df_h, None, cfg)
         assert ei.shape[1] == 0, "Hotspot > 500 km should produce no Type C edge"
 
@@ -221,12 +230,12 @@ class TestTypeCReversedWind:
         cfg = {
             "wind_mode": "constant_ne",
             "synthetic_u": 0.0,
-            "synthetic_v": -5.0,   # south wind — blows away from station
+            "synthetic_v": -5.0,  # south wind — blows away from station
             "type_c_max_km": 500.0,
             "type_c_min_alignment": 0.4,
         }
         ei, _ = _build_type_c_edges(df_s, df_h, None, cfg)
-        assert ei.shape[1] == 0, "South wind with hotspot-to-north path should produce no Type C edge"
+        assert ei.shape[1] == 0, "South wind with north-path should produce no Type C edge"
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +251,7 @@ class TestTypeAWeightFormula:
         df = _two_stations(18.0, 99.0, 18.45, 99.0)
         d = _haversine_km(18.0, 99.0, 18.45, 99.0)
         expected_weight = math.exp(-d / 50.0)
-        ei, ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
+        _, ea = _build_type_a_edges(df, {"type_a_max_km": 100.0})
         # First edge weight (either direction; both equal)
         assert ea[0].item() == pytest.approx(expected_weight, rel=1e-5)
         # Spot-check: if distance is ~50 km, weight should be near exp(-1)

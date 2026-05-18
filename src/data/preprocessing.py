@@ -138,20 +138,24 @@ def _apply_gap_policy(series: pd.Series) -> tuple[pd.Series, pd.Series, pd.Serie
         return series.copy(), false_series, false_series.copy()
 
     gap_lengths = _label_gap_runs(series)
-    mask_long = gap_lengths > _GAP_FFILL_H  # >24h → mask in loss
+    short_mask = (gap_lengths > 0) & (gap_lengths < _GAP_INTERPOLATE_H)
+    medium_mask = (gap_lengths >= _GAP_INTERPOLATE_H) & (gap_lengths <= _GAP_FFILL_H)
+    long_mask = gap_lengths > _GAP_FFILL_H
 
     filled = series.copy()
 
-    # Step 1: Interpolate gaps < 6h (limit=5 fills at most 5 consecutive NaN).
-    filled = filled.interpolate(method="linear", limit=_GAP_INTERPOLATE_H - 1, limit_area="inside")
+    # Short gaps (< 6h): linear interpolation — only copy interpolated values
+    # into short-gap positions so medium/long gaps are never contaminated.
+    interp = series.interpolate(method="linear", limit=_GAP_INTERPOLATE_H - 1, limit_area="inside")
+    filled[short_mask] = interp[short_mask]
 
-    # Step 2: Forward-fill remaining NaN for gaps 6-24h.
-    # ffill(limit=24) will also partially fill the first 24h of >24h gaps;
-    # step 3 restores those to NaN.
-    filled = filled.ffill(limit=_GAP_FFILL_H)
+    # Medium gaps (6-24h): forward-fill from original series.
+    # Using the original (not already-modified) series prevents interpolated
+    # short-gap values from propagating into adjacent medium gaps.
+    ffilled = series.ffill(limit=_GAP_FFILL_H)
+    filled[medium_mask] = ffilled[medium_mask]
 
-    # Step 3: Restore >24h gap positions to NaN (mask_long is from original data).
-    filled[mask_long] = float("nan")
+    # Long gaps (>24h) remain NaN — mask_in_loss=True is returned as long_mask.
 
     # Exclude-from-training: any month where a gap exceeded 7 consecutive days.
     exclude_from_training = pd.Series(False, index=series.index)
@@ -166,7 +170,7 @@ def _apply_gap_policy(series: pd.Series) -> tuple[pd.Series, pd.Series, pd.Serie
             len(months_to_exclude),
         )
 
-    return filled, mask_long, exclude_from_training
+    return filled, long_mask, exclude_from_training
 
 
 def _fit_scalers(df: pd.DataFrame) -> dict[int, dict[str, float]]:

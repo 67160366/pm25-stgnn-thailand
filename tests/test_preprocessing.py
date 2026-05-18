@@ -8,11 +8,11 @@ import pandas as pd
 import pytest
 
 from src.data.preprocessing import (
+    _add_cyclic_features,
     _apply_gap_policy,
     _fit_scalers,
     _label_gap_runs,
     _normalize,
-    _add_cyclic_features,
 )
 
 
@@ -44,7 +44,7 @@ class TestLabelGapRuns:
 
     def test_multiple_gaps(self) -> None:
         s = _hourly_series(50)
-        s.iloc[2:5] = float("nan")   # gap of 3h
+        s.iloc[2:5] = float("nan")  # gap of 3h
         s.iloc[20:27] = float("nan")  # gap of 7h
         result = _label_gap_runs(s)
         assert (result.iloc[2:5] == 3).all()
@@ -73,13 +73,27 @@ class TestApplyGapPolicy:
 
     def test_medium_gap_is_forward_filled(self) -> None:
         """Gap of 10h (6-24h) should be forward-filled from last known value."""
-        s = _hourly_series(50, fill_value=10.0)  # default fill_value is 10.0
+        s = _hourly_series(50, fill_value=10.0)
         s.iloc[5:15] = float("nan")  # 10h gap
         filled, mask, _ = _apply_gap_policy(s)
         assert not filled.iloc[5:15].isna().any(), "Medium gap should be ffilled"
-        # All filled values should equal the last known value before the gap (10.0)
         assert (filled.iloc[5:15] == 10.0).all()
         assert not mask.any()
+
+    def test_medium_gap_no_interpolation_ramp(self) -> None:
+        """Medium gap on a ramp series must be ffilled, not interpolated (DESIGN.md §4.3)."""
+        # Ramp 0..4, then 10-hour gap (medium), then 15..19.
+        # Correct: all 10 gap positions filled with 4.0 (last known value).
+        # Buggy (pre-fix): positions 0-4 of gap get interpolated to 5.0..9.0.
+        idx = pd.date_range("2022-01-01", periods=20, freq="1h", tz="UTC")
+        nans: list[float] = [float("nan")] * 10
+        vals = [float(i) for i in range(5)] + nans + [float(i) for i in range(15, 20)]
+        s = pd.Series(vals, index=idx, dtype="float32")
+        filled, _, _ = _apply_gap_policy(s)
+        assert filled.iloc[5:15].notna().all(), "Medium gap should be fully filled"
+        assert all(
+            v == pytest.approx(4.0) for v in filled.iloc[5:15]
+        ), "Medium gap must be ffilled from 4.0, not interpolated"
 
     def test_long_gap_masked_not_filled(self) -> None:
         """Gap > 24h should remain NaN with mask_in_loss=True."""
@@ -159,14 +173,16 @@ class TestFitScalers:
 class TestNormalize:
     def test_normalize_produces_zero_at_median(self) -> None:
         """A value equal to the median should normalize to 0."""
-        df = pd.DataFrame({"station_id": [1], "pm25_raw": [15.0], "timestamp": [pd.Timestamp("2022-01-01", tz="UTC")]})
+        ts = pd.Timestamp("2022-01-01", tz="UTC")
+        df = pd.DataFrame({"station_id": [1], "pm25_raw": [15.0], "timestamp": [ts]})
         scalers = {1: {"center_": 15.0, "scale_": 10.0}}
         result = _normalize(df, scalers)
         assert result["pm25_scaled"].iloc[0] == pytest.approx(0.0, abs=1e-6)
 
     def test_normalize_nan_stays_nan(self) -> None:
         """NaN pm25_raw should produce NaN pm25_scaled."""
-        df = pd.DataFrame({"station_id": [1], "pm25_raw": [float("nan")], "timestamp": [pd.Timestamp("2022-01-01", tz="UTC")]})
+        ts = pd.Timestamp("2022-01-01", tz="UTC")
+        df = pd.DataFrame({"station_id": [1], "pm25_raw": [float("nan")], "timestamp": [ts]})
         scalers = {1: {"center_": 10.0, "scale_": 5.0}}
         result = _normalize(df, scalers)
         assert np.isnan(result["pm25_scaled"].iloc[0])

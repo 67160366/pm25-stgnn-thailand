@@ -80,6 +80,11 @@ def fetch_hotspots(
     Raises:
         ValueError: If ``day_range`` is not in [1, 10] or ``source`` is not a
             recognised FIRMS source key.
+
+    Note:
+        SP sources (``VIIRS_NOAA20_SP``, ``VIIRS_SNPP_SP``) reject ``day_range > 5``
+        with HTTP 400.  Pass ``day_range <= 5`` when using SP, or call
+        ``fetch_hotspots_historical`` which chunks automatically.
     """
     if day_range < 1 or day_range > 10:
         raise ValueError(f"day_range must be between 1 and 10, got {day_range}")
