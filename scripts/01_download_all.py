@@ -1,20 +1,25 @@
 """CLI entry point for downloading all raw data sources.
 
 Commands:
-    discover  -- Discover Northern Thailand stations + write metadata.
-    backfill  -- Backfill OpenAQ historical for curated stations.
-    firms     -- Fetch FIRMS hotspots batched in 10-day chunks.
-    era5      -- STUB - pending CDS profile completion.
+    discover      -- Discover Northern Thailand stations + write metadata.
+    backfill      -- Backfill OpenAQ historical for curated stations.
+    firms         -- Fetch FIRMS hotspots for a date range (single source, chunked).
+    firms-hybrid  -- Fetch FIRMS hotspots using SP for history + NRT for recent days.
+    era5          -- STUB - pending CDS profile completion.
 """
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 import typer
 
 from src.data.loader import build_station_metadata
-from src.data.scrapers.firms import fetch_hotspots
+from src.data.scrapers.firms import (
+    BBOX_NORTHERN_THAILAND,
+    fetch_hotspots_historical,
+    fetch_hotspots_hybrid,
+)
 from src.data.scrapers.openaq import backfill_station
 
 app = typer.Typer()
@@ -65,36 +70,74 @@ def backfill(
 
 @app.command()
 def firms(
-    start_date: str = typer.Option(..., help="Start date in ISO 8601 format (YYYY-MM-DD)."),
-    end_date: str = typer.Option(..., help="End date in ISO 8601 format (YYYY-MM-DD)."),
+    start_date: str = typer.Option("2022-01-01", help="Start date (YYYY-MM-DD), inclusive."),
+    end_date: str = typer.Option("2025-12-31", help="End date (YYYY-MM-DD), inclusive."),
+    source: str = typer.Option(
+        "VIIRS_NOAA20_SP",
+        help=(
+            "FIRMS data source key.  Use VIIRS_NOAA20_SP for historical backfill "
+            "(2022-01-01 through ~today-60d) or VIIRS_NOAA20_NRT for the last 10 days."
+        ),
+    ),
 ) -> None:
-    """Fetch FIRMS hotspots batched in 10-day chunks."""
-    start = date.fromisoformat(start_date)
-    end = date.fromisoformat(end_date)
+    """Fetch FIRMS hotspots for a date range using a single source, batched in 10-day chunks.
 
-    if end < start:
-        typer.echo("Error: end_date must be >= start_date.", err=True)
-        raise typer.Exit(code=1)
-
-    total_rows = 0
-    n_chunks = 0
-    chunk_start = start
-
-    while chunk_start <= end:
-        days_remaining = (end - chunk_start).days + 1
-        days_in_chunk = min(10, days_remaining)
-
-        typer.echo(
-            f"  Fetching FIRMS chunk {chunk_start.isoformat()} " f"(day_range={days_in_chunk}) ..."
+    For a combined SP + NRT approach that maximises coverage, use the
+    firms-hybrid command instead.
+    """
+    try:
+        df = fetch_hotspots_historical(
+            bbox=BBOX_NORTHERN_THAILAND,
+            start_date=start_date,
+            end_date=end_date,
+            source=source,
         )
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
 
-        df_chunk = fetch_hotspots(date_=chunk_start, day_range=days_in_chunk)
-        total_rows += len(df_chunk)
-        n_chunks += 1
+    typer.echo(f"FIRMS done: {len(df)} hotspot rows, source={source} {start_date}→{end_date}.")
 
-        chunk_start += timedelta(days=days_in_chunk)
 
-    typer.echo(f"FIRMS done: {total_rows} hotspot rows across {n_chunks} chunks.")
+@app.command(name="firms-hybrid")
+def firms_hybrid(
+    start_date: str = typer.Option("2022-01-01", help="Start date (YYYY-MM-DD), inclusive."),
+    end_date: str = typer.Option(
+        None, help="End date (YYYY-MM-DD), inclusive.  Defaults to today."
+    ),
+    sp_source: str = typer.Option(
+        "VIIRS_NOAA20_SP",
+        help="Standard Product source key for historical data.",
+    ),
+    nrt_source: str = typer.Option(
+        "VIIRS_NOAA20_NRT",
+        help="Near Real-Time source key for recent data (last ~10 days).",
+    ),
+) -> None:
+    """Fetch FIRMS hotspots using SP for history and NRT for recent days.
+
+    Observed SP lag as of 2026-05-18: ~48 days (conservative cutoff: 60 days).
+    A gap of roughly 38-48 days between SP end and NRT start cannot be filled
+    from the FIRMS area CSV API — this is a NASA pipeline constraint.
+    """
+    resolved_end = end_date if end_date else date.today().isoformat()
+
+    try:
+        df = fetch_hotspots_hybrid(
+            bbox=BBOX_NORTHERN_THAILAND,
+            start_date=start_date,
+            end_date=resolved_end,
+            sp_source=sp_source,
+            nrt_source=nrt_source,
+        )
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(
+        f"FIRMS hybrid done: {len(df)} hotspot rows, "
+        f"SP={sp_source} + NRT={nrt_source}, {start_date}→{resolved_end}."
+    )
 
 
 @app.command()

@@ -214,6 +214,209 @@ class TestFetchHotspots:
         assert len(cache_files) == 1
 
 
+class TestSourceValidation:
+    """Tests for source name validation across all FIRMS functions."""
+
+    def test_source_name_validation_sp_accepted(self, requests_mock, mock_cache_dir, monkeypatch):
+        """VIIRS_NOAA20_SP should be accepted and build the correct URL."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+
+        requests_mock.register_uri(
+            "GET",
+            "https://firms.modaps.eosdis.nasa.gov/api/area/csv/test-api-key/VIIRS_NOAA20_SP/97.0,16.0,101.5,21.0/1/2024-03-01",
+            text=csv_response,
+        )
+
+        df = firms.fetch_hotspots(
+            source="VIIRS_NOAA20_SP",
+            day_range=1,
+            date_=date(2024, 3, 1),
+        )
+
+        assert len(df) == 1
+        request = requests_mock.request_history[0]
+        assert "VIIRS_NOAA20_SP" in request.url
+        assert "2024-03-01" in request.url
+
+    def test_source_name_validation_nrt_accepted(self, requests_mock, mock_cache_dir, monkeypatch):
+        """VIIRS_NOAA20_NRT should be accepted and build the correct URL."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+
+        requests_mock.register_uri(
+            "GET",
+            "https://firms.modaps.eosdis.nasa.gov/api/area/csv/test-api-key/VIIRS_NOAA20_NRT/97.0,16.0,101.5,21.0/1",
+            text=csv_response,
+        )
+
+        df = firms.fetch_hotspots(source="VIIRS_NOAA20_NRT", day_range=1)
+
+        assert len(df) == 1
+        request = requests_mock.request_history[0]
+        assert "VIIRS_NOAA20_NRT" in request.url
+
+    def test_source_name_validation_invalid_raises(self, mock_cache_dir, monkeypatch):
+        """An unrecognised source name should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        with pytest.raises(ValueError, match="Unknown FIRMS source"):
+            firms.fetch_hotspots(source="INVALID_SOURCE", day_range=1)
+
+    def test_source_name_validation_all_nrt_sources_accepted(
+        self, requests_mock, mock_cache_dir, monkeypatch
+    ):
+        """All declared NRT source keys should be accepted without raising."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+        base = "https://firms.modaps.eosdis.nasa.gov/api/area/csv/test-api-key"
+        bbox = "97.0,16.0,101.5,21.0"
+
+        for src in sorted(firms._NRT_SOURCES):
+            requests_mock.register_uri(
+                "GET",
+                f"{base}/{src}/{bbox}/1",
+                text=csv_response,
+            )
+
+        for src in sorted(firms._NRT_SOURCES):
+            df = firms.fetch_hotspots(source=src, day_range=1)
+            assert len(df) == 1, f"Expected rows for source={src}"
+
+    def test_source_name_validation_all_sp_sources_accepted(
+        self, requests_mock, mock_cache_dir, monkeypatch
+    ):
+        """All declared SP source keys should be accepted without raising."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+        base = "https://firms.modaps.eosdis.nasa.gov/api/area/csv/test-api-key"
+        bbox = "97.0,16.0,101.5,21.0"
+
+        for src in sorted(firms._SP_SOURCES):
+            requests_mock.register_uri(
+                "GET",
+                f"{base}/{src}/{bbox}/1/2024-03-01",
+                text=csv_response,
+            )
+
+        for src in sorted(firms._SP_SOURCES):
+            df = firms.fetch_hotspots(source=src, day_range=1, date_=date(2024, 3, 1))
+            assert len(df) == 1, f"Expected rows for source={src}"
+
+    def test_fetch_hotspots_historical_invalid_source_raises(self, mock_cache_dir, monkeypatch):
+        """fetch_hotspots_historical with invalid source should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        with pytest.raises(ValueError, match="Unknown FIRMS source"):
+            firms.fetch_hotspots_historical(
+                start_date="2024-01-01",
+                end_date="2024-01-05",
+                source="NOT_A_SOURCE",
+                cache_dir=mock_cache_dir,
+            )
+
+
+class TestFetchHotspotsHistorical:
+    """Tests for fetch_hotspots_historical() function."""
+
+    def _sp_url(self, date_str: str, day_range: int) -> str:
+        return (
+            f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
+            f"test-api-key/VIIRS_NOAA20_SP/97.0,16.0,101.5,21.0/{day_range}/{date_str}"
+        )
+
+    def test_historical_chunks_25_day_range(self, requests_mock, mock_cache_dir, monkeypatch):
+        """A 25-day range should result in exactly 3 HTTP requests (10+10+5)."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+
+        # Chunks: 2024-01-01 to 2024-01-10 (10d), 2024-01-11 to 2024-01-20 (10d),
+        #         2024-01-21 to 2024-01-25 (5d)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 10), text=csv_response)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-20", 10), text=csv_response)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-25", 5), text=csv_response)
+
+        df = firms.fetch_hotspots_historical(
+            start_date="2024-01-01",
+            end_date="2024-01-25",
+            source="VIIRS_NOAA20_SP",
+            cache_dir=mock_cache_dir,
+        )
+
+        assert len(requests_mock.request_history) == 3
+        assert len(df) == 3  # 1 row per chunk
+
+    def test_historical_returns_combined_df(self, requests_mock, mock_cache_dir, monkeypatch):
+        """Rows from all chunks should be concatenated into a single DataFrame."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_chunk1 = "latitude,longitude\n18.5,99.5\n18.6,99.6\n"
+        csv_chunk2 = "latitude,longitude\n18.7,99.7\n"
+
+        requests_mock.register_uri("GET", self._sp_url("2024-01-10", 10), text=csv_chunk1)
+        requests_mock.register_uri("GET", self._sp_url("2024-01-15", 5), text=csv_chunk2)
+
+        df = firms.fetch_hotspots_historical(
+            start_date="2024-01-01",
+            end_date="2024-01-15",
+            source="VIIRS_NOAA20_SP",
+            cache_dir=mock_cache_dir,
+        )
+
+        assert len(df) == 3
+        assert list(df["latitude"]) == [18.5, 18.6, 18.7]
+
+    def test_historical_single_day(self, requests_mock, mock_cache_dir, monkeypatch):
+        """A single-day range should produce exactly one HTTP request."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+        requests_mock.register_uri("GET", self._sp_url("2024-03-01", 1), text=csv_response)
+
+        df = firms.fetch_hotspots_historical(
+            start_date="2024-03-01",
+            end_date="2024-03-01",
+            source="VIIRS_NOAA20_SP",
+            cache_dir=mock_cache_dir,
+        )
+
+        assert len(requests_mock.request_history) == 1
+        assert len(df) == 1
+
+    def test_historical_end_before_start_raises(self, mock_cache_dir, monkeypatch):
+        """end_date before start_date should raise ValueError."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        with pytest.raises(ValueError, match="end_date"):
+            firms.fetch_hotspots_historical(
+                start_date="2024-03-10",
+                end_date="2024-03-01",
+                source="VIIRS_NOAA20_SP",
+                cache_dir=mock_cache_dir,
+            )
+
+    def test_historical_sp_source_in_url(self, requests_mock, mock_cache_dir, monkeypatch):
+        """SP source name should appear in the request URL."""
+        monkeypatch.setenv("FIRMS_API_KEY", "test-api-key")
+
+        csv_response = "latitude,longitude\n18.5,99.5\n"
+        requests_mock.register_uri("GET", self._sp_url("2024-01-05", 5), text=csv_response)
+
+        firms.fetch_hotspots_historical(
+            start_date="2024-01-01",
+            end_date="2024-01-05",
+            source="VIIRS_NOAA20_SP",
+            cache_dir=mock_cache_dir,
+        )
+
+        assert "VIIRS_NOAA20_SP" in requests_mock.request_history[0].url
+
+
 class TestBboxConstant:
     """Tests for BBOX_NORTHERN_THAILAND constant."""
 
