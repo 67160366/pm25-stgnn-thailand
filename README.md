@@ -45,6 +45,10 @@ dependencies before installing any of them.
 ./install_native_deps.ps1
 ```
 
+> **Note (Windows):** The script sets `PYTHONUTF8=1` as a permanent User environment variable.
+> **Restart your shell** after running it for the change to take effect. This is required when
+> the repo is checked out to a path containing non-ASCII characters (e.g. Thai).
+
 **Linux / macOS:**
 
 ```bash

@@ -112,27 +112,29 @@ before Session 2.
 |---|---|---|
 | `openaq.py` | Working | Verified on 18 stations; 5,619 rows for station 225579 (2025) |
 | `firms.py` | Working | 19,798 rows for 5-day window, Northern Thailand |
-| `era5.py` | Stub | `raise NotImplementedError` — needs CDS profile setup |
+| `era5.py` | Stub | `raise NotImplementedError` — deferred to Session 3 (not blocked; see DESIGN.md §11) |
 | `loader.py` | Working | 18 stations cached to `data/processed/stations_metadata.parquet` |
 
 ---
 
-## Open Questions for User
+## Open Questions — Resolved
 
-1. **ERA5 CDS credentials** — Do you have a CDS API key? ERA5 implementation is blocked until
-   `CDS_API_URL` and `CDS_API_KEY` are set in `.env`. If not, we can defer ERA5 fully to Session 3
-   and use only OpenAQ + FIRMS features for initial model experiments.
+1. **ERA5 CDS credentials** — **Resolved: deferred to Session 3.** ERA5 is not blocked, just
+   deferred. Model will train on OpenAQ + FIRMS features only until Session 3 adds ERA5.
+   Documented in DESIGN.md section 11.
 
-2. **Data gaps** — Station 225579 has multi-week gaps in mid-2025. Should preprocessing fill gaps
-   by linear interpolation, forward-fill, or mask them as missing? This affects the training
-   window design.
+2. **Data gaps** — **Resolved: follow DESIGN.md section 4.3 policy.**
+   <6h interpolate; 6–24h forward-fill capped; >24h mask in loss; >7 days exclude that month.
+   Implementation in `src/data/preprocessing.py` during Session 2.
 
-3. **Python path encoding** — The `.pth` file fix needs to be re-applied after every `uv sync`.
-   Would it be acceptable to clone the repo to a path without Thai characters (e.g., `C:\projects\pm25-stgnn`)
-   for development? Or should we add a `sitecustomize.py` permanent fix?
+3. **Python path encoding** — **Resolved: `PYTHONUTF8=1` environment variable.**
+   `install_native_deps.ps1` now sets `PYTHONUTF8=1` as a permanent User-scope env var via
+   `[Environment]::SetEnvironmentVariable`. Users must restart their shell after running the
+   script on Windows. No repo move required.
 
-4. **All 18 stations vs. 15 core** — CLAUDE.md says "15 core + up to 10 extended". Should we
-   drop 3 stations to hit exactly 15, or use all 18 as-is?
+4. **All 18 stations vs. 15 core** — **Resolved: keep all 18.**
+   CLAUDE.md and DESIGN.md section 3 updated to reflect 18 curated stations
+   (15 core + 3 extended).
 
 ---
 
@@ -151,5 +153,4 @@ Session 2 should build the preprocessing pipeline (`src/data/preprocessing.py`):
 
 Before Session 2:
 - Complete the backfill for all 18 stations (run `uv run python scripts/01_download_all.py backfill --start-year 2022 --end-year 2025` — this will take several hours)
-- Resolve the Python encoding issue (see Open Questions #3)
-- Decide on ERA5 approach (Open Questions #1)
+- Run `./install_native_deps.ps1` then restart shell to activate `PYTHONUTF8=1`
