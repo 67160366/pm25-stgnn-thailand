@@ -96,7 +96,7 @@ def firms(
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(code=1) from exc
 
-    typer.echo(f"FIRMS done: {len(df)} hotspot rows, source={source} {start_date}→{end_date}.")
+    typer.echo(f"FIRMS done: {len(df)} hotspot rows, source={source} {start_date}->{end_date}.")
 
 
 @app.command(name="firms-hybrid")
@@ -136,7 +136,7 @@ def firms_hybrid(
 
     typer.echo(
         f"FIRMS hybrid done: {len(df)} hotspot rows, "
-        f"SP={sp_source} + NRT={nrt_source}, {start_date}→{resolved_end}."
+        f"SP={sp_source} + NRT={nrt_source}, {start_date}->{resolved_end}."
     )
 
 
