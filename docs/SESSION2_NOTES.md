@@ -161,7 +161,7 @@ Schema matches DESIGN.md §6.1 (ERA5 weather columns deferred to Session 3).
 |---|---|---|
 | FIRMS SP day_range=10 | day_range=5 | API returns 400 for SP with day_range>5 |
 | Architect agent for preprocessing design | Implemented directly | Architect hit usage limit; design was clear from plan |
-| EDA notebooks | Deferred to Session 3 | Time budget used on data fixes; notebooks need real data to be meaningful |
+| EDA notebooks | Completed in Session 2 (commits c34facc, 77c13ff) | Initially deferred; completed after user flagged as DoD requirement |
 
 ---
 
