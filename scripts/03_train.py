@@ -75,8 +75,10 @@ def main(cfg: DictConfig) -> None:
     )
 
     # --- Model ---
-    # n_features=5: pm25_scaled, hour_sin, hour_cos, doy_sin, doy_cos (DESIGN §6.1)
-    model = instantiate(cfg.model, horizons=list(cfg.data.horizons))
+    # Derive n_stations from the dataset so exclude_stations is respected.
+    # Hardcoding n_stations=18 from config would crash MTGNN when stations are excluded.
+    n_stations = train_ds.n_stations
+    model = instantiate(cfg.model, n_stations=n_stations, horizons=list(cfg.data.horizons))
     logger.info("Model parameters: %d", model.count_parameters())
 
     # --- Trainer ---

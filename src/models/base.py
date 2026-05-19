@@ -73,7 +73,7 @@ class PM25ModelBase(nn.Module, ABC):
             data: Batched HeteroData from the PM25GraphDataset loader.
 
         Returns:
-            Raw µg/m³ predictions of shape (B*N, H).
+            Normalized-scale predictions of shape (B*N, H).
         """
 
     def _postprocess(self, raw: torch.Tensor) -> torch.Tensor:

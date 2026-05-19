@@ -412,6 +412,11 @@ class PM25GraphDataset(torch.utils.data.Dataset):
     # Dataset protocol
     # ------------------------------------------------------------------
 
+    @property
+    def n_stations(self) -> int:
+        """Number of station nodes after applying exclude_stations filter."""
+        return len(self._station_ids)
+
     def __len__(self) -> int:
         return len(self._anchor_indices)
 

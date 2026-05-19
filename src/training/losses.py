@@ -19,8 +19,8 @@ def masked_mse(
     """Mean squared error over valid (non-masked) positions only.
 
     Args:
-        pred: Predictions of shape (B*N, H), raw µg/m³.
-        target: Ground-truth values of shape (B*N, H), raw µg/m³.
+        pred: Predictions of shape (B*N, H), normalized scale (pm25_scaled).
+        target: Ground-truth values of shape (B*N, H), normalized scale.
         mask: Boolean validity mask of shape (B*N, H). True = valid.
 
     Returns:
@@ -40,13 +40,13 @@ def masked_smape(
     """Symmetric mean absolute percentage error over valid positions.
 
     Uses the stabilised form: 2 * |y - ŷ| / (|y| + |ŷ| + eps) to avoid
-    division by zero when PM2.5 is near 0 µg/m³.
+    division by zero when PM2.5 scaled values are near zero.
 
     Args:
-        pred: Predictions of shape (B*N, H), raw µg/m³.
-        target: Ground-truth values of shape (B*N, H), raw µg/m³.
+        pred: Predictions of shape (B*N, H), normalized scale (pm25_scaled).
+        target: Ground-truth values of shape (B*N, H), normalized scale.
         mask: Boolean validity mask of shape (B*N, H). True = valid.
-        eps: Denominator stability constant (µg/m³). Default 1.0.
+        eps: Denominator stability constant. Default 1.0.
 
     Returns:
         Scalar sMAPE tensor in [0, 2]. Returns 0.0 if no valid positions.
