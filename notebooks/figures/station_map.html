@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_18e99672bd80e14c5972b74934022d55 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+<div style="position:fixed;bottom:30px;left:30px;z-index:1000;background:white;
+     padding:10px;border:1px solid #ccc;border-radius:5px;font-size:12px">
+ <b>Data Coverage</b><br>
+ <span style="color:green">&#9679;</span> &ge; 80%<br>
+ <span style="color:orange">&#9679;</span> 50&#8211;79%<br>
+ <span style="color:red">&#9679;</span> &lt; 50%<br>
+ <span style="color:red">&#11044;</span> Low-coverage flag
+</div>
+    
+            <div class="folium-map" id="map_18e99672bd80e14c5972b74934022d55" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_18e99672bd80e14c5972b74934022d55 = L.map(
+                "map_18e99672bd80e14c5972b74934022d55",
+                {
+                    center: [18.5, 99.0],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 7,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_84fca97b6685378f0465a8a01a4032c1 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_84fca97b6685378f0465a8a01a4032c1.addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var circle_marker_402e4bbf8e53f5d485329a43737ad9aa = L.circleMarker(
+                [19.909217, 99.823467],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_50c6e81bb918c11aa30608e8fb6f980e = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_95d249ff2b53ed91319078fc45e57474 = $(`<div id="html_95d249ff2b53ed91319078fc45e57474" style="width: 100.0%; height: 100.0%;"><b>Chiangrai</b><br>Province: Chiang Rai<br>Coverage: 96.0%<br>ID: 2328</div>`)[0];
+                popup_50c6e81bb918c11aa30608e8fb6f980e.setContent(html_95d249ff2b53ed91319078fc45e57474);
+            
+        
+
+        circle_marker_402e4bbf8e53f5d485329a43737ad9aa.bindPopup(popup_50c6e81bb918c11aa30608e8fb6f980e)
+        ;
+
+        
+    
+    
+            circle_marker_402e4bbf8e53f5d485329a43737ad9aa.bindTooltip(
+                `<div>
+                     Chiangrai (96%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f942edf2f754bfcd0ce5bbc0b6d7e1db = L.marker(
+                [19.909217, 99.823467],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_7263bb7d93cde930807838ad88377a60 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eChiangrai\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_f942edf2f754bfcd0ce5bbc0b6d7e1db.setIcon(div_icon_7263bb7d93cde930807838ad88377a60);
+            
+    
+            var circle_marker_f2fbf8ca4c521dcf5474d1d7bf4f250c = L.circleMarker(
+                [18.4267833, 99.7576333],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_c508de178f8e010d1e8df0c619c7a46b = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_f89d944d27ec9def124fd47f938ce664 = $(`<div id="html_f89d944d27ec9def124fd47f938ce664" style="width: 100.0%; height: 100.0%;"><b>Health Promotion Hospi…</b><br>Province: Tak<br>Coverage: 98.7%<br>ID: 2411</div>`)[0];
+                popup_c508de178f8e010d1e8df0c619c7a46b.setContent(html_f89d944d27ec9def124fd47f938ce664);
+            
+        
+
+        circle_marker_f2fbf8ca4c521dcf5474d1d7bf4f250c.bindPopup(popup_c508de178f8e010d1e8df0c619c7a46b)
+        ;
+
+        
+    
+    
+            circle_marker_f2fbf8ca4c521dcf5474d1d7bf4f250c.bindTooltip(
+                `<div>
+                     Health Promotion Hospi… (99%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_97b8bc163d48d5c8647c0ff7da47ef64 = L.marker(
+                [18.4267833, 99.7576333],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_dbc0e789a7ac031a3804d3c0366a6d21 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eHealth Promotion Hospi\u2026\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_97b8bc163d48d5c8647c0ff7da47ef64.setIcon(div_icon_dbc0e789a7ac031a3804d3c0366a6d21);
+            
+    
+            var circle_marker_4580c3988265e05c0b88b5d4fe257c39 = L.circleMarker(
+                [20.427325, 99.883842],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_07c91b9c62b9fd7e65a71003c70c8231 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_3dbef4c0f41555485a1b51a5cb9efa3e = $(`<div id="html_3dbef4c0f41555485a1b51a5cb9efa3e" style="width: 100.0%; height: 100.0%;"><b>Maesai Health Office</b><br>Province: Chiang Rai<br>Coverage: 98.4%<br>ID: 225567</div>`)[0];
+                popup_07c91b9c62b9fd7e65a71003c70c8231.setContent(html_3dbef4c0f41555485a1b51a5cb9efa3e);
+            
+        
+
+        circle_marker_4580c3988265e05c0b88b5d4fe257c39.bindPopup(popup_07c91b9c62b9fd7e65a71003c70c8231)
+        ;
+
+        
+    
+    
+            circle_marker_4580c3988265e05c0b88b5d4fe257c39.bindTooltip(
+                `<div>
+                     Maesai Health Office (98%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2fc40df7e9b44b3ed2f368289732fe78 = L.marker(
+                [20.427325, 99.883842],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_a58c601a027ac34bf61b1af4a2060e5f = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eMaesai Health Office\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_2fc40df7e9b44b3ed2f368289732fe78.setIcon(div_icon_a58c601a027ac34bf61b1af4a2060e5f);
+            
+    
+            var circle_marker_34f107f1b3f2d586619bb6800537e6c4 = L.circleMarker(
+                [18.2783333, 99.5064666],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_0e4c8326eddfc5149c3a44c5e899e992 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_338dd03f383ff4d1dfe0d89b04c7d8bd = $(`<div id="html_338dd03f383ff4d1dfe0d89b04c7d8bd" style="width: 100.0%; height: 100.0%;"><b>Lampang</b><br>Province: Lampang<br>Coverage: 99.5%<br>ID: 225570</div>`)[0];
+                popup_0e4c8326eddfc5149c3a44c5e899e992.setContent(html_338dd03f383ff4d1dfe0d89b04c7d8bd);
+            
+        
+
+        circle_marker_34f107f1b3f2d586619bb6800537e6c4.bindPopup(popup_0e4c8326eddfc5149c3a44c5e899e992)
+        ;
+
+        
+    
+    
+            circle_marker_34f107f1b3f2d586619bb6800537e6c4.bindTooltip(
+                `<div>
+                     Lampang (100%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8dbdceb14a879dd0f122f3f124de830d = L.marker(
+                [18.2783333, 99.5064666],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_61690455d79e622acb51092e0a34ae49 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eLampang\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_8dbdceb14a879dd0f122f3f124de830d.setIcon(div_icon_61690455d79e622acb51092e0a34ae49);
+            
+    
+            var circle_marker_80e5745c17bb142067585e3411179e36 = L.circleMarker(
+                [18.7909333, 98.99],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_036ddb07110a56e23be50c527a0bda24 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_177d9f31317458264fafd21018b110a0 = $(`<div id="html_177d9f31317458264fafd21018b110a0" style="width: 100.0%; height: 100.0%;"><b>Yupparaj Wittayalai Sc…</b><br>Province: Chiang Mai<br>Coverage: 99.9%<br>ID: 225579</div>`)[0];
+                popup_036ddb07110a56e23be50c527a0bda24.setContent(html_177d9f31317458264fafd21018b110a0);
+            
+        
+
+        circle_marker_80e5745c17bb142067585e3411179e36.bindPopup(popup_036ddb07110a56e23be50c527a0bda24)
+        ;
+
+        
+    
+    
+            circle_marker_80e5745c17bb142067585e3411179e36.bindTooltip(
+                `<div>
+                     Yupparaj Wittayalai Sc… (100%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_39ce50dfe11387e0656cbdb73a11ed88 = L.marker(
+                [18.7909333, 98.99],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_f1739070fa3e59b55cb728c04d39c018 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eYupparaj Wittayalai Sc\u2026\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_39ce50dfe11387e0656cbdb73a11ed88.setIcon(div_icon_f1739070fa3e59b55cb728c04d39c018);
+            
+    
+            var circle_marker_8aa59a0bf1b9bfc434d22a4a3238765e = L.circleMarker(
+                [16.820832999999997, 100.258056],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_e538366b1f79c6f0d3f15aea7f544974 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_39e64d7b02df1ac05b3ab6e6421e7a3c = $(`<div id="html_39e64d7b02df1ac05b3ab6e6421e7a3c" style="width: 100.0%; height: 100.0%;"><b>Chom Nan Chaloem Phrak…</b><br>Province: Nan<br>Coverage: 97.5%<br>ID: 225585</div>`)[0];
+                popup_e538366b1f79c6f0d3f15aea7f544974.setContent(html_39e64d7b02df1ac05b3ab6e6421e7a3c);
+            
+        
+
+        circle_marker_8aa59a0bf1b9bfc434d22a4a3238765e.bindPopup(popup_e538366b1f79c6f0d3f15aea7f544974)
+        ;
+
+        
+    
+    
+            circle_marker_8aa59a0bf1b9bfc434d22a4a3238765e.bindTooltip(
+                `<div>
+                     Chom Nan Chaloem Phrak… (97%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_51a82acb62513a5dc42c134c4096ff3c = L.marker(
+                [16.820832999999997, 100.258056],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_077f7c3e1edb05dc782fd9ccb457d4b5 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eChom Nan Chaloem Phrak\u2026\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_51a82acb62513a5dc42c134c4096ff3c.setIcon(div_icon_077f7c3e1edb05dc782fd9ccb457d4b5);
+            
+    
+            var circle_marker_34ec5733e5b0496a77db824625ede1d9 = L.circleMarker(
+                [16.734413, 98.566961],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_a3f4073ff0c9b4ce3b24d09ea6d0976f = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_cd6bd7943963b3affaf80e8fbc7c9575 = $(`<div id="html_cd6bd7943963b3affaf80e8fbc7c9575" style="width: 100.0%; height: 100.0%;"><b>Mea Sot</b><br>Province: Tak<br>Coverage: 98.9%<br>ID: 225626</div>`)[0];
+                popup_a3f4073ff0c9b4ce3b24d09ea6d0976f.setContent(html_cd6bd7943963b3affaf80e8fbc7c9575);
+            
+        
+
+        circle_marker_34ec5733e5b0496a77db824625ede1d9.bindPopup(popup_a3f4073ff0c9b4ce3b24d09ea6d0976f)
+        ;
+
+        
+    
+    
+            circle_marker_34ec5733e5b0496a77db824625ede1d9.bindTooltip(
+                `<div>
+                     Mea Sot (99%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_ba2293cddd23848da0908f9c50a81b5a = L.marker(
+                [16.734413, 98.566961],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_5ab90efffabd59cb2f124d2787ff3043 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eMea Sot\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_ba2293cddd23848da0908f9c50a81b5a.setIcon(div_icon_5ab90efffabd59cb2f124d2787ff3043);
+            
+    
+            var circle_marker_7472cc226a17d377db3d1f56b4dd579e = L.circleMarker(
+                [18.1283666, 100.16243330000002],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_041ec2c94ae8752d5985270ff7406874 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_9928aaaabde0888a991cc5b52d1d5fc7 = $(`<div id="html_9928aaaabde0888a991cc5b52d1d5fc7" style="width: 100.0%; height: 100.0%;"><b>Phrae</b><br>Province: Phrae<br>Coverage: 94.3%<br>ID: 225630</div>`)[0];
+                popup_041ec2c94ae8752d5985270ff7406874.setContent(html_9928aaaabde0888a991cc5b52d1d5fc7);
+            
+        
+
+        circle_marker_7472cc226a17d377db3d1f56b4dd579e.bindPopup(popup_041ec2c94ae8752d5985270ff7406874)
+        ;
+
+        
+    
+    
+            circle_marker_7472cc226a17d377db3d1f56b4dd579e.bindTooltip(
+                `<div>
+                     Phrae (94%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_5267cf630ddd23697f9a65de149f3f49 = L.marker(
+                [18.1283666, 100.16243330000002],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_b2eb28f1885fba3bed69f9922414ba70 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003ePhrae\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_5267cf630ddd23697f9a65de149f3f49.setIcon(div_icon_b2eb28f1885fba3bed69f9922414ba70);
+            
+    
+            var circle_marker_da53c5b644b37a7af6e2be5e310e188c = L.circleMarker(
+                [18.2826333, 99.6598166],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_51a9c5d01bd8ea3a7382200ff73a43dd = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_e4c853e46b2f5ba2237e40747652c782 = $(`<div id="html_e4c853e46b2f5ba2237e40747652c782" style="width: 100.0%; height: 100.0%;"><b>Provincial Waterworks…</b><br>Province: Unknown<br>Coverage: 93.2%<br>ID: 225646</div>`)[0];
+                popup_51a9c5d01bd8ea3a7382200ff73a43dd.setContent(html_e4c853e46b2f5ba2237e40747652c782);
+            
+        
+
+        circle_marker_da53c5b644b37a7af6e2be5e310e188c.bindPopup(popup_51a9c5d01bd8ea3a7382200ff73a43dd)
+        ;
+
+        
+    
+    
+            circle_marker_da53c5b644b37a7af6e2be5e310e188c.bindTooltip(
+                `<div>
+                     Provincial Waterworks… (93%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_329f9cc7e60515b2128cbe26a9e87898 = L.marker(
+                [18.2826333, 99.6598166],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_6dbb6e0551bf4657b5157616697d3b6a = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eProvincial Waterworks\u2026\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_329f9cc7e60515b2128cbe26a9e87898.setIcon(div_icon_6dbb6e0551bf4657b5157616697d3b6a);
+            
+    
+            var circle_marker_f82db506f6eaaea65c89060e1ca523f0 = L.circleMarker(
+                [19.30455, 97.97165],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_880a2397bc79fa4b91424f2b70e8aa80 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_a020ea12eca6153d2c4e3cc5a3fc1812 = $(`<div id="html_a020ea12eca6153d2c4e3cc5a3fc1812" style="width: 100.0%; height: 100.0%;"><b>Mae Hongson</b><br>Province: Mae Hong Son<br>Coverage: 99.8%<br>ID: 225648</div>`)[0];
+                popup_880a2397bc79fa4b91424f2b70e8aa80.setContent(html_a020ea12eca6153d2c4e3cc5a3fc1812);
+            
+        
+
+        circle_marker_f82db506f6eaaea65c89060e1ca523f0.bindPopup(popup_880a2397bc79fa4b91424f2b70e8aa80)
+        ;
+
+        
+    
+    
+            circle_marker_f82db506f6eaaea65c89060e1ca523f0.bindTooltip(
+                `<div>
+                     Mae Hongson (100%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c0c84ff8392459385c46e8ad5f77f6f5 = L.marker(
+                [19.30455, 97.97165],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_f2b667969daaa62e88406c08382b72bc = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eMae Hongson\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_c0c84ff8392459385c46e8ad5f77f6f5.setIcon(div_icon_f2b667969daaa62e88406c08382b72bc);
+            
+    
+            var circle_marker_ffeeaa81b16dc12c882facfaa2a73773 = L.circleMarker(
+                [18.567194, 99.038639],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_0fabeb997ae3cbef4f12bcb30dfbceb1 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_ad73b96eb45ed0761397f1490213134e = $(`<div id="html_ad73b96eb45ed0761397f1490213134e" style="width: 100.0%; height: 100.0%;"><b>Lamphun</b><br>Province: Lamphun<br>Coverage: 95.1%<br>ID: 225655</div>`)[0];
+                popup_0fabeb997ae3cbef4f12bcb30dfbceb1.setContent(html_ad73b96eb45ed0761397f1490213134e);
+            
+        
+
+        circle_marker_ffeeaa81b16dc12c882facfaa2a73773.bindPopup(popup_0fabeb997ae3cbef4f12bcb30dfbceb1)
+        ;
+
+        
+    
+    
+            circle_marker_ffeeaa81b16dc12c882facfaa2a73773.bindTooltip(
+                `<div>
+                     Lamphun (95%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fd0d368909952e59821818bf2631ebe6 = L.marker(
+                [18.567194, 99.038639],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_b1f2daf428ac6e419fdf9bab80cb7a0a = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eLamphun\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_fd0d368909952e59821818bf2631ebe6.setIcon(div_icon_b1f2daf428ac6e419fdf9bab80cb7a0a);
+            
+    
+            var circle_marker_7bfbd491d12d47c84d70bf85ebad5d6a = L.circleMarker(
+                [19.200226, 99.893048],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_b28a8d992907887cbf01ceaacce0bef7 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_6a1d45146f912c654e01c4d844e255a5 = $(`<div id="html_6a1d45146f912c654e01c4d844e255a5" style="width: 100.0%; height: 100.0%;"><b>Phayao</b><br>Province: Phayao<br>Coverage: 97.2%<br>ID: 225666</div>`)[0];
+                popup_b28a8d992907887cbf01ceaacce0bef7.setContent(html_6a1d45146f912c654e01c4d844e255a5);
+            
+        
+
+        circle_marker_7bfbd491d12d47c84d70bf85ebad5d6a.bindPopup(popup_b28a8d992907887cbf01ceaacce0bef7)
+        ;
+
+        
+    
+    
+            circle_marker_7bfbd491d12d47c84d70bf85ebad5d6a.bindTooltip(
+                `<div>
+                     Phayao (97%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_7fba4b83d98abd323a1d3c649fb5aace = L.marker(
+                [19.200226, 99.893048],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_714751985789e748f8971a487efb0525 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003ePhayao\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_7fba4b83d98abd323a1d3c649fb5aace.setIcon(div_icon_714751985789e748f8971a487efb0525);
+            
+    
+            var circle_marker_39a04174c8a7bab587e5fdc3c2dc5fe1 = L.circleMarker(
+                [18.840732, 98.96978],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_242e32d18f469ce73213ac1ea7f0f18b = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_c28f6e141a96f84db839ea42e21570db = $(`<div id="html_c28f6e141a96f84db839ea42e21570db" style="width: 100.0%; height: 100.0%;"><b>Chiangmai</b><br>Province: Unknown<br>Coverage: 97.4%<br>ID: 225669</div>`)[0];
+                popup_242e32d18f469ce73213ac1ea7f0f18b.setContent(html_c28f6e141a96f84db839ea42e21570db);
+            
+        
+
+        circle_marker_39a04174c8a7bab587e5fdc3c2dc5fe1.bindPopup(popup_242e32d18f469ce73213ac1ea7f0f18b)
+        ;
+
+        
+    
+    
+            circle_marker_39a04174c8a7bab587e5fdc3c2dc5fe1.bindTooltip(
+                `<div>
+                     Chiangmai (97%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2cdea1e08e3936477479759422d48245 = L.marker(
+                [18.840732, 98.96978],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_923ffbbef6764c5d6517062d21d8d353 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eChiangmai\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_2cdea1e08e3936477479759422d48245.setIcon(div_icon_923ffbbef6764c5d6517062d21d8d353);
+            
+    
+            var circle_marker_ebef24f0a65a33e1d7a4d2046b52985d = L.circleMarker(
+                [18.7888833, 100.7763166],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_0e6a2258fe0f7c4e3f68eb1d06142633 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_ef59749b20dbac7dcd950e5d852355f8 = $(`<div id="html_ef59749b20dbac7dcd950e5d852355f8" style="width: 100.0%; height: 100.0%;"><b>Nan</b><br>Province: Nan<br>Coverage: 98.5%<br>ID: 225674</div>`)[0];
+                popup_0e6a2258fe0f7c4e3f68eb1d06142633.setContent(html_ef59749b20dbac7dcd950e5d852355f8);
+            
+        
+
+        circle_marker_ebef24f0a65a33e1d7a4d2046b52985d.bindPopup(popup_0e6a2258fe0f7c4e3f68eb1d06142633)
+        ;
+
+        
+    
+    
+            circle_marker_ebef24f0a65a33e1d7a4d2046b52985d.bindTooltip(
+                `<div>
+                     Nan (98%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_ffec2620bb13f2f85b51c1454bb9e566 = L.marker(
+                [18.7888833, 100.7763166],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_4d65d6422dade7142a0658274cb60bc6 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eNan\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_ffec2620bb13f2f85b51c1454bb9e566.setIcon(div_icon_4d65d6422dade7142a0658274cb60bc6);
+            
+    
+            var circle_marker_eb8d2c8215bce7fd5101eb7c7af70085 = L.circleMarker(
+                [18.2508166, 99.76395],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_41f890a59462f509274cd20c55173b66 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_2b3d5097096c0b0621a2bfb6270767bf = $(`<div id="html_2b3d5097096c0b0621a2bfb6270767bf" style="width: 100.0%; height: 100.0%;"><b>Lampang</b><br>Province: Lampang<br>Coverage: 99.2%<br>ID: 225692</div>`)[0];
+                popup_41f890a59462f509274cd20c55173b66.setContent(html_2b3d5097096c0b0621a2bfb6270767bf);
+            
+        
+
+        circle_marker_eb8d2c8215bce7fd5101eb7c7af70085.bindPopup(popup_41f890a59462f509274cd20c55173b66)
+        ;
+
+        
+    
+    
+            circle_marker_eb8d2c8215bce7fd5101eb7c7af70085.bindTooltip(
+                `<div>
+                     Lampang (99%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_4c9fff2924dfc7bc83a6cd045c7e7df6 = L.marker(
+                [18.2508166, 99.76395],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_fbb894f07f703bda07e5e1edbd02bff3 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eLampang\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_4c9fff2924dfc7bc83a6cd045c7e7df6.setIcon(div_icon_fbb894f07f703bda07e5e1edbd02bff3);
+            
+    
+            var circle_marker_22d50cb647f3ce490d5fc7c24f58cc8b = L.circleMarker(
+                [18.498333, 98.379444],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_bf99d83df4190bd9116a1cd542eac0d1 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_fa584ccbcbab98a05882859ba98f7789 = $(`<div id="html_fa584ccbcbab98a05882859ba98f7789" style="width: 100.0%; height: 100.0%;"><b>Mae Chaem</b><br>Province: Mae Hong Son<br>Coverage: 56.7%<br>ID: 225693<br><b>Low coverage — flag for exclusion review</b></div>`)[0];
+                popup_bf99d83df4190bd9116a1cd542eac0d1.setContent(html_fa584ccbcbab98a05882859ba98f7789);
+            
+        
+
+        circle_marker_22d50cb647f3ce490d5fc7c24f58cc8b.bindPopup(popup_bf99d83df4190bd9116a1cd542eac0d1)
+        ;
+
+        
+    
+    
+            circle_marker_22d50cb647f3ce490d5fc7c24f58cc8b.bindTooltip(
+                `<div>
+                     Mae Chaem (57%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_cfa26233f701176b204f50ab97b4b7ed = L.marker(
+                [18.498333, 98.379444],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_309dca1070897aa89b82d58c23209957 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eMae Chaem\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_cfa26233f701176b204f50ab97b4b7ed.setIcon(div_icon_309dca1070897aa89b82d58c23209957);
+            
+    
+            var circle_marker_589263158a952a8ffb0b20e11a1106b6 = L.circleMarker(
+                [17.631351999999996, 100.09896000000002],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_dc019ef4ab8623fc9de5d640dec196f0 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_16882291555dc11ff2bb022d829e574c = $(`<div id="html_16882291555dc11ff2bb022d829e574c" style="width: 100.0%; height: 100.0%;"><b>Uttaradit</b><br>Province: Uttaradit<br>Coverage: 97.3%<br>ID: 228543</div>`)[0];
+                popup_dc019ef4ab8623fc9de5d640dec196f0.setContent(html_16882291555dc11ff2bb022d829e574c);
+            
+        
+
+        circle_marker_589263158a952a8ffb0b20e11a1106b6.bindPopup(popup_dc019ef4ab8623fc9de5d640dec196f0)
+        ;
+
+        
+    
+    
+            circle_marker_589263158a952a8ffb0b20e11a1106b6.bindTooltip(
+                `<div>
+                     Uttaradit (97%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_5b7fb338ecf39bc76af0c02bc9685ce0 = L.marker(
+                [17.631351999999996, 100.09896000000002],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_62412eee9e0eac74311ffaf41a42a1e2 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003eUttaradit\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_5b7fb338ecf39bc76af0c02bc9685ce0.setIcon(div_icon_62412eee9e0eac74311ffaf41a42a1e2);
+            
+    
+            var circle_marker_c33437e4b83519081b54714b4f6977fd = L.circleMarker(
+                [16.418417, 101.15655600000001],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+        var popup_067d58c5223760fa1f2b237fe1e15ddc = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_867acec443980b7dae21083057010d57 = $(`<div id="html_867acec443980b7dae21083057010d57" style="width: 100.0%; height: 100.0%;"><b>Phetbura garden</b><br>Province: Phetchabun<br>Coverage: 97.9%<br>ID: 270250</div>`)[0];
+                popup_067d58c5223760fa1f2b237fe1e15ddc.setContent(html_867acec443980b7dae21083057010d57);
+            
+        
+
+        circle_marker_c33437e4b83519081b54714b4f6977fd.bindPopup(popup_067d58c5223760fa1f2b237fe1e15ddc)
+        ;
+
+        
+    
+    
+            circle_marker_c33437e4b83519081b54714b4f6977fd.bindTooltip(
+                `<div>
+                     Phetbura garden (98%)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_69248e3bf1a3d2816c245b1356c7461c = L.marker(
+                [16.418417, 101.15655600000001],
+                {
+}
+            ).addTo(map_18e99672bd80e14c5972b74934022d55);
+        
+    
+            var div_icon_c4cc0ef44c180c038acbe0074ab3708d = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:9px;color:#333;white-space:nowrap\"\u003ePhetbura garden\u003c/div\u003e",
+  "iconSize": [160, 20],
+  "iconAnchor": [0, -10],
+  "className": "empty",
+});
+        
+    
+                marker_69248e3bf1a3d2816c245b1356c7461c.setIcon(div_icon_c4cc0ef44c180c038acbe0074ab3708d);
+            
+</script>
+</html>
