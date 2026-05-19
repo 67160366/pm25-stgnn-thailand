@@ -13,6 +13,7 @@ CDS API setup: place ``~/.cdsapirc`` with valid UID and API key.
 See https://cds.climate.copernicus.eu/how-to-api for setup instructions.
 """
 
+import io
 import logging
 from datetime import date, datetime
 from pathlib import Path
@@ -22,6 +23,26 @@ import pandas as pd
 import xarray as xr
 
 logger = logging.getLogger(__name__)
+
+
+def _open_nc(path: Path) -> xr.Dataset:
+    """Open a NetCDF file safely on paths with non-ASCII characters.
+
+    netCDF4's C library cannot open files whose path contains non-ASCII
+    characters on Windows (e.g. Thai directory names). Reading via Python's
+    native open() into a BytesIO buffer and using the pure-Python scipy
+    backend avoids the C-level path encoding issue.
+    """
+    with open(path, "rb") as fh:
+        return xr.open_dataset(io.BytesIO(fh.read()), engine="scipy")
+
+
+def _write_nc(ds: xr.Dataset, path: Path) -> None:
+    """Write a Dataset to a NetCDF file safely on non-ASCII paths."""
+    buf = io.BytesIO()
+    ds.to_netcdf(buf)
+    path.write_bytes(buf.getvalue())
+
 
 # ERA5 variables requested in every download.
 _ERA5_VARIABLES: list[str] = [
@@ -380,10 +401,11 @@ def download_era5_year(
         ) from exc
 
     # Merge 12 monthly NetCDFs into one yearly file.
+    # Use _open_nc/_write_nc to bypass C-library unicode path issues on Windows.
     logger.info("Merging 12 monthly files into %s ...", nc_path)
-    datasets = [xr.open_dataset(mp) for mp in monthly_paths]
+    datasets = [_open_nc(mp) for mp in monthly_paths]
     ds_merged = xr.concat(datasets, dim="time")
-    ds_merged.to_netcdf(nc_path)
+    _write_nc(ds_merged, nc_path)
     for ds in datasets:
         ds.close()
 
@@ -410,7 +432,7 @@ def interpolate_to_stations(nc_path: Path, stations_df: pd.DataFrame) -> pd.Data
             ``t2m``, ``d2m``, ``blh``.
         Row count = (number of timesteps) x (number of stations).
     """
-    ds = xr.open_dataset(nc_path)
+    ds = _open_nc(nc_path)
     ds = _normalise_coords(ds)
 
     lats = xr.DataArray(stations_df["latitude"].values, dims="station")
@@ -541,7 +563,7 @@ def load_wind_field(nc_path: Path, dt: datetime) -> xr.DataArray:
     if not nc_path.exists():
         raise FileNotFoundError(f"ERA5 NetCDF not found: {nc_path}")
 
-    ds = xr.open_dataset(nc_path)
+    ds = _open_nc(nc_path)
     ds = _normalise_coords(ds)
 
     # Resolve u10 / v10 variable names using module-level aliases.
