@@ -75,12 +75,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     # --- Model ---
-    model = instantiate(
-        cfg.model,
-        horizons=list(cfg.data.horizons),
-        n_features=cfg.data.window_in,  # overridden below with actual F
-    )
-    # Correct n_features from actual dataset (5 for current feature schema)
+    # n_features=5: pm25_scaled, hour_sin, hour_cos, doy_sin, doy_cos (DESIGN §6.1)
     model = instantiate(cfg.model, horizons=list(cfg.data.horizons))
     logger.info("Model parameters: %d", model.count_parameters())
 

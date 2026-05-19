@@ -1,12 +1,13 @@
-dataset_path: data/processed/dataset.parquet
-hotspots_path: data/processed/hotspots.parquet
-metadata_path: data/processed/stations_metadata.parquet
-scalers_path: data/processed/scalers.json
+data:
+  dataset_path: data/processed/dataset.parquet
+  hotspots_path: data/processed/hotspots.parquet
+  metadata_path: data/processed/stations_metadata.parquet
+  scalers_path: data/processed/scalers.json
 
-window_in: 24
-horizons: [6, 12, 24, 48]
-batch_size: 32
-num_workers: 0          # set >0 on Linux; 0 required on Windows with multiprocessing
+  window_in: 24
+  horizons: [6, 12, 24, 48]
+  batch_size: 32
+  num_workers: 0          # set >0 on Linux; 0 required on Windows with multiprocessing
 
-# Stations to exclude from training (e.g. low-coverage station 1304386)
-exclude_stations: []
+  # Stations to exclude from training (e.g. low-coverage station 1304386)
+  exclude_stations: []
