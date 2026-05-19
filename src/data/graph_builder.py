@@ -424,3 +424,9 @@ def build_graph(
     data["hotspot", "type_c", "station"].edge_index = ei_c
     data["hotspot", "type_c", "station"].edge_attr = ea_c
     return data
+
+
+# Public wrappers for use in loader.py fast-path precompute.
+build_type_a_edges = _build_type_a_edges
+build_type_b_edges = _build_type_b_edges
+build_type_c_edges = _build_type_c_edges
