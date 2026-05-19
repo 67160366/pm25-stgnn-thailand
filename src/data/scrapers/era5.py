@@ -13,8 +13,10 @@ CDS API setup: place ``~/.cdsapirc`` with valid UID and API key.
 See https://cds.climate.copernicus.eu/how-to-api for setup instructions.
 """
 
-import io
 import logging
+import os
+import shutil
+import tempfile
 from datetime import date, datetime
 from pathlib import Path
 
@@ -26,22 +28,34 @@ logger = logging.getLogger(__name__)
 
 
 def _open_nc(path: Path) -> xr.Dataset:
-    """Open a NetCDF file safely on paths with non-ASCII characters.
+    """Open a NetCDF4 file safely on paths with non-ASCII characters.
 
-    netCDF4's C library cannot open files whose path contains non-ASCII
-    characters on Windows (e.g. Thai directory names). Reading via Python's
-    native open() into a BytesIO buffer and using the pure-Python scipy
-    backend avoids the C-level path encoding issue.
+    netCDF4's C library (and h5py's) cannot open files whose path contains
+    non-ASCII characters on Windows (e.g. Thai directory names). Copying to a
+    temporary file in the system temp dir (always ASCII on Windows) and using
+    xr.load_dataset (reads all data into memory, then closes the file handle)
+    avoids the C-level path encoding issue entirely.
     """
-    with open(path, "rb") as fh:
-        return xr.open_dataset(io.BytesIO(fh.read()), engine="scipy")
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        shutil.copy2(path, tmp_path)
+        return xr.load_dataset(tmp_path)
+    finally:
+        os.unlink(tmp_path)
 
 
 def _write_nc(ds: xr.Dataset, path: Path) -> None:
-    """Write a Dataset to a NetCDF file safely on non-ASCII paths."""
-    buf = io.BytesIO()
-    ds.to_netcdf(buf)
-    path.write_bytes(buf.getvalue())
+    """Write a Dataset to a NetCDF4 file safely on non-ASCII paths."""
+    with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        ds.to_netcdf(tmp_path)
+        shutil.move(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 
 # ERA5 variables requested in every download.
@@ -193,7 +207,10 @@ _ERA5_ALIASES: dict[str, list[str]] = {
 
 
 def _normalise_coords(ds: xr.Dataset) -> xr.Dataset:
-    """Rename latitude/longitude to lat/lon if needed.
+    """Rename coordinate names to the expected canonical forms.
+
+    ERA5 downloads from the new CDS API v2 use ``valid_time`` instead of
+    ``time``, and ``latitude``/``longitude`` instead of ``lat``/``lon``.
 
     ERA5 NetCDF files produced by different API versions may use either
     ``latitude``/``longitude`` or ``lat``/``lon`` as coordinate names.
@@ -209,6 +226,8 @@ def _normalise_coords(ds: xr.Dataset) -> xr.Dataset:
         rename_map["latitude"] = "lat"
     if "longitude" in ds.coords and "lon" not in ds.coords:
         rename_map["longitude"] = "lon"
+    if "valid_time" in ds.coords and "time" not in ds.coords:
+        rename_map["valid_time"] = "time"
     return ds.rename(rename_map) if rename_map else ds
 
 
