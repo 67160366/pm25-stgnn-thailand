@@ -1,0 +1,9 @@
+defaults:
+  - data
+  - model: a3tgcn
+  - trainer
+  - _self_
+
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
