@@ -420,9 +420,11 @@ def download_era5_year(
         ) from exc
 
     # Merge 12 monthly NetCDFs into one yearly file.
-    # Use _open_nc/_write_nc to bypass C-library unicode path issues on Windows.
+    # Normalise coords first so all datasets have 'time' as their dim before
+    # concat — skipping this causes xr.concat to create an outer 'time' dim
+    # on top of 'valid_time', producing duplicate dimension names on reload.
     logger.info("Merging 12 monthly files into %s ...", nc_path)
-    datasets = [_open_nc(mp) for mp in monthly_paths]
+    datasets = [_normalise_coords(_open_nc(mp)) for mp in monthly_paths]
     ds_merged = xr.concat(datasets, dim="time")
     _write_nc(ds_merged, nc_path)
     for ds in datasets:
