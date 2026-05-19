@@ -5,7 +5,7 @@ Commands:
     backfill      -- Backfill OpenAQ historical for curated stations.
     firms         -- Fetch FIRMS hotspots for a date range (single source, chunked).
     firms-hybrid  -- Fetch FIRMS hotspots using SP for history + NRT for recent days.
-    era5          -- STUB - pending CDS profile completion.
+    era5          -- Download ERA5 reanalysis via CDS API and save to data/processed/.
 """
 
 import logging
@@ -141,9 +141,56 @@ def firms_hybrid(
 
 
 @app.command()
-def era5() -> None:
-    """STUB - pending CDS profile completion."""
-    typer.echo("ERA5 download not yet implemented. See docs/SESSION1_NOTES.md.")
+def era5(
+    start_year: int = typer.Option(2022, help="First year to download (inclusive)."),
+    end_year: int = typer.Option(2025, help="Last year to download (inclusive)."),
+    output_dir: Path = typer.Option(
+        Path("data/raw/era5"), help="Directory for raw NetCDF files."
+    ),
+    processed_path: Path = typer.Option(
+        Path("data/processed/era5.parquet"),
+        help="Destination parquet for the tidy station-interpolated output.",
+    ),
+) -> None:
+    """Download ERA5 reanalysis (u10, v10, t2m, d2m, blh) via CDS API.
+
+    Requires a valid ~/.cdsapirc with your CDS API key.
+    See https://cds.climate.copernicus.eu/how-to-api for setup instructions.
+
+    Downloads one NetCDF per year into output_dir (skips existing files),
+    then bilinearly interpolates to the 18 station locations and writes a
+    tidy parquet to processed_path.
+    """
+    from datetime import date as _date
+
+    from src.data.scrapers.era5 import fetch_era5
+
+    date_from = _date(start_year, 1, 1)
+    date_to = _date(end_year, 12, 31)
+
+    typer.echo(
+        f"Downloading ERA5 {start_year}-{end_year} -> {output_dir} ..."
+    )
+    typer.echo("(This may take 10-30 min per year. Existing files are skipped.)")
+
+    try:
+        df = fetch_era5(
+            date_from=date_from,
+            date_to=date_to,
+            output_dir=output_dir,
+        )
+    except RuntimeError as exc:
+        typer.echo(f"ERA5 download failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    processed_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(processed_path, index=False)
+
+    n_rows = len(df)
+    n_stations = df["station_id"].nunique() if n_rows > 0 else 0
+    typer.echo(
+        f"ERA5 done: {n_rows:,} rows, {n_stations} stations -> {processed_path}"
+    )
 
 
 if __name__ == "__main__":

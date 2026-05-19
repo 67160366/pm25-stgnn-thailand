@@ -100,7 +100,7 @@ def main(cfg: DictConfig) -> None:
         (v for v in history[f"val_rmse_{cfg.trainer.primary_horizon}h"] if v == v),  # skip NaN
         default=float("nan"),
     )
-    logger.info("Best val RMSE@%dh = %.2f µg/m³", cfg.trainer.primary_horizon, best_rmse)
+    logger.info("Best val RMSE@%dh = %.4f (normalized scale)", cfg.trainer.primary_horizon, best_rmse)
 
 
 if __name__ == "__main__":

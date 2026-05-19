@@ -277,6 +277,47 @@ def _build_tidy_frames(
 # ---------------------------------------------------------------------------
 
 
+def _download_era5_month(
+    year: int,
+    month: int,
+    output_dir: Path,
+    bbox: tuple[float, float, float, float],
+    client: object,
+) -> Path:
+    """Download one calendar month of ERA5 data.
+
+    Args:
+        year: Calendar year (e.g. 2022).
+        month: Calendar month 1-12.
+        output_dir: Directory for the monthly NetCDF cache file.
+        bbox: (west, south, east, north) in WGS84 degrees.
+        client: Authenticated cdsapi.Client instance.
+
+    Returns:
+        Path to the monthly NetCDF (``era5_{year}_{month:02d}.nc``).
+    """
+    nc_path = output_dir / f"era5_{year}_{month:02d}.nc"
+    if nc_path.exists():
+        logger.info("ERA5 %d-%02d already cached: %s", year, month, nc_path)
+        return nc_path
+
+    logger.info("Downloading ERA5 %d-%02d ...", year, month)
+    request: dict = {
+        "product_type": "reanalysis",
+        "variable": _ERA5_VARIABLES,
+        "year": str(year),
+        "month": f"{month:02d}",
+        "day": _all_days(),
+        "time": _all_hours(),
+        "area": _cds_area(bbox),
+        "grid": "0.25/0.25",
+        "format": "netcdf",
+    }
+    client.retrieve(_CDS_DATASET, request, str(nc_path))
+    logger.info("ERA5 %d-%02d saved to %s", year, month, nc_path)
+    return nc_path
+
+
 def download_era5_year(
     year: int,
     output_dir: Path,
@@ -284,29 +325,29 @@ def download_era5_year(
 ) -> Path:
     """Download one year of ERA5 hourly data to a single NetCDF file.
 
-    Downloads variables ``10m_u_component_of_wind``, ``10m_v_component_of_wind``,
-    ``2m_temperature``, ``2m_dewpoint_temperature``, and ``boundary_layer_height``
-    at 0.25-degree resolution for every hour of the given year.
+    The CDS API v2 rejects full-year requests as too large.  This function
+    works around the limit by downloading one calendar month at a time
+    (12 sequential requests) and merging the results into a single yearly
+    file with xarray.  Monthly cache files are kept in ``output_dir`` so
+    individual months are not re-downloaded on retry.
 
-    If the target NetCDF already exists the download is skipped and the
-    existing path is returned immediately.
+    If the merged yearly file already exists the download is skipped entirely.
 
     Args:
         year: Calendar year to download (e.g. 2022).
-        output_dir: Directory where the NetCDF file is written.
+        output_dir: Directory where NetCDF files are written.
                     Created if it does not exist.
         bbox: (west, south, east, north) in WGS84 degrees.
               Defaults to the Northern Thailand study area.
 
     Returns:
-        Path to the written (or pre-existing) NetCDF file.
+        Path to the merged yearly NetCDF (``era5_{year}.nc``).
 
     Raises:
-        RuntimeError: If cdsapi authentication fails (missing or invalid
-            ``~/.cdsapirc``).
+        RuntimeError: If cdsapi is not installed or authentication fails.
     """
     try:
-        import cdsapi  # lazy import to keep module importable without cdsapi
+        import cdsapi
     except ImportError as exc:
         raise RuntimeError("cdsapi is not installed. Run `uv add cdsapi` or `uv sync`.") from exc
 
@@ -318,23 +359,18 @@ def download_era5_year(
         logger.info("ERA5 year=%d already downloaded: %s", year, nc_path)
         return nc_path
 
-    logger.info("Downloading ERA5 year=%d to %s", year, nc_path)
-
-    request: dict = {
-        "product_type": "reanalysis",
-        "variable": _ERA5_VARIABLES,
-        "year": str(year),
-        "month": _all_months(),
-        "day": _all_days(),
-        "time": _all_hours(),
-        "area": _cds_area(bbox),
-        "grid": "0.25/0.25",
-        "format": "netcdf",
-    }
+    logger.info(
+        "Downloading ERA5 year=%d in 12 monthly chunks -> %s", year, nc_path
+    )
 
     try:
         client = cdsapi.Client()
-        client.retrieve(_CDS_DATASET, request, str(nc_path))
+        monthly_paths: list[Path] = []
+        for month in range(1, 13):
+            mp = _download_era5_month(
+                year=year, month=month, output_dir=output_dir, bbox=bbox, client=client
+            )
+            monthly_paths.append(mp)
     except Exception as exc:
         raise RuntimeError(
             f"ERA5 download failed for year={year}. "
@@ -343,7 +379,15 @@ def download_era5_year(
             f"Original error: {exc}"
         ) from exc
 
-    logger.info("ERA5 year=%d saved to %s", year, nc_path)
+    # Merge 12 monthly NetCDFs into one yearly file.
+    logger.info("Merging 12 monthly files into %s ...", nc_path)
+    datasets = [xr.open_dataset(mp) for mp in monthly_paths]
+    ds_merged = xr.concat(datasets, dim="time")
+    ds_merged.to_netcdf(nc_path)
+    for ds in datasets:
+        ds.close()
+
+    logger.info("ERA5 year=%d merged and saved to %s", year, nc_path)
     return nc_path
 
 

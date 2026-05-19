@@ -447,12 +447,17 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         )  # (N, T_in, 5)
 
         # --- Build y and mask: (N, H) ---
+        # Use pm25_scaled (normalized) as training targets for loss stability.
+        # Raw µg/m³ values (10-500) produce MSE losses of order 10^3-10^5, causing
+        # gradient explosion and NaN weights after ~9 epochs. The mask validity check
+        # still uses pm25_raw finiteness (same NaN pattern, scaling preserves NaN).
         y_cols: list[np.ndarray] = []
         m_cols: list[np.ndarray] = []
         for h_offset in self.horizons:
             t_h = t_anchor_idx + h_offset
-            y_col = self._pm25_raw[t_h, :]  # (N,)
-            m_col = (~self._mask_in_loss[t_h, :]) & (~self._exclude[t_h, :]) & np.isfinite(y_col)
+            y_col = self._pm25_scaled[t_h, :]  # (N,) — normalized scale
+            raw_col = self._pm25_raw[t_h, :]  # (N,) — used only for validity check
+            m_col = (~self._mask_in_loss[t_h, :]) & (~self._exclude[t_h, :]) & np.isfinite(raw_col)
             y_cols.append(y_col)
             m_cols.append(m_col)
 

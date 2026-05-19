@@ -187,6 +187,10 @@ class Trainer:
             target = batch["station"].y  # (B*N, H)
             mask = batch["station"].mask  # (B*N, H) bool
             loss = masked_mse(pred, target, mask)
+            if torch.isnan(loss):
+                raise RuntimeError(
+                    f"NaN loss at batch {n_batches} — check target scale and input features."
+                )
             loss.backward()
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()

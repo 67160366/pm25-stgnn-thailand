@@ -19,9 +19,10 @@ def compute_metrics(
 ) -> dict[str, float]:
     """Compute per-horizon RMSE, MAE, and MAPE over valid positions.
 
-    All inputs are expected in raw µg/m³ (already inverse-transformed by the
-    loader). Division by zero in MAPE is avoided by skipping positions where
-    |target| < 1.0 µg/m³.
+    Inputs are in the same scale as the training targets (normalized/scaled
+    by default). To obtain metrics in raw µg/m³, inverse-transform pred and
+    target before calling. Division by zero in MAPE is avoided by skipping
+    positions where |target| < 1.0 (in whatever scale is passed).
 
     Args:
         pred: Predictions of shape (total_N, H), float32.
