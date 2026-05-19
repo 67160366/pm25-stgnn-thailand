@@ -57,6 +57,34 @@ Then read changed files in full. Compare against DESIGN.md and CLAUDE.md.
 - ...
 ```
 
+# DoD filesystem check
+
+Before approving any session-closing PR, verify every file in the
+session's Definition of Done actually exists on disk. Do NOT rely solely
+on tests passing — missing deliverables won't cause test failures.
+
+For Session 2, check:
+```
+src/data/preprocessing.py
+src/data/hotspot_clustering.py
+src/data/graph_builder.py
+tests/test_preprocessing.py
+tests/test_graph_builder.py
+notebooks/01_eda_dataset.ipynb
+notebooks/02_graph_construction_viz.ipynb
+docs/SESSION2_NOTES.md
+```
+
+Run notebooks with:
+```
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda_dataset.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/02_graph_construction_viz.ipynb
+```
+Both must exit 0. If either fails, that is a BLOCK.
+
+For future sessions: the DoD checklist is in the session's handoff/notes
+file. Always enumerate required files explicitly and check them.
+
 # When to BLOCK
 
 - Hardcoded credentials
@@ -65,3 +93,4 @@ Then read changed files in full. Compare against DESIGN.md and CLAUDE.md.
 - Use of `except Exception:` without re-raise or logging
 - Direct manipulation of `pyproject.toml` deps without explanation
 - Anything in `data/` being committed
+- Required DoD files missing from the filesystem
