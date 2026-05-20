@@ -52,7 +52,12 @@ EMPTY_HOTSPOT_DF: pd.DataFrame = pd.DataFrame(
     {"centroid_lat": [], "centroid_lon": [], "total_frp": []}
 )
 
-_FEATURE_COLS: list[str] = ["pm25_scaled", "hour_sin", "hour_cos", "doy_sin", "doy_cos"]
+_FEATURE_COLS: list[str] = [
+    "pm25_scaled",
+    "hour_sin", "hour_cos",
+    "doy_sin", "doy_cos",
+    "u10", "v10", "t2m", "d2m", "blh",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +148,8 @@ def _load_dataset_wide(
     Returns:
         Dict mapping feature name to (T_full, N) float32/bool ndarray.
         Keys: 'pm25_raw', 'pm25_scaled', 'hour_sin', 'hour_cos',
-              'doy_sin', 'doy_cos', 'mask_in_loss', 'exclude_from_training'.
+              'doy_sin', 'doy_cos', 'mask_in_loss', 'exclude_from_training',
+              'u10', 'v10', 't2m', 'd2m', 'blh' (ERA5, if present).
     """
     df = pd.read_parquet(dataset_path)
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
@@ -151,6 +157,7 @@ def _load_dataset_wide(
 
     bool_features = {"mask_in_loss", "exclude_from_training"}
     cyclic_features = {"hour_sin", "hour_cos", "doy_sin", "doy_cos"}
+    era5_features = {"u10", "v10", "t2m", "d2m", "blh"}
     all_features = [
         "pm25_raw",
         "pm25_scaled",
@@ -160,6 +167,7 @@ def _load_dataset_wide(
         "doy_cos",
         "mask_in_loss",
         "exclude_from_training",
+        "u10", "v10", "t2m", "d2m", "blh",
     ]
 
     # Check if pm25_raw exists in the parquet
@@ -189,7 +197,7 @@ def _load_dataset_wide(
 
         if feat in bool_features:
             arrays[feat] = pivot.fillna(True).values.astype(bool)
-        elif feat in cyclic_features:
+        elif feat in cyclic_features or feat in era5_features:
             arrays[feat] = pivot.fillna(0.0).values.astype(np.float32)
         else:
             # pm25_raw, pm25_scaled — preserve NaN
@@ -369,6 +377,21 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         self._mask_in_loss: np.ndarray = wide["mask_in_loss"]
         self._exclude: np.ndarray = wide["exclude_from_training"]
 
+        # ERA5 weather features — zero-filled if absent (run scripts/02_preprocess.py).
+        _zero = np.zeros_like(self._pm25_scaled)
+        _era5_missing = [f for f in ("u10", "v10", "t2m", "d2m", "blh") if f not in wide]
+        if _era5_missing:
+            logger.warning(
+                "ERA5 features missing from dataset: %s. Defaulting to zeros. "
+                "Run: uv run python scripts/02_preprocess.py",
+                _era5_missing,
+            )
+        self._u10: np.ndarray = wide.get("u10", _zero)
+        self._v10: np.ndarray = wide.get("v10", _zero)
+        self._t2m: np.ndarray = wide.get("t2m", _zero)
+        self._d2m: np.ndarray = wide.get("d2m", _zero)
+        self._blh: np.ndarray = wide.get("blh", _zero)
+
         self._timestamps: pd.DatetimeIndex = _FULL_INDEX
 
         # Scalers
@@ -434,7 +457,7 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         t_anchor_idx = int(self._anchor_indices[idx])
         t_start_idx = t_anchor_idx - (self.window_in - 1)
 
-        # --- Build x: (N, T_in, 5) float32 ---
+        # --- Build x: (N, T_in, F) float32 where F = len(_FEATURE_COLS) ---
         # Slice wide arrays over [t_start_idx : t_anchor_idx+1] → (T_in, N)
         sl = slice(t_start_idx, t_anchor_idx + 1)
         x_features = np.stack(
@@ -444,12 +467,17 @@ class PM25GraphDataset(torch.utils.data.Dataset):
                 self._hour_cos[sl],
                 self._doy_sin[sl],
                 self._doy_cos[sl],
+                self._u10[sl],
+                self._v10[sl],
+                self._t2m[sl],
+                self._d2m[sl],
+                self._blh[sl],
             ],
             axis=-1,
-        )  # (T_in, N, 5)
+        )  # (T_in, N, F)
         x_ntf = np.nan_to_num(x_features.transpose(1, 0, 2), nan=0.0).astype(
             np.float32
-        )  # (N, T_in, 5)
+        )  # (N, T_in, F)
 
         # --- Build y and mask: (N, H) ---
         # Use pm25_scaled (normalized) as training targets for loss stability.

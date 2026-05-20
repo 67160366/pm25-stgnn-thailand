@@ -15,7 +15,7 @@ import pytest
 import torch
 from torch_geometric.loader import DataLoader
 
-from src.data.loader import PM25GraphDataset
+from src.data.loader import PM25GraphDataset, _FEATURE_COLS
 
 # ---------------------------------------------------------------------------
 # Synthetic data fixtures
@@ -199,7 +199,7 @@ class TestSampleShapes:
         synthetic_stations_metadata: Path,
         synthetic_scalers: Path,
     ) -> None:
-        """x should have shape (N, T_in, 5) with dtype float32."""
+        """x should have shape (N, T_in, F) where F = len(_FEATURE_COLS)."""
         ds = PM25GraphDataset(
             dataset_path=synthetic_dataset,
             hotspots_path=synthetic_hotspots,
@@ -210,7 +210,7 @@ class TestSampleShapes:
             scalers_path=synthetic_scalers,
         )
         sample = ds[0]
-        expected_shape = (2, 4, 5)
+        expected_shape = (2, 4, len(_FEATURE_COLS))
         assert sample["station"].x.shape == expected_shape
         assert sample["station"].x.dtype == torch.float32
 
@@ -669,10 +669,10 @@ class TestBatchCollation:
         batch = next(iter(loader))
 
         # With batch_size=2 and N=2 per sample:
-        # batched station x should have shape [2*2, T_in, 5] = [4, 4, 5]
+        # batched station x should have shape [2*2, T_in, F] = [4, 4, F]
         assert batch["station"].x.shape[0] == 4
         assert batch["station"].x.shape[1] == 4
-        assert batch["station"].x.shape[2] == 5
+        assert batch["station"].x.shape[2] == len(_FEATURE_COLS)
 
 
 class TestScalersLoaded:
