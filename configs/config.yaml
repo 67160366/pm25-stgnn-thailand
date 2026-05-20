@@ -1,6 +1,6 @@
 defaults:
   - data
-  - model: a3tgcn
+  - model: mtgnn
   - trainer
   - _self_
 

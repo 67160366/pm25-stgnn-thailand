@@ -161,7 +161,7 @@ def occlusion_country_attribution(
             continue
 
         hx_occluded = orig_hx.clone()
-        hx_occluded[mask, 0] = 0.0  # zero out total_frp for this country
+        hx_occluded[mask] = 0.0  # zero out all features (frp, lat, lon) for this country
         data["hotspot"].x = hx_occluded
 
         with torch.no_grad():

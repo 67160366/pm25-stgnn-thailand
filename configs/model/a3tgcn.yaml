@@ -4,4 +4,4 @@ n_stations: 18
 n_features: 10
 hidden_dim: 64
 periods: 24           # must match data.window_in
-dropout: 0.1
+dropout: 0.3
