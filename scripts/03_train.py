@@ -47,6 +47,7 @@ def main(cfg: DictConfig) -> None:
 
     # --- Datasets ---
     logger.info("Loading datasets …")
+    wind_mode = getattr(cfg.data, "wind_mode", "constant_ne")
     common_ds_kwargs = dict(
         dataset_path=Path(cfg.data.dataset_path),
         hotspots_path=Path(cfg.data.hotspots_path),
@@ -55,6 +56,7 @@ def main(cfg: DictConfig) -> None:
         window_in=cfg.data.window_in,
         horizons=list(cfg.data.horizons),
         exclude_stations=list(cfg.data.exclude_stations),
+        graph_config={"wind_mode": wind_mode},
     )
     train_ds = PM25GraphDataset(split="train", **common_ds_kwargs)
     val_ds = PM25GraphDataset(split="val", **common_ds_kwargs)

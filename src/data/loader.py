@@ -563,8 +563,10 @@ class PM25GraphDataset(torch.utils.data.Dataset):
             hx = torch.from_numpy(
                 df_h[["total_frp", "centroid_lat", "centroid_lon"]].values.astype(np.float32)
             )
+            data["hotspot"].country = df_h["country"].tolist() if "country" in df_h.columns else []
         else:
             hx = torch.zeros((0, 3), dtype=torch.float32)
+            data["hotspot"].country = []
         data["hotspot"].x = hx
 
         # Placeholder station features; overwritten by caller
@@ -600,13 +602,23 @@ class PM25GraphDataset(torch.utils.data.Dataset):
             df_h: Hotspot DataFrame for the reference date.
 
         Returns:
-            HeteroData from build_graph().
+            HeteroData from build_graph() with hotspot country labels attached.
         """
         df_stations_now = self._build_stations_now(t_anchor_idx)
+        cfg = dict(self.graph_config)
+        if self._wind_mode == "from_field":
+            # ERA5 is already interpolated to station locations. Use nearest-station
+            # lookup for both station→station (exact match) and hotspot→station edges.
+            cfg["wind_mode"] = "from_arrays"
+            cfg["_u10_per_station"] = self._u10[t_anchor_idx, :]
+            cfg["_v10_per_station"] = self._v10[t_anchor_idx, :]
+            cfg["_station_lats"] = self._stations_static["lat"].values
+            cfg["_station_lons"] = self._stations_static["lon"].values
         data = build_graph(
             df_stations=df_stations_now,
             df_hotspots=df_h,
             wind_field=None,
-            config=self.graph_config,
+            config=cfg,
         )
+        data["hotspot"].country = df_h["country"].tolist() if (len(df_h) > 0 and "country" in df_h.columns) else []
         return data

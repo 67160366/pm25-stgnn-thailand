@@ -11,3 +11,6 @@ data:
 
   # Stations to exclude from training (e.g. low-coverage station 1304386)
   exclude_stations: []
+
+  # Wind mode for Type B edges: "constant_ne" | "from_field" (requires ERA5)
+  wind_mode: from_field

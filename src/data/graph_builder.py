@@ -148,8 +148,20 @@ def _get_wind_uv(
         u = float(nearest.isel(component=0).values)
         v = float(nearest.isel(component=1).values)
         return u, v
+    if mode == "from_arrays":
+        # Pre-interpolated per-station ERA5 arrays stored in config by the loader.
+        # Nearest-station lookup serves both station locations (exact match) and
+        # hotspot locations (close enough for wind direction estimation).
+        u_arr: np.ndarray = config["_u10_per_station"]
+        v_arr: np.ndarray = config["_v10_per_station"]
+        s_lats: np.ndarray = config["_station_lats"]
+        s_lons: np.ndarray = config["_station_lons"]
+        dists = (s_lats - lat) ** 2 + (s_lons - lon) ** 2
+        idx = int(np.argmin(dists))
+        return float(u_arr[idx]), float(v_arr[idx])
     raise ValueError(
-        f"Unknown wind_mode: {mode!r}. Expected 'constant_ne', 'random', or 'from_field'."
+        f"Unknown wind_mode: {mode!r}. "
+        "Expected 'constant_ne', 'random', 'from_field', or 'from_arrays'."
     )
 
 
