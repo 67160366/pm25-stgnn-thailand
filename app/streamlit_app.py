@@ -71,21 +71,22 @@ def _load_metadata() -> pd.DataFrame:
 
 
 @st.cache_resource(show_spinner="Loading model…")
-def _load_model(checkpoint_dir: Path) -> torch.nn.Module | None:
+def _load_model(checkpoint_path: Path) -> torch.nn.Module | None:
     """Load the best MTGNN checkpoint if it exists, else return None."""
-    ckpt_path = checkpoint_dir / "best_model.pt"
-    if not ckpt_path.exists():
+    if not checkpoint_path.exists():
         return None
     try:
         with initialize_config_dir(config_dir=str(_CONFIGS_DIR), version_base="1.3"):
             cfg = compose(config_name="config", overrides=["model=mtgnn"])
         model = instantiate(cfg.model, n_stations=18, horizons=_HORIZONS)
-        state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-        model.load_state_dict(state)
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+        # Checkpoint is a dict with "model_state_dict" key (see Trainer._save_checkpoint)
+        state_dict = ckpt["model_state_dict"] if isinstance(ckpt, dict) else ckpt
+        model.load_state_dict(state_dict)
         model.eval()
         return model
     except Exception as exc:  # broad catch — graceful degradation in Streamlit UI
-        logger.warning("Could not load checkpoint %s: %s", ckpt_path, exc)
+        logger.warning("Could not load checkpoint %s: %s", checkpoint_path, exc)
         return None
 
 
@@ -114,9 +115,9 @@ with st.sidebar:
     st.caption("NSC 2026 | Category 14")
 
     ckpt_dir = st.text_input(
-        "Checkpoint directory",
-        value=str(_PROJECT_ROOT / "outputs"),
-        help="Directory containing best_model.pt",
+        "Checkpoint path",
+        value=str(_PROJECT_ROOT / "checkpoints" / "best_model.pt"),
+        help="Path to best_model.pt saved by scripts/03_train.py",
     )
 
     horizon_label = st.selectbox(
@@ -135,7 +136,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 meta = _load_metadata()
 scalers = _load_scalers()
-model = _load_model(Path(ckpt_dir))
+model = _load_model(Path(ckpt_dir))  # ckpt_dir is now a full file path
 
 # ---------------------------------------------------------------------------
 # Tabs
@@ -150,7 +151,7 @@ with tab_forecast:
 
     if model is None:
         st.warning(
-            f"No trained checkpoint found at `{ckpt_dir}/best_model.pt`. "
+            f"No trained checkpoint found at `{ckpt_dir}`. "
             "Train the model first:\n\n"
             "```\nuv run python scripts/03_train.py model=mtgnn\n```"
         )

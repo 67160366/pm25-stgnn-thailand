@@ -63,7 +63,10 @@ class PM25ModelBase(nn.Module, ABC):
         self.n_features = n_features
         self.horizons: list[int] = sorted(list(horizons))
         self.n_horizons: int = len(self.horizons)
-        self._clip_output: bool = True
+        # Clamping is off by default: targets in normalized scale can be negative
+        # (RobustScaler centers around median, so below-median PM2.5 is negative).
+        # Enable only if you have a specific reason to constrain raw outputs.
+        self._clip_output: bool = False
 
     @abstractmethod
     def forward(self, data: HeteroData) -> torch.Tensor:

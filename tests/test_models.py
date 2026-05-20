@@ -303,7 +303,7 @@ class TestMTGNNNoHotspots:
         out = model(data)
 
         assert out.shape == (batch_size * num_stations, 4)
-        assert (out >= 0).all()
+        assert torch.isfinite(out).all()
 
 
 # ---------------------------------------------------------------------------
@@ -330,7 +330,7 @@ class TestMTGNNEmptyTypeB:
         out = model(data)
 
         assert out.shape == (batch_size * num_stations, 4)
-        assert (out >= 0).all()
+        assert torch.isfinite(out).all()
 
 
 # ---------------------------------------------------------------------------

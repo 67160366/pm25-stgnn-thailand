@@ -93,7 +93,7 @@ def main(cfg: DictConfig) -> None:
         patience=cfg.trainer.patience,
         primary_horizon=cfg.trainer.primary_horizon,
         device=device,
-        output_dir=Path("."),  # Hydra sets cwd to outputs/{timestamp}
+        output_dir=Path(cfg.trainer.output_dir),
         wandb_project=cfg.trainer.wandb_project,
     )
 

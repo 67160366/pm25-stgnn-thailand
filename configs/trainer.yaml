@@ -1,7 +1,8 @@
 trainer:
   lr: 1.0e-3
   max_epochs: 100
-  patience: 10
+  patience: 15
   primary_horizon: 24
   device: cuda           # falls back to cpu automatically if CUDA unavailable
   wandb_project: null    # set to "pm25-stgnn-thailand" to enable W&B logging
+  output_dir: checkpoints
