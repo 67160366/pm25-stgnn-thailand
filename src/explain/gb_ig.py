@@ -1,23 +1,25 @@
 # [TODO: NSC Disclaimer — see booklet page 44]
 
-"""Graph-based Integrated Gradients for PM2.5 source attribution.
+"""Explainability methods for PM2.5 STGNN source attribution.
 
 This module is part of the NSC 2026 Category 14 entry:
 Explainable Spatio-Temporal GNN for PM2.5 in Northern Thailand.
 
-Implements attribution methods for heterogeneous PM2.5 graphs:
+Implements two attribution methods for the heterogeneous PM2.5 graph:
 
-1. ``integrated_gradients`` — standard IG path integral over station node
-   features (Sundararajan et al. 2017). Satisfies the completeness axiom:
-   sum of attributions equals the difference in model output from baseline.
+1. ``integrated_gradients`` — path-integral attribution over station node
+   features from a zero baseline to the actual input (Sundararajan et al. 2017).
+   Satisfies the completeness axiom: sum of attributions equals the difference
+   in model output between the input and the baseline.
 
 2. ``occlusion_country_attribution`` — model-agnostic country-level source
-   attribution by masking hotspot nodes per country and measuring output change.
+   attribution by masking the total_frp of hotspot nodes per country and
+   measuring the resulting drop in the predicted PM2.5 value.
    This is the primary method for the NSC "source attribution" novelty.
 
-Reference:
-    Sundararajan et al. (2017) "Axiomatic Attribution for Deep Networks".
-    Framing inspired by Graph-based Integrated Gradients (arxiv:2509.07648).
+References:
+    Sundararajan, M., Taly, A., & Yan, Q. (2017). Axiomatic Attribution for
+    Deep Networks. ICML 2017. https://proceedings.mlr.press/v70/sundararajan17a
 """
 
 from __future__ import annotations

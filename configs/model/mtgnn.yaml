@@ -6,5 +6,5 @@ hidden_dim: 64
 n_layers: 3
 kernel_size: 7
 k_hop: 2
-dropout: 0.1
+dropout: 0.3
 adaptive_dim: 10

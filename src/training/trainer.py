@@ -78,7 +78,7 @@ class Trainer:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        self.optimizer = Adam(model.parameters(), lr=lr)
+        self.optimizer = Adam(model.parameters(), lr=lr, weight_decay=1e-4)
         self.scheduler = CosineAnnealingLR(self.optimizer, T_max=max_epochs, eta_min=lr * 0.01)
 
         self._wandb: Any = None

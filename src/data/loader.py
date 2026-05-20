@@ -33,11 +33,11 @@ logger = logging.getLogger(__name__)
 _SPLIT_BOUNDS: dict[str, tuple[pd.Timestamp, pd.Timestamp]] = {
     "train": (
         pd.Timestamp("2022-01-01", tz="UTC"),
-        pd.Timestamp("2023-12-31 23:00", tz="UTC"),
+        pd.Timestamp("2024-12-31 23:00", tz="UTC"),
     ),
     "val": (
-        pd.Timestamp("2024-01-01", tz="UTC"),
-        pd.Timestamp("2024-12-31 23:00", tz="UTC"),
+        pd.Timestamp("2025-01-01", tz="UTC"),
+        pd.Timestamp("2025-12-31 23:00", tz="UTC"),
     ),
     "test": (
         pd.Timestamp("2025-01-01", tz="UTC"),
