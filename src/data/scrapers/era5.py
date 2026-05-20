@@ -399,9 +399,7 @@ def download_era5_year(
         logger.info("ERA5 year=%d already downloaded: %s", year, nc_path)
         return nc_path
 
-    logger.info(
-        "Downloading ERA5 year=%d in 12 monthly chunks -> %s", year, nc_path
-    )
+    logger.info("Downloading ERA5 year=%d in 12 monthly chunks -> %s", year, nc_path)
 
     try:
         client = cdsapi.Client()
