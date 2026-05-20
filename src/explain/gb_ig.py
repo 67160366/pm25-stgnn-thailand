@@ -87,10 +87,16 @@ def integrated_gradients(
     integrated_grads /= n_steps
     attr = (orig_x - baseline) * integrated_grads
 
+    with torch.no_grad():
+        f_x = model(data)[target_station_idx, target_horizon_idx].item()
+        data["station"].x = baseline
+        f_baseline = model(data)[target_station_idx, target_horizon_idx].item()
+        data["station"].x = orig_x  # restore after baseline forward
+
     logger.debug(
         "IG completeness check: attr_sum=%.4f  delta_f=%.4f",
         attr.sum().item(),
-        (model(data)[target_station_idx, target_horizon_idx] - 0.0),
+        f_x - f_baseline,
     )
 
     return {"station_x": attr.detach().cpu()}

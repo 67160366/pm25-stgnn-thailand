@@ -67,7 +67,10 @@ def _load_scalers() -> dict:
 
 @st.cache_resource(show_spinner="Loading station metadata…")
 def _load_metadata() -> pd.DataFrame:
-    return pd.read_parquet(_DATA_DIR / "stations_metadata.parquet")
+    meta = pd.read_parquet(_DATA_DIR / "stations_metadata.parquet")
+    # Loader renames location_id → station_id; mirror that here so the app
+    # uses the same column name as dataset.parquet and scalers.json keys.
+    return meta.rename(columns={"location_id": "station_id"})
 
 
 @st.cache_resource(show_spinner="Loading model…")
@@ -90,12 +93,16 @@ def _load_model(checkpoint_path: Path) -> torch.nn.Module | None:
         return None
 
 
-def _denorm_pm25(scaled: float, scalers: dict) -> float:
-    """Convert normalized pm25_scaled back to µg/m³."""
-    pm25_scaler = scalers.get("pm25", {})
-    mean = pm25_scaler.get("mean", 0.0)
-    std = pm25_scaler.get("std", 1.0)
-    return float(scaled * std + mean)
+def _denorm_pm25(scaled: float, station_id: int, scalers: dict) -> float:
+    """Convert pm25_scaled (RobustScaler) back to µg/m³ for a given station.
+
+    Scalers are per-station: scalers[str(station_id)] = {"center_": median, "scale_": IQR}.
+    Formula: pm25_raw = scaled * scale_ + center_
+    """
+    s = scalers.get(str(station_id), {})
+    center = float(s.get("center_", 0.0))
+    scale = float(s.get("scale_", 1.0))
+    return float(scaled * scale + center)
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +143,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 meta = _load_metadata()
 scalers = _load_scalers()
-model = _load_model(Path(ckpt_dir))  # ckpt_dir is now a full file path
+model = _load_model(Path(ckpt_dir))  # ckpt_dir is a full file path
 
 # ---------------------------------------------------------------------------
 # Tabs
@@ -167,7 +174,7 @@ with tab_forecast:
         station_ids = ds._station_ids  # type: ignore[attr-defined]
 
         pm25_at_horizon = {
-            sid: _denorm_pm25(float(pred_np[i, horizon_idx]), scalers)
+            sid: _denorm_pm25(float(pred_np[i, horizon_idx]), sid, scalers)
             for i, sid in enumerate(station_ids)
         }
         pm25_series = pd.Series(pm25_at_horizon)
@@ -183,30 +190,27 @@ with tab_forecast:
 
         with col_table:
             st.subheader(f"Station predictions (+{horizon_h}h)")
-            tbl = meta[["station_id", "name", "province"]].copy()
-            tbl["PM2.5 (µg/m³)"] = tbl["station_id"].map(
+            tbl = meta[["station_id", "name"]].copy()
+            tbl["PM2.5 (ug/m3)"] = tbl["station_id"].map(
                 lambda sid: f"{pm25_at_horizon.get(sid, float('nan')):.1f}"
             )
-            st.dataframe(tbl[["name", "province", "PM2.5 (µg/m³)"]], use_container_width=True)
+            st.dataframe(tbl[["name", "PM2.5 (ug/m3)"]], use_container_width=True)
 
 # ── Tab 2: Haze History ───────────────────────────────────────────────────────
 with tab_history:
     st.header("Haze History")
 
-    ds_val = _load_dataset("val")
     dataset_df = pd.read_parquet(_DATA_DIR / "dataset.parquet")
 
-    has_name_col = "name" in meta.columns
-    station_options = meta["name"].tolist() if has_name_col else meta["station_id"].tolist()
+    station_options = meta["name"].tolist()
     selected_name = st.selectbox("Station", options=station_options)
-    selected_row = meta[meta["name"] == selected_name].iloc[0] if has_name_col else meta.iloc[0]
-    selected_sid = selected_row["station_id"]
+    selected_sid = int(meta.loc[meta["name"] == selected_name, "station_id"].iloc[0])
 
     st.subheader("Multi-station PM2.5 Heatmap (last 7 days sample)")
     cutoff = dataset_df["timestamp"].max() - pd.Timedelta("7d")
     sample_df = dataset_df[dataset_df["timestamp"] >= cutoff]
     if len(sample_df) > 0:
-        fig_heat = multi_station_heatmap(sample_df, value_col="pm25")
+        fig_heat = multi_station_heatmap(sample_df, value_col="pm25_raw")
         st.plotly_chart(fig_heat, use_container_width=True)
 
     st.subheader(f"Time series — {selected_name}")
@@ -215,7 +219,7 @@ with tab_history:
         recent = station_df.tail(168)  # last 7 days hourly
         fig_ts = forecast_vs_actual(
             timestamps=recent["timestamp"].tolist(),
-            actual=recent["pm25"].tolist(),
+            actual=recent["pm25_raw"].tolist(),
             forecasts={},
             station_name=selected_name,
         )
@@ -229,10 +233,7 @@ with tab_attr:
         st.warning("Train the model first to enable source attribution.")
     else:
         ds_attr = _load_dataset("val")
-        if "name" in meta.columns:
-            station_names = meta["name"].tolist()
-        else:
-            station_names = [str(i) for i in range(ds_attr.n_stations)]
+        station_names = meta["name"].tolist()
 
         col_sel1, col_sel2 = st.columns(2)
         with col_sel1:

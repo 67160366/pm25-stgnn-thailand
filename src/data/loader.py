@@ -14,7 +14,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import torch
-import xarray as xr  # noqa: F401 — imported for HeteroData compat in graph_builder
 from torch_geometric.data import HeteroData
 
 from src.data.graph_builder import (
@@ -54,9 +53,15 @@ EMPTY_HOTSPOT_DF: pd.DataFrame = pd.DataFrame(
 
 _FEATURE_COLS: list[str] = [
     "pm25_scaled",
-    "hour_sin", "hour_cos",
-    "doy_sin", "doy_cos",
-    "u10", "v10", "t2m", "d2m", "blh",
+    "hour_sin",
+    "hour_cos",
+    "doy_sin",
+    "doy_cos",
+    "u10",
+    "v10",
+    "t2m",
+    "d2m",
+    "blh",
 ]
 
 
@@ -167,7 +172,11 @@ def _load_dataset_wide(
         "doy_cos",
         "mask_in_loss",
         "exclude_from_training",
-        "u10", "v10", "t2m", "d2m", "blh",
+        "u10",
+        "v10",
+        "t2m",
+        "d2m",
+        "blh",
     ]
 
     # Check if pm25_raw exists in the parquet
@@ -620,5 +629,6 @@ class PM25GraphDataset(torch.utils.data.Dataset):
             wind_field=None,
             config=cfg,
         )
-        data["hotspot"].country = df_h["country"].tolist() if (len(df_h) > 0 and "country" in df_h.columns) else []
+        has_country = len(df_h) > 0 and "country" in df_h.columns
+        data["hotspot"].country = df_h["country"].tolist() if has_country else []
         return data
