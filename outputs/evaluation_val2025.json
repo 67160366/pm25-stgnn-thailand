@@ -1,0 +1,55 @@
+{
+  "val_split": "2025-01-01 to 2025-12-31",
+  "n_stations": 18,
+  "horizons_h": [6, 12, 24, 48],
+  "note": "RMSE in ug/m3 (denormalized via per-station RobustScaler IQR). NaN targets masked.",
+  "persistence_rmse_ug_m3": {
+    "6h": 3.79,
+    "12h": 6.51,
+    "24h": 10.76,
+    "48h": 16.02
+  },
+  "mtgnn": {
+    "checkpoint": "checkpoints/mtgnn/best_model.pt",
+    "best_epoch": 15,
+    "params": 252588,
+    "val_rmse_norm_24h": 0.4576,
+    "rmse_ug_m3": {
+      "6h": 4.92,
+      "12h": 6.87,
+      "24h": 10.21,
+      "48h": 14.32
+    },
+    "beats_persistence": {
+      "6h": false,
+      "12h": false,
+      "24h": true,
+      "48h": true
+    },
+    "improvement_vs_persistence_pct": {
+      "6h": -29.8,
+      "12h": -5.5,
+      "24h": 5.1,
+      "48h": 10.6
+    }
+  },
+  "a3tgcn": {
+    "checkpoint": "checkpoints/a3tgcn/best_model.pt",
+    "best_epoch": 97,
+    "params": 27164,
+    "val_rmse_norm_24h": 0.4928,
+    "rmse_ug_m3": {
+      "6h": 7.01,
+      "12h": 8.26,
+      "24h": 10.79,
+      "48h": 14.76
+    },
+    "beats_persistence": {
+      "6h": false,
+      "12h": false,
+      "24h": false,
+      "48h": true
+    }
+  },
+  "interpretation": "MTGNN beats persistence at 24h (+5.1%) and 48h (+10.6%). Short horizons (6h, 12h) are dominated by PM2.5 autocorrelation, which is expected and consistent with published PM2.5-GNN literature. The 48h improvement is the most relevant for early haze event warnings."
+}
