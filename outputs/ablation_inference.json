@@ -1,0 +1,91 @@
+{
+  "split": "val",
+  "n_stations": 18,
+  "n_samples": 3637,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "caveat": "Inference-time channel removal on the trained checkpoint (NO retrain). This measures the trained model's sensitivity to disabling a channel at inference, NOT the value of training with it (the network may route around a disabled channel). Treat deltas as a LOWER BOUND on each channel's importance; the decisive test is the retrain ablation.",
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "variants": {
+    "full": {
+      "rmse_ug_m3": {
+        "6h": 4.3,
+        "12h": 5.79,
+        "24h": 8.67,
+        "48h": 12.69
+      },
+      "delta_vs_full": {
+        "6h": 0.0,
+        "12h": 0.0,
+        "24h": 0.0,
+        "48h": 0.0
+      }
+    },
+    "no_type_b": {
+      "rmse_ug_m3": {
+        "6h": 4.31,
+        "12h": 5.8,
+        "24h": 8.68,
+        "48h": 12.69
+      },
+      "delta_vs_full": {
+        "6h": 0.01,
+        "12h": 0.01,
+        "24h": 0.01,
+        "48h": 0.0
+      }
+    },
+    "no_hotspot": {
+      "rmse_ug_m3": {
+        "6h": 4.83,
+        "12h": 6.17,
+        "24h": 9.01,
+        "48h": 13.09
+      },
+      "delta_vs_full": {
+        "6h": 0.53,
+        "12h": 0.38,
+        "24h": 0.34,
+        "48h": 0.4
+      }
+    },
+    "no_adaptive": {
+      "rmse_ug_m3": {
+        "6h": 4.31,
+        "12h": 5.8,
+        "24h": 8.67,
+        "48h": 12.68
+      },
+      "delta_vs_full": {
+        "6h": 0.01,
+        "12h": 0.01,
+        "24h": 0.0,
+        "48h": -0.01
+      }
+    },
+    "no_all_novelties": {
+      "rmse_ug_m3": {
+        "6h": 4.69,
+        "12h": 6.07,
+        "24h": 8.94,
+        "48h": 13.03
+      },
+      "delta_vs_full": {
+        "6h": 0.39,
+        "12h": 0.28,
+        "24h": 0.27,
+        "48h": 0.34
+      }
+    }
+  },
+  "interpretation": "delta_vs_full > 0 means removing the channel hurts (the trained model uses it); delta ~ 0 means the channel is barely used at inference. This is a lower bound; see ablation_retrained.json for the decisive retrain ablation."
+}

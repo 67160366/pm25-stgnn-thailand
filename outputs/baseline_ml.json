@@ -1,0 +1,44 @@
+{
+  "split": "val",
+  "n_stations": 18,
+  "n_samples": 3637,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "seed": 42,
+  "model": "HistGradientBoostingRegressor per horizon, flattened 24h x 10-feature window",
+  "note": "Non-graph baseline on the SAME inputs/targets/mask as MTGNN (see src/training/evaluation.py). NaN-filled with 0.0 to mirror the loader. RMSE in ug/m3.",
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "baseline_ml_rmse_ug_m3": {
+    "6h": 3.83,
+    "12h": 5.35,
+    "24h": 8.73,
+    "48h": 12.86
+  },
+  "mtgnn_rmse_ug_m3": {
+    "6h": 4.3,
+    "12h": 5.79,
+    "24h": 8.67,
+    "48h": 12.69
+  },
+  "baseline_beats_persistence": {
+    "6h": false,
+    "12h": false,
+    "24h": false,
+    "48h": true
+  },
+  "baseline_beats_mtgnn": {
+    "6h": true,
+    "12h": true,
+    "24h": false,
+    "48h": false
+  }
+}
