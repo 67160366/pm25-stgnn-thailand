@@ -103,6 +103,35 @@ val). Order: `mtgnn` (full) -> `mtgnn_no_type_b` -> `mtgnn_no_type_c` -> `mtgnn_
 
 ---
 
+## 2b. Phase 3.1 - transboundary attribution (no retrain; pitch checkpoint) -> `scripts/10_transboundary_attr.py`
+Directly tests finding #6. At Mae Hong Son (Myanmar border), rank split dates by foreign
+(Myanmar+Laos) FRP, take the peak-PM2.5 anchor, read hotspots CONNECTED via type_c edges, then
+occlusion country attribution + IG. Outputs `outputs/transboundary_attr_{test,train}.json`.
+
+**Held-out 2025 (test) - the model DOES attribute cross-border:**
+
+| date | peak PM2.5 | conn. foreign % | foreign attr | attribution |
+|---|---|---|---|---|
+| 2025-03-25 | 126.7 | 26.8% | **1.00** | Myanmar 100% |
+| 2025-02-16 | 38.7 | 37.3% | 0.33 | Myanmar 33% |
+| 2025-02-13 | 27.6 | 6.5% | 1.00 | Myanmar 100% |
+| 2025-03-05 | 52.4 | 6.8% | 0.01 | Thailand 99% |
+| 2025-03-18 | 69.1 | 0.2% | 0.00 | Thailand 100% |
+
+**Train 2022-23:** foreign fires near Mae Hong Son were minimal (connected-foreign <=3.8%; even
+the all-time strongest Myanmar day 2022-04-14 [25k FRP] had ~0% connected to THIS station), so
+the model attributes ~Thailand.
+
+**Reading (refutes #6, also held-out so addresses #8):** foreign attribution TRACKS
+connected-foreign proximity - the model attributes to Myanmar exactly when foreign fires are
+near the border station, including the severe 2025-03-25 episode (126.7 ug/m3 -> 100% Myanmar).
+It is NOT a linear echo of the FRP fraction (100% attr vs 26.8% input; sometimes amplifies),
+so it is not the trivial tautology the review feared - but report the magnitude with that
+caveat. Note: total foreign FRP != foreign influence at a given station; proximity (type_c
+edges) governs it, which is why the interior Chiang Mai case was Thailand-100%.
+
+---
+
 ## 3. Status & next steps
 - **DONE:** P1.1-P1.3 (committed-ready), reviewed (main-thread max-effort; the reviewer subagent
   hit a session limit). Phase 2 split + flags done, validated, tests green. Retrains launched.
@@ -110,14 +139,17 @@ val). Order: `mtgnn` (full) -> `mtgnn_no_type_b` -> `mtgnn_no_type_c` -> `mtgnn_
 - **PENDING (after retrains):** `04_evaluate.py split=test output=outputs/evaluation_test2025.json`
   (verify normalized RMSE == new checkpoint); `outputs/ablation_retrained.json` (each novelty's
   RMSE contribution per horizon); re-run P1.1-P1.3 on `split=test` for the report.
-- **PENDING:** P3.1 transboundary attribution (`scripts/10_transboundary_attr.py`); P3.3 re-run
-  March-2024 attribution (now in val).
+- **DONE (Phase 3.1):** `scripts/10_transboundary_attr.py` refutes finding #6 - cross-border
+  attribution demonstrated on held-out 2025 (section 2b). PENDING: P3.3 re-run March-2024
+  attribution (now in val) after the retrain finishes.
 - **NOT committed yet** (per hard rule - awaiting user ask). Suggested commits: (1) Phase 1
   scripts + result JSONs; (2) Phase 2 split + ablation flags + configs + .gitignore; (3) docs.
 
 ## 4. Files changed this session
 - New: `scripts/07_significance.py`, `scripts/08_inference_ablation.py`, `scripts/09_ml_baseline.py`,
-  `outputs/significance_val2025.json`, `outputs/ablation_inference.json`, `outputs/baseline_ml.json`,
+  `scripts/10_transboundary_attr.py`, `outputs/significance_val2025.json`,
+  `outputs/ablation_inference.json`, `outputs/baseline_ml.json`,
+  `outputs/transboundary_attr_test.json`, `outputs/transboundary_attr_train.json`,
   `docs/SESSION8_NOTES.md`.
 - Changed: `src/data/loader.py` (`_SPLIT_BOUNDS`), `src/models/mtgnn.py` (ablation flags),
   `configs/model/mtgnn.yaml` (flag keys), `.gitignore` (`checkpoints_split2/`).
