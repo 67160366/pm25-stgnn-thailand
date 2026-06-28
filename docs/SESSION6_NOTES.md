@@ -4,6 +4,13 @@
 **Branch:** `feat/session-3-era5-models`
 **Goal:** Investigate Thailand=100%/Myanmar=0% attribution result, fix occlusion bug, restart A3TGCN.
 
+> ⚠️ **Correction (Session 7, 2026-06-28):** The µg/m³ figures in this file
+> (MTGNN ≈9.1, persistence 8.1, hotspot impact 3.2–7.2 / mean 4.5) were produced
+> with a **denormalization bug** and are overstated. The verified numbers are in
+> `outputs/evaluation_val2025.json` (MTGNN 24h = 8.67) and
+> `outputs/attribution_march2024.json` (hotspot impact mean = 3.49 µg/m³).
+> See `docs/SESSION7_NOTES.md` §1. Normalized metrics and model ranking are unchanged.
+
 ---
 
 ## What was done
