@@ -8,3 +8,9 @@ kernel_size: 7
 k_hop: 2
 dropout: 0.3
 adaptive_dim: 10
+
+# Spatial-channel ablation gates (Session 8). All true = full model.
+use_type_a: true
+use_type_b: true
+use_type_c: true
+use_adaptive: true

@@ -156,6 +156,10 @@ class MTGNNModel(PM25ModelBase):
         k_hop: Number of graph hops in MixHop convolution.
         dropout: Dropout probability before the output head.
         adaptive_dim: Embedding dimension for adaptive adjacency (Wu et al. 2020).
+        use_type_a: Include the Type A static-distance graph in the spatial sum.
+        use_type_b: Include the Type B wind-aware graph in the spatial sum.
+        use_type_c: Include the Type C hotspot bipartite signal in the spatial sum.
+        use_adaptive: Include the self-learned adaptive adjacency in the spatial sum.
     """
 
     def __init__(
@@ -169,6 +173,10 @@ class MTGNNModel(PM25ModelBase):
         k_hop: int = 2,
         dropout: float = 0.1,
         adaptive_dim: int = 10,
+        use_type_a: bool = True,
+        use_type_b: bool = True,
+        use_type_c: bool = True,
+        use_adaptive: bool = True,
     ) -> None:
         horizons = horizons or [6, 12, 24, 48]
         super().__init__(n_stations, n_features, horizons)
@@ -182,6 +190,22 @@ class MTGNNModel(PM25ModelBase):
 
         self.hidden_dim = hidden_dim
         self.dilations = [2**i for i in range(n_layers)]
+
+        # Spatial-channel ablation gates (Session 8). All True = full model. Disabling a
+        # channel zeroes its contribution to the spatial sum (and hence its gradient), so a
+        # retrained variant measures that channel's true accuracy contribution.
+        self.use_type_a = use_type_a
+        self.use_type_b = use_type_b
+        self.use_type_c = use_type_c
+        self.use_adaptive = use_adaptive
+        if not (use_type_a and use_type_b and use_type_c and use_adaptive):
+            logger.info(
+                "MTGNN ablation: type_a=%s type_b=%s type_c=%s adaptive=%s",
+                use_type_a,
+                use_type_b,
+                use_type_c,
+                use_adaptive,
+            )
 
         # --- Temporal stack ---
         self.start_conv = nn.Conv1d(n_features, hidden_dim, kernel_size=1)
@@ -332,8 +356,13 @@ class MTGNNModel(PM25ModelBase):
             hh = self.hotspot_encoder(hx)  # (K_total, hidden_dim)
             c = self.type_c_conv(hh, s, ei_c, ew_c)  # (B*N, hidden_dim)
 
-        # --- 8. Fuse all spatial contributions ---
-        spatial = a + b + g + c  # (B*N, hidden_dim)
+        # --- 8. Fuse spatial contributions (ablation gates zero disabled channels) ---
+        spatial = (
+            float(self.use_type_a) * a
+            + float(self.use_type_b) * b
+            + float(self.use_adaptive) * g
+            + float(self.use_type_c) * c
+        )  # (B*N, hidden_dim)
 
         # --- 9. Residual + norm + dropout ---
         combined = self.spatial_norm(spatial) + s  # (B*N, hidden_dim)

@@ -30,14 +30,18 @@ logger = logging.getLogger(__name__)
 # Module-level constants
 # ---------------------------------------------------------------------------
 
+# Three-way temporal split (Session 8): train 2022-23, val 2024 (model selection),
+# test 2025 (held-out, report only). 2024 has the best data coverage so it anchors model
+# selection; 2025 is the most recent year and the operational/pitch domain. NOTE: changing
+# these bounds invalidates pre-Session-8 result JSONs; re-run evals with explicit split=/output=.
 _SPLIT_BOUNDS: dict[str, tuple[pd.Timestamp, pd.Timestamp]] = {
     "train": (
         pd.Timestamp("2022-01-01", tz="UTC"),
-        pd.Timestamp("2024-12-31 23:00", tz="UTC"),
+        pd.Timestamp("2023-12-31 23:00", tz="UTC"),
     ),
     "val": (
-        pd.Timestamp("2025-01-01", tz="UTC"),
-        pd.Timestamp("2025-12-31 23:00", tz="UTC"),
+        pd.Timestamp("2024-01-01", tz="UTC"),
+        pd.Timestamp("2024-12-31 23:00", tz="UTC"),
     ),
     "test": (
         pd.Timestamp("2025-01-01", tz="UTC"),
