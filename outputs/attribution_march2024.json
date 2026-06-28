@@ -45,9 +45,9 @@
     }
   },
   "hotspot_impact_ug_m3_24h": {
-    "mean": 4.460938835144043,
-    "min": 3.196430206298828,
-    "max": 7.214700698852539
+    "mean": 3.4876430506191354,
+    "min": 2.499027224484962,
+    "max": 5.640584120189487
   },
-  "interpretation": "Local Thai biomass burning dominates (22 Thai clusters vs 1 Myanmar cluster per peak sample). Thai FRP sum = 109564, Myanmar FRP sum = 854 (ratio 128x). Total hotspot contribution to 24h PM2.5 prediction: 4.5 ug/m3 above no-fire baseline."
+  "interpretation": "Local Thai biomass burning dominates (22 Thai clusters vs 1 Myanmar cluster per peak sample). Thai FRP sum = 109564, Myanmar FRP sum = 854 (ratio 128x). Total hotspot contribution to 24h PM2.5 prediction: 3.5 ug/m3 above no-fire baseline."
 }
