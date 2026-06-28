@@ -6,4 +6,4 @@ defaults:
 
 hydra:
   run:
-    dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+    dir: outputs/hydra/${now:%Y-%m-%d_%H-%M-%S}
