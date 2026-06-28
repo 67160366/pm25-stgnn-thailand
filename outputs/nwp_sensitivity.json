@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "val_split": "2025-01-01 to 2025-12-31",
+    "n_stations": 18,
+    "model": "mtgnn",
+    "n_seeds": 3,
+    "feature_stds": {
+      "u10": 0.952,
+      "v10": 1.1416,
+      "t2m": 4.6481,
+      "d2m": 3.7854,
+      "blh": 538.3849
+    }
+  },
+  "noise_design": "Per-element zero-mean Gaussian noise added to all five ERA5 arrays (u10, v10, t2m, d2m, blh); per-feature sigma = noise_fraction * std(feature over val period). Perturbs node features AND wind-aware graph edges. RMSE in ug/m3, averaged over n_seeds realisations per noise level.",
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "results": [
+    {
+      "noise_fraction": 0.0,
+      "rmse_ug_m3": {
+        "6h": 4.31,
+        "12h": 5.8,
+        "24h": 8.67,
+        "48h": 12.68
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": true,
+        "48h": true
+      }
+    },
+    {
+      "noise_fraction": 0.1,
+      "rmse_ug_m3": {
+        "6h": 4.33,
+        "12h": 5.82,
+        "24h": 8.69,
+        "48h": 12.69
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": true,
+        "48h": true
+      }
+    },
+    {
+      "noise_fraction": 0.25,
+      "rmse_ug_m3": {
+        "6h": 4.45,
+        "12h": 5.92,
+        "24h": 8.79,
+        "48h": 12.76
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": false,
+        "48h": true
+      }
+    },
+    {
+      "noise_fraction": 0.5,
+      "rmse_ug_m3": {
+        "6h": 4.9,
+        "12h": 6.33,
+        "24h": 9.22,
+        "48h": 13.03
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": false,
+        "48h": false
+      }
+    },
+    {
+      "noise_fraction": 1.0,
+      "rmse_ug_m3": {
+        "6h": 6.63,
+        "12h": 8.04,
+        "24h": 11.21,
+        "48h": 14.45
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": false,
+        "48h": false
+      }
+    }
+  ],
+  "crossover_fraction": {
+    "24h": 0.25,
+    "48h": 0.5
+  },
+  "interpretation": "Corrupting all five ERA5 inputs with zero-mean Gaussian noise (sigma = fraction x per-feature std over the 2025 val period) degrades MTGNN monotonically at the long horizons. At the strongest tested noise (fraction=1.00), 24h RMSE rises from 8.67 to 11.21 ug/m3 and 48h from 12.68 to 14.45. MTGNN's 24h forecast first exceeds the persistence baseline (8.70) at noise 0.25x std; its 48h forecast first exceeds persistence (12.99) at noise 0.50x std. The clean 24h margin over persistence is razor-thin (0.03 ug/m3), so even modest NWP error erases it, whereas the 48h advantage (0.31 ug/m3) is more robust. Operationally, a production deployment using imperfect NWP rather than ERA5 reanalysis must keep weather-feature error well below natural variability to retain MTGNN's edge at 24h."
+}
