@@ -1,0 +1,108 @@
+{
+  "station": "Natural Resources and Environment Office, Mae Hongson",
+  "station_id": 225648,
+  "split": "train",
+  "horizon_h": 24,
+  "checkpoint": "checkpoints/mtgnn/best_model.pt",
+  "method": "Rank split dates by Myanmar+Laos FRP; at the border station take the peak-PM2.5 anchor, read hotspots connected via type_c edges, then occlusion country attribution + IG. Compares model foreign attribution to connected-foreign FRP.",
+  "n_events_with_connected_foreign_fire": 4,
+  "events": [
+    {
+      "date": "2022-04-16",
+      "peak_pm25_ug_m3": 48.0,
+      "connected_frp_by_country": {
+        "Thailand": 2892.9,
+        "Myanmar": 112.9
+      },
+      "connected_foreign_fraction": 0.038,
+      "country_attribution": {
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "foreign_attribution": 0.0,
+      "top_ig_features": {
+        "d2m": 0.0364,
+        "t2m": 0.0359,
+        "pm25_scaled": 0.005
+      }
+    },
+    {
+      "date": "2022-03-14",
+      "peak_pm25_ug_m3": 102.0,
+      "connected_frp_by_country": {
+        "Thailand": 1587.9,
+        "Myanmar": 28.1
+      },
+      "connected_foreign_fraction": 0.017,
+      "country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.008,
+        "Thailand": 0.992
+      },
+      "foreign_attribution": 0.008,
+      "top_ig_features": {
+        "d2m": 0.0409,
+        "t2m": 0.0407,
+        "pm25_scaled": 0.0112
+      }
+    },
+    {
+      "date": "2023-04-21",
+      "peak_pm25_ug_m3": 55.0,
+      "connected_frp_by_country": {
+        "Thailand": 958.6,
+        "Myanmar": 16.2
+      },
+      "connected_foreign_fraction": 0.017,
+      "country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.006,
+        "Thailand": 0.994
+      },
+      "foreign_attribution": 0.006,
+      "top_ig_features": {
+        "d2m": 0.0362,
+        "t2m": 0.0358,
+        "pm25_scaled": 0.0057
+      }
+    },
+    {
+      "date": "2022-04-26",
+      "peak_pm25_ug_m3": 40.0,
+      "connected_frp_by_country": {
+        "Thailand": 665.1,
+        "Myanmar": 5.0
+      },
+      "connected_foreign_fraction": 0.007,
+      "country_attribution": {
+        "Myanmar": 0.002,
+        "Thailand": 0.998
+      },
+      "foreign_attribution": 0.002,
+      "top_ig_features": {
+        "d2m": 0.0307,
+        "t2m": 0.0303,
+        "pm25_scaled": 0.0039
+      }
+    },
+    {
+      "date": "2022-04-14",
+      "peak_pm25_ug_m3": 88.0,
+      "connected_frp_by_country": {
+        "Thailand": 730.1
+      },
+      "connected_foreign_fraction": 0.0,
+      "country_attribution": {
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "foreign_attribution": 0.0,
+      "top_ig_features": {
+        "d2m": 0.0364,
+        "t2m": 0.036,
+        "pm25_scaled": 0.01
+      }
+    }
+  ],
+  "interpretation": "3/5 top events show non-zero foreign (Myanmar/Laos) attribution. Compare foreign_attribution vs connected_foreign_fraction per event: attribution ~0 despite a high connected-foreign fraction => the model does not capture transboundary transport at this station; attribution tracking the fraction => it is responsive to cross-border fire input."
+}
