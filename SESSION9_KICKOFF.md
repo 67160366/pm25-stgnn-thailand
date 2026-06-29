@@ -15,6 +15,7 @@
    `ablation_multiseed.json` (AUTHORITATIVE ablation), `significance_test2025.json`,
    `baseline_ml_test.json`, `transboundary_attr_test_split2.json`, `attribution_march2024_val.json`.
    Pitch-era (val-2025): `outputs/evaluation_val2025.json`, `significance_val2025.json`, etc.
+6. Pitch materials (for SS4b): `outputs/pitch/presenter_script_th.md`, `outputs/pitch/qa_defense.md`
 
 ---
 
@@ -78,6 +79,27 @@ Follow the NSC template (TH Sarabun New 16pt; sections per booklet pages 29-30; 
 the Section 2/3 numbers + story above. Do NOT re-run experiments to "improve" the headline (no
 p-hacking). Honest framing is the deliverable.
 
+## 4b. URGENT - AI Camp pitch updates (2-3 Jul - do BEFORE the report)
+The pitch is sooner than the report. Session 7 materials exist and are good:
+`outputs/pitch/presenter_script_th.md` (5-min script), `outputs/pitch/qa_defense.md` (12 Q&A cards),
+dashboard demo-ready, deck = `docs/project_pitch.pdf`. They correctly lead with XAI and are honest
+about the denorm bug. **Keep the pitch's val-2025 numbers** (correct for the pitch domain; the report
+uses held-out test 2025 - do NOT swap them in). Session 8 needs THREE edits to `outputs/pitch/*.md`:
+
+1. **ADD a win - transboundary now demonstrated.** Slide 7 + Q9 currently show only the Chiang Mai
+   March-2024 case = Thailand 100% (interior), which reads as "a transboundary tool that never finds
+   transboundary." Add the P3.1 result: at Mae Hong Son (border) on HELD-OUT 2025, 2025-02-16 had
+   ~37% connected-foreign FRP -> ~37% Myanmar attribution (well calibrated;
+   `transboundary_attr_test_split2.json`). Frame: "when foreign fires are near the border the system
+   attributes cross-border; interior Chiang Mai is genuinely Thai-dominated."
+2. **ADD a Q&A card - 'do the novelties actually improve forecast accuracy?'** Likely technical
+   probe; currently missing. Honest multi-seed answer: the accuracy contribution is within
+   training-seed noise (`ablation_multiseed.json`); the novelties' demonstrated value is the
+   attribution capability, not RMSE. Saying this openly is an AI-governance strength.
+3. **FIX Q3 (48h margin).** It calls 48h "genuinely strong (+2.4%)"; P1.1 shows it is NOT significant
+   (CI includes 0). Reword: "positive but not yet significant in a single year - which is exactly why
+   we lead with XAI, not RMSE."
+
 ## 5. PLAN
 - **P9.1** Draft report sections (abstract, intro, related work, data/methods, experiments,
   results, honest discussion + limitations, conclusion). Lead results with attribution; RMSE/ablation
@@ -131,6 +153,7 @@ More seeds (>3) for tighter ablation CIs; other border stations (Mae Sot 225626,
 for transboundary; residual-target training (P4, riskier). None change the honest conclusion.
 
 ---
-**First action in Session 9:** read SS0 files, confirm SS8 decisions with the user, then start P9.1
-(draft report) using the Section 2/3 honest numbers. Do not re-run experiments to chase a better
-headline.
+**First action in Session 9:** read the SS0 files and confirm the SS8 decisions. **If the AI Camp
+pitch (2-3 Jul) is still upcoming, do SS4b (pitch updates) FIRST** - it is time-critical and quick.
+Then start P9.1 (draft report) using the Section 2/3 honest numbers. Do not re-run experiments to
+chase a better headline.
