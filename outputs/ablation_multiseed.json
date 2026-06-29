@@ -1,0 +1,177 @@
+{
+  "split": "test",
+  "n_samples": 3637,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "seeds_per_variant": "original run + seeds 0,1 (up to 3)",
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "variants_mean_std_ug_m3": {
+    "full": {
+      "n_seeds": 3,
+      "mean": [
+        5.01,
+        6.19,
+        8.93,
+        12.697
+      ],
+      "std": [
+        0.455,
+        0.225,
+        0.154,
+        0.072
+      ]
+    },
+    "no_type_b": {
+      "n_seeds": 3,
+      "mean": [
+        4.947,
+        6.383,
+        9.02,
+        12.763
+      ],
+      "std": [
+        0.04,
+        0.188,
+        0.098,
+        0.199
+      ]
+    },
+    "no_type_c": {
+      "n_seeds": 3,
+      "mean": [
+        4.67,
+        6.053,
+        8.837,
+        12.617
+      ],
+      "std": [
+        0.583,
+        0.263,
+        0.216,
+        0.15
+      ]
+    },
+    "no_adaptive": {
+      "n_seeds": 3,
+      "mean": [
+        5.06,
+        6.277,
+        8.933,
+        12.763
+      ],
+      "std": [
+        0.098,
+        0.117,
+        0.096,
+        0.1
+      ]
+    },
+    "temporal_only": {
+      "n_seeds": 3,
+      "mean": [
+        5.05,
+        6.32,
+        9.113,
+        12.837
+      ],
+      "std": [
+        0.635,
+        0.506,
+        0.188,
+        0.393
+      ]
+    }
+  },
+  "deltas_vs_full": {
+    "no_type_b": {
+      "delta_vs_full": [
+        -0.063,
+        0.193,
+        0.09,
+        0.066
+      ],
+      "combined_std": [
+        0.495,
+        0.413,
+        0.252,
+        0.271
+      ],
+      "robust_beyond_noise": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "no_type_c": {
+      "delta_vs_full": [
+        -0.34,
+        -0.137,
+        -0.093,
+        -0.08
+      ],
+      "combined_std": [
+        1.038,
+        0.488,
+        0.37,
+        0.222
+      ],
+      "robust_beyond_noise": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "no_adaptive": {
+      "delta_vs_full": [
+        0.05,
+        0.087,
+        0.003,
+        0.066
+      ],
+      "combined_std": [
+        0.553,
+        0.342,
+        0.25,
+        0.172
+      ],
+      "robust_beyond_noise": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "temporal_only": {
+      "delta_vs_full": [
+        0.04,
+        0.13,
+        0.183,
+        0.14
+      ],
+      "combined_std": [
+        1.09,
+        0.731,
+        0.342,
+        0.465
+      ],
+      "robust_beyond_noise": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "interpretation": "A channel's contribution is robust only where robust_beyond_noise is true (|mean delta vs full| exceeds full.std + variant.std). Otherwise the single-seed delta was within training noise."
+}
