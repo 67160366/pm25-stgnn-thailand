@@ -132,24 +132,79 @@ edges) governs it, which is why the interior Chiang Mai case was Thailand-100%.
 
 ---
 
+## 2c. Phase 2 analysis - held-out TEST (2025) -> `scripts/11_ablation_eval.py`, re-run 07/09/10
+Denorm sanity PASS (full MTGNN val norm RMSE@24h = 0.4469 == checkpoint). New checkpoints in
+`checkpoints_split2/`; scripts 07/09/10 gained a `ckpt=` override.
+
+### Held-out test RMSE (ug/m3) - `outputs/evaluation_test2025.json` + `baseline_ml_test.json`
+| method | 6h | 12h | 24h | 48h |
+|---|---|---|---|---|
+| persistence | 2.96 | 5.19 | 8.70 | 12.99 |
+| MTGNN (full) | 4.52 | 5.93 | 8.76 | **12.66** |
+| A3TGCN | 6.93 | 7.86 | 9.92 | 13.34 |
+| non-graph HistGBR | 3.78 | 5.58 | 9.55 | 14.22 |
+| hybrid (pers<24h, MTGNN>=24h) | 2.96 | 5.19 | 8.76 | 12.66 |
+
+- **vs persistence:** MTGNN beats ONLY at 48h (+2.5%); loses 6/12/24h (24h 8.76 vs 8.70).
+  Significance (`significance_test2025.json`): 48h +2.54%, CI [-1.4, +6.3] -> **NOT significant**.
+- **vs non-graph baseline (HELD-OUT):** MTGNN clearly better at 24h (+0.79) and 48h (+1.56). The
+  tree generalizes worse to 2025 at long horizons (both worse than persistence) -> the graph's
+  inductive bias helps OUT-OF-SAMPLE generalization. REVISES the pitch-val #7 (in-distribution the
+  tree ~matched MTGNN).
+- **Hybrid footgun:** switching at 24h makes 24h = MTGNN (8.76) > persistence (8.70). On held-out
+  test only 48h beats persistence, so the report should use a **48h-cutoff** hybrid.
+
+### Retrain ablation (decisive, finding #4) - `outputs/ablation_retrained.json`
+delta vs full on test (+ = removing the channel hurts):
+| variant | 6h | 12h | 24h | 48h |
+|---|---|---|---|---|
+| -type_b (wind) | +0.39 | +0.67 | +0.23 | +0.33 |
+| -type_c (fire) | +0.04 | +0.17 | +0.28 | +0.13 |
+| -adaptive | +0.43 | +0.22 | +0.07 | +0.00 |
+| temporal_only (no graph) | +1.16 | +0.91 | +0.52 | +0.63 |
+
+- Removing ALL graph (temporal_only) is clearly worst at every horizon -> the graph machinery
+  collectively HELPS. Wind + fire + adaptive each contribute (mostly short horizons). This REVISES
+  the inference ablation (08), where wind/adaptive looked inert - that was a lower bound, as flagged.
+- CAVEAT: single seed per variant -> per-channel deltas of ~0.1-0.7 ug/m3 are within run-to-run
+  variance; trust the DIRECTION (graph helps), not the fine per-channel ranking. Multi-seed = future.
+
+### Transboundary on the new model - `outputs/transboundary_attr_test_split2.json`
+The split2 model also attributes cross-border, but magnitude differs from the pitch model:
+2025-02-16 (37.3% connected-foreign) -> **36.6% Myanmar** (well calibrated; pitch model 33%);
+2025-03-25 (26.8%) -> 3.6% (pitch 100%); 0.2% foreign -> 0%. Capability holds across BOTH models
+(non-zero, proximity-tracking); MAGNITUDE is model-dependent -> lead the report with the
+well-calibrated 2025-02-16 case, not the pitch model's 100%.
+
+### One-paragraph synthesis (for the report)
+Against a strong persistence baseline the model's edge is marginal and not significant (48h only).
+But the graph EARNS ITS COMPLEXITY in three defensible ways: (1) it beats a non-graph GBM on
+held-out long horizons (better generalization), (2) the retrain ablation shows removing the graph
+clearly hurts, and (3) it provides validated, proximity-consistent transboundary source
+attribution on held-out data - which persistence/GBM cannot do at all. Lead with XAI + 48h
+early-warning, report RMSE honestly with CIs.
+
+---
+
 ## 3. Status & next steps
 - **DONE:** P1.1-P1.3 (committed-ready), reviewed (main-thread max-effort; the reviewer subagent
   hit a session limit). Phase 2 split + flags done, validated, tests green. Retrains launched.
-- **RUNNING:** background retrain queue (6 runs) -> `checkpoints_split2/`.
-- **PENDING (after retrains):** `04_evaluate.py split=test output=outputs/evaluation_test2025.json`
-  (verify normalized RMSE == new checkpoint); `outputs/ablation_retrained.json` (each novelty's
-  RMSE contribution per horizon); re-run P1.1-P1.3 on `split=test` for the report.
+- **DONE:** all 6 retrains complete + Phase 2 analysis (section 2c) - held-out test eval, retrain
+  ablation, and significance/baseline/transboundary re-run on the new split2 model.
 - **DONE (Phase 3.1):** `scripts/10_transboundary_attr.py` refutes finding #6 - cross-border
-  attribution demonstrated on held-out 2025 (section 2b). PENDING: P3.3 re-run March-2024
-  attribution (now in val) after the retrain finishes.
-- **NOT committed yet** (per hard rule - awaiting user ask). Suggested commits: (1) Phase 1
-  scripts + result JSONs; (2) Phase 2 split + ablation flags + configs + .gitignore; (3) docs.
+  attribution demonstrated on held-out 2025 (sections 2b/2c).
+- **PENDING:** P3.3 (re-run March-2024 attribution, now in val - `05_attribution.py` needs a split
+  override); multi-seed retrains to firm up per-channel ablation; final report write-up.
+- **Committed:** Phase 1 + Phase 2 setup + P3.1 + docs (5 commits). Phase 2 ANALYSIS (script 11 +
+  test/ablation JSONs + 07/09/10 ckpt override) pending commit this turn.
 
 ## 4. Files changed this session
 - New: `scripts/07_significance.py`, `scripts/08_inference_ablation.py`, `scripts/09_ml_baseline.py`,
-  `scripts/10_transboundary_attr.py`, `outputs/significance_val2025.json`,
-  `outputs/ablation_inference.json`, `outputs/baseline_ml.json`,
-  `outputs/transboundary_attr_test.json`, `outputs/transboundary_attr_train.json`,
-  `docs/SESSION8_NOTES.md`.
+  `scripts/10_transboundary_attr.py`, `scripts/11_ablation_eval.py`, and `outputs/`:
+  `significance_val2025.json`, `significance_test2025.json`, `ablation_inference.json`,
+  `baseline_ml.json`, `baseline_ml_test.json`, `ablation_retrained.json`, `evaluation_test2025.json`,
+  `transboundary_attr_test.json`, `transboundary_attr_train.json`, `transboundary_attr_test_split2.json`,
+  plus `docs/SESSION8_NOTES.md`.
 - Changed: `src/data/loader.py` (`_SPLIT_BOUNDS`), `src/models/mtgnn.py` (ablation flags),
-  `configs/model/mtgnn.yaml` (flag keys), `.gitignore` (`checkpoints_split2/`).
+  `configs/model/mtgnn.yaml` (flag keys), `.gitignore` (`checkpoints_split2/`),
+  `scripts/07,09,10` (`ckpt=` override for the new split2 checkpoints).
