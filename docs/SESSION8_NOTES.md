@@ -147,10 +147,9 @@ Denorm sanity PASS (full MTGNN val norm RMSE@24h = 0.4469 == checkpoint). New ch
 
 - **vs persistence:** MTGNN beats ONLY at 48h (+2.5%); loses 6/12/24h (24h 8.76 vs 8.70).
   Significance (`significance_test2025.json`): 48h +2.54%, CI [-1.4, +6.3] -> **NOT significant**.
-- **vs non-graph baseline (HELD-OUT):** MTGNN clearly better at 24h (+0.79) and 48h (+1.56). The
-  tree generalizes worse to 2025 at long horizons (both worse than persistence) -> the graph's
-  inductive bias helps OUT-OF-SAMPLE generalization. REVISES the pitch-val #7 (in-distribution the
-  tree ~matched MTGNN).
+- **vs non-graph baseline (HELD-OUT):** MTGNN better at 24h/48h than the GBM (which generalizes
+  worse to 2025 at long horizons). BUT the multi-seed ablation (below) shows this is the TEMPORAL
+  architecture, not the graph (temporal_only also beats the GBM) - so it does NOT vindicate the graph.
 - **Hybrid footgun:** switching at 24h makes 24h = MTGNN (8.76) > persistence (8.70). On held-out
   test only 48h beats persistence, so the report should use a **48h-cutoff** hybrid.
 
@@ -163,11 +162,28 @@ delta vs full on test (+ = removing the channel hurts):
 | -adaptive | +0.43 | +0.22 | +0.07 | +0.00 |
 | temporal_only (no graph) | +1.16 | +0.91 | +0.52 | +0.63 |
 
-- Removing ALL graph (temporal_only) is clearly worst at every horizon -> the graph machinery
-  collectively HELPS. Wind + fire + adaptive each contribute (mostly short horizons). This REVISES
-  the inference ablation (08), where wind/adaptive looked inert - that was a lower bound, as flagged.
-- CAVEAT: single seed per variant -> per-channel deltas of ~0.1-0.7 ug/m3 are within run-to-run
-  variance; trust the DIRECTION (graph helps), not the fine per-channel ranking. Multi-seed = future.
+- **SUPERSEDED by the multi-seed result below.** The single seed suggested temporal_only was
+  clearly worst (graph helps), but that was a SEED ARTIFACT - a lucky `full` run plus an unlucky
+  `temporal_only` run. With 3 seeds the effect vanishes into noise (see next subsection).
+
+### Multi-seed ablation (AUTHORITATIVE, finding #4) - `outputs/ablation_multiseed.json` (scripts/12)
+3 seeds/variant (orig + s0 + s1), evaluated on test. RMSE mean +/- std (ug/m3):
+| variant | 6h | 12h | 24h | 48h |
+|---|---|---|---|---|
+| full | 5.01+-0.46 | 6.19+-0.23 | 8.93+-0.15 | 12.70+-0.07 |
+| no_type_b | 4.95+-0.04 | 6.38+-0.19 | 9.02+-0.10 | 12.76+-0.20 |
+| no_type_c | 4.67+-0.58 | 6.05+-0.26 | 8.84+-0.22 | 12.62+-0.15 |
+| no_adaptive | 5.06+-0.10 | 6.28+-0.12 | 8.93+-0.10 | 12.76+-0.10 |
+| temporal_only | 5.05+-0.64 | 6.32+-0.51 | 9.11+-0.19 | 12.84+-0.39 |
+
+**KEY HONEST FINDING:** NO variant's mean delta vs full exceeds the combined seed std at ANY
+horizon. temporal_only (no graph) is only +0.04/+0.13/+0.18/+0.14 vs full - WITHIN noise. So **the
+graph machinery does NOT robustly improve forecast accuracy beyond training-seed variance** - the
+honest (negative) answer to finding #4. The single-seed "graph helps" was noise.
+- Consequence: the MTGNN's edge over the non-graph GBM at long horizons is the TEMPORAL conv
+  architecture, NOT the graph (temporal_only also beats the GBM at 24h/48h). Corrects the #7 bullet.
+- full (multi-seed): beats persistence only at 48h (12.70 vs 12.99; ~2.2%, robust to seed but not
+  significant over test days); 24h is a slight loss on average (8.93 vs 8.70).
 
 ### Transboundary on the new model - `outputs/transboundary_attr_test_split2.json`
 The split2 model also attributes cross-border, but magnitude differs from the pitch model:
@@ -176,13 +192,15 @@ The split2 model also attributes cross-border, but magnitude differs from the pi
 (non-zero, proximity-tracking); MAGNITUDE is model-dependent -> lead the report with the
 well-calibrated 2025-02-16 case, not the pitch model's 100%.
 
-### One-paragraph synthesis (for the report)
-Against a strong persistence baseline the model's edge is marginal and not significant (48h only).
-But the graph EARNS ITS COMPLEXITY in three defensible ways: (1) it beats a non-graph GBM on
-held-out long horizons (better generalization), (2) the retrain ablation shows removing the graph
-clearly hurts, and (3) it provides validated, proximity-consistent transboundary source
-attribution on held-out data - which persistence/GBM cannot do at all. Lead with XAI + 48h
-early-warning, report RMSE honestly with CIs.
+### One-paragraph synthesis (for the report) - REVISED after multi-seed
+Against a strong persistence baseline the forecast edge is marginal (48h only, ~2%, not significant
+over test days). Multi-seed ablation shows the graph machinery does NOT robustly improve accuracy
+beyond training noise, so do NOT claim the novelties boost forecasting. The defensible contribution
+is the **source-attribution capability the graph ENABLES**: validated, proximity-consistent
+transboundary (Myanmar) attribution on held-out data, which persistence and a GBM cannot produce at
+all. Lead with XAI / source attribution (+ honest 48h early-warning); present the forecast and
+ablation results transparently as marginal/null. That honesty is itself the AI-governance strength
+the NSC rubric rewards.
 
 ---
 
