@@ -1,0 +1,92 @@
+{
+  "split": "test",
+  "n_stations": 18,
+  "n_samples": 3637,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "n_boot": 2000,
+  "seed": 42,
+  "method": "Paired block bootstrap by forecast-origin day (resample whole calendar days with replacement) of the RMSE difference persistence - MTGNN, in ug/m3. Positive diff/pct means MTGNN beats persistence. RMSE, mask and persistence from src/training/evaluation.py (identical to scripts/04_evaluate.py).",
+  "per_horizon": {
+    "6h": {
+      "rmse_model": 4.525,
+      "rmse_persistence": 2.962,
+      "rmse_diff_point": -1.563,
+      "pct_improvement_point": -52.75,
+      "rmse_diff_boot_mean": -1.565,
+      "rmse_diff_ci95": [
+        -1.851,
+        -1.29
+      ],
+      "pct_improvement_ci95": [
+        -68.7,
+        -40.29
+      ],
+      "prob_model_better": 0.0,
+      "significant_at_95": false,
+      "n_days": 151,
+      "n_valid_rows": 60238
+    },
+    "12h": {
+      "rmse_model": 5.931,
+      "rmse_persistence": 5.191,
+      "rmse_diff_point": -0.74,
+      "pct_improvement_point": -14.25,
+      "rmse_diff_boot_mean": -0.744,
+      "rmse_diff_ci95": [
+        -1.061,
+        -0.429
+      ],
+      "pct_improvement_ci95": [
+        -21.99,
+        -7.82
+      ],
+      "prob_model_better": 0.0,
+      "significant_at_95": false,
+      "n_days": 151,
+      "n_valid_rows": 60168
+    },
+    "24h": {
+      "rmse_model": 8.756,
+      "rmse_persistence": 8.701,
+      "rmse_diff_point": -0.056,
+      "pct_improvement_point": -0.64,
+      "rmse_diff_boot_mean": -0.058,
+      "rmse_diff_ci95": [
+        -0.467,
+        0.325
+      ],
+      "pct_improvement_ci95": [
+        -5.5,
+        3.71
+      ],
+      "prob_model_better": 0.396,
+      "significant_at_95": false,
+      "n_days": 149,
+      "n_valid_rows": 60067
+    },
+    "48h": {
+      "rmse_model": 12.662,
+      "rmse_persistence": 12.993,
+      "rmse_diff_point": 0.331,
+      "pct_improvement_point": 2.54,
+      "rmse_diff_boot_mean": 0.333,
+      "rmse_diff_ci95": [
+        -0.187,
+        0.814
+      ],
+      "pct_improvement_ci95": [
+        -1.44,
+        6.28
+      ],
+      "prob_model_better": 0.891,
+      "significant_at_95": false,
+      "n_days": 149,
+      "n_valid_rows": 59938
+    }
+  }
+}

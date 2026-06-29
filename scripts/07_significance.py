@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _CONFIGS_DIR = _PROJECT_ROOT / "configs"
 _MTGNN_CKPT = "checkpoints/mtgnn/best_model.pt"
-_LOCAL_KEYS = {"device", "output", "split", "n_boot", "seed"}
+_LOCAL_KEYS = {"device", "output", "split", "n_boot", "seed", "ckpt"}
 
 
 def _resolve_device(requested: str) -> str:
@@ -87,14 +87,15 @@ def _split_cli_args(argv: list[str]) -> tuple[dict[str, str], list[str]]:
     return local, overrides
 
 
-def _load_mtgnn(ds: PM25GraphDataset, horizons: list[int], overrides: list[str]) -> torch.nn.Module:
+def _load_mtgnn(
+    ds: PM25GraphDataset, horizons: list[int], overrides: list[str], ckpt: str
+) -> torch.nn.Module:
     """Instantiate MTGNN from Hydra config and load the trained checkpoint."""
     with initialize_config_dir(config_dir=str(_CONFIGS_DIR), version_base="1.3"):
         mcfg = compose(config_name="config", overrides=["model=mtgnn", *overrides])
     model = instantiate(mcfg.model, n_stations=ds.n_stations, horizons=horizons)
-    ckpt = torch.load(_PROJECT_ROOT / _MTGNN_CKPT, map_location="cpu", weights_only=False)
-    state = ckpt["model_state_dict"] if isinstance(ckpt, dict) else ckpt
-    model.load_state_dict(state)
+    state = torch.load(_PROJECT_ROOT / ckpt, map_location="cpu", weights_only=False)
+    model.load_state_dict(state["model_state_dict"] if isinstance(state, dict) else state)
     return model
 
 
@@ -160,6 +161,7 @@ def main() -> None:
     split = local_args.get("split", "val")
     n_boot = int(local_args.get("n_boot", 2000))
     seed = int(local_args.get("seed", 42))
+    ckpt = local_args.get("ckpt", _MTGNN_CKPT)
     output_path = Path(local_args.get("output", "outputs/significance_val2025.json"))
     horizons = list(cfg.data.horizons)
     wind_mode = getattr(cfg.data, "wind_mode", "constant_ne")
@@ -180,7 +182,7 @@ def main() -> None:
 
     centers, scales = station_scalers(ds)
     y_ug, mask, pers_ug = build_ground_truth(ds, horizons)
-    raw_pred = predict(_load_mtgnn(ds, horizons, overrides), loader, device)
+    raw_pred = predict(_load_mtgnn(ds, horizons, overrides, ckpt), loader, device)
     pred_ug = denorm_pred(raw_pred, centers, scales, ds.n_stations)
 
     se_model = (pred_ug - y_ug) ** 2

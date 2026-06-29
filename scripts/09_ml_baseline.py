@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _CONFIGS_DIR = _PROJECT_ROOT / "configs"
 _MTGNN_CKPT = "checkpoints/mtgnn/best_model.pt"
-_LOCAL_KEYS = {"device", "output", "split", "seed"}
+_LOCAL_KEYS = {"device", "output", "split", "seed", "ckpt"}
 
 # Wide per-(T_full, N) feature arrays, in the same order the loader stacks them.
 _FEATURE_ATTRS = (
@@ -161,12 +161,13 @@ def _mtgnn_rmse(
     scales: np.ndarray,
     y_ug: np.ndarray,
     mask: np.ndarray,
+    ckpt_path: str,
 ) -> dict[str, float]:
     """Score the trained MTGNN checkpoint on the same mask, for side-by-side comparison."""
     with initialize_config_dir(config_dir=str(_CONFIGS_DIR), version_base="1.3"):
         mcfg = compose(config_name="config", overrides=["model=mtgnn", *overrides])
     model = instantiate(mcfg.model, n_stations=ds_val.n_stations, horizons=horizons)
-    ckpt = torch.load(_PROJECT_ROOT / _MTGNN_CKPT, map_location="cpu", weights_only=False)
+    ckpt = torch.load(_PROJECT_ROOT / ckpt_path, map_location="cpu", weights_only=False)
     model.load_state_dict(ckpt["model_state_dict"] if isinstance(ckpt, dict) else ckpt)
     pred_ug = denorm_pred(predict(model, loader, device), centers, scales, ds_val.n_stations)
     return rmse_block(pred_ug, y_ug, mask, horizons)
@@ -196,6 +197,7 @@ def main() -> None:
     device = _resolve_device(local_args.get("device", cfg.trainer.device))
     split = local_args.get("split", "val")
     seed = int(local_args.get("seed", 42))
+    ckpt = local_args.get("ckpt", _MTGNN_CKPT)
     output_path = Path(local_args.get("output", "outputs/baseline_ml.json"))
     horizons = list(cfg.data.horizons)
     wind_mode = getattr(cfg.data, "wind_mode", "constant_ne")
@@ -218,7 +220,7 @@ def main() -> None:
 
     loader = DataLoader(ds_val, batch_size=cfg.data.batch_size, shuffle=False, num_workers=0)
     mtgnn_rmse = _mtgnn_rmse(
-        ds_val, loader, device, overrides, horizons, centers, scales, y_ug, mask
+        ds_val, loader, device, overrides, horizons, centers, scales, y_ug, mask, ckpt
     )
 
     results: dict[str, object] = {

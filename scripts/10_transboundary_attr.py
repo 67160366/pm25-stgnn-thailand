@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _CONFIGS_DIR = _PROJECT_ROOT / "configs"
 _MTGNN_CKPT = "checkpoints/mtgnn/best_model.pt"
-_LOCAL_KEYS = {"output", "split", "station_id", "top_k", "n_candidates", "horizon_idx"}
+_LOCAL_KEYS = {"output", "split", "station_id", "top_k", "n_candidates", "horizon_idx", "ckpt"}
 _FOREIGN = ("Myanmar", "Laos")
 _DEFAULT_STATION_ID = 225648  # Mae Hong Son - deepest on the Myanmar border
 
@@ -76,13 +76,15 @@ def _split_cli_args(argv: list[str]) -> tuple[dict[str, str], list[str]]:
     return local, overrides
 
 
-def _load_mtgnn(n_stations: int, horizons: list[int], overrides: list[str]) -> torch.nn.Module:
+def _load_mtgnn(
+    n_stations: int, horizons: list[int], overrides: list[str], ckpt: str
+) -> torch.nn.Module:
     """Instantiate MTGNN from Hydra config and load the trained checkpoint (CPU)."""
     with initialize_config_dir(config_dir=str(_CONFIGS_DIR), version_base="1.3"):
         mcfg = compose(config_name="config", overrides=["model=mtgnn", *overrides])
     model = instantiate(mcfg.model, n_stations=n_stations, horizons=horizons)
-    ckpt = torch.load(_PROJECT_ROOT / _MTGNN_CKPT, map_location="cpu", weights_only=False)
-    model.load_state_dict(ckpt["model_state_dict"] if isinstance(ckpt, dict) else ckpt)
+    state = torch.load(_PROJECT_ROOT / ckpt, map_location="cpu", weights_only=False)
+    model.load_state_dict(state["model_state_dict"] if isinstance(state, dict) else state)
     return model.eval()
 
 
@@ -171,6 +173,7 @@ def main() -> None:
     n_candidates = int(local_args.get("n_candidates", 15))
     top_k = int(local_args.get("top_k", 5))
     horizon_idx = int(local_args.get("horizon_idx", 2))
+    ckpt = local_args.get("ckpt", _MTGNN_CKPT)
     output_path = Path(local_args.get("output", f"outputs/transboundary_attr_{split}.json"))
     horizons = list(cfg.data.horizons)
     wind_mode = getattr(cfg.data, "wind_mode", "constant_ne")
@@ -208,7 +211,7 @@ def main() -> None:
         events.append((foreign, pos, d, peak))
 
     events.sort(key=lambda e: -e[0])
-    model = _load_mtgnn(ds.n_stations, horizons, overrides)
+    model = _load_mtgnn(ds.n_stations, horizons, overrides, ckpt)
 
     summaries = [
         _summarize_event(model, ds[pos], station_idx, station_name, horizon_idx, d, peak)

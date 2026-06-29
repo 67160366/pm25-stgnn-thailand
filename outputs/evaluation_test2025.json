@@ -1,0 +1,45 @@
+{
+  "split": "test",
+  "n_samples": 3637,
+  "n_stations": 18,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "note": "Held-out test 2025 RMSE ug/m3, 3-way split retrain.",
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "mtgnn": {
+    "checkpoint": "checkpoints_split2/mtgnn",
+    "rmse_ug_m3": {
+      "6h": 4.52,
+      "12h": 5.93,
+      "24h": 8.76,
+      "48h": 12.66
+    }
+  },
+  "a3tgcn": {
+    "checkpoint": "checkpoints_split2/a3tgcn",
+    "rmse_ug_m3": {
+      "6h": 6.93,
+      "12h": 7.86,
+      "24h": 9.92,
+      "48h": 13.34
+    }
+  },
+  "hybrid_operational": {
+    "policy": "persistence for horizons <24h, MTGNN for horizons >=24h",
+    "rmse_ug_m3": {
+      "6h": 2.96,
+      "12h": 5.19,
+      "24h": 8.76,
+      "48h": 12.66
+    }
+  }
+}

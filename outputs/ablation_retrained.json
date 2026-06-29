@@ -1,0 +1,93 @@
+{
+  "split": "test",
+  "n_samples": 3637,
+  "n_stations": 18,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "training": "3-way split train 2022-23 / val 2024 / test 2025; single seed per run.",
+  "denorm_sanity_val_norm_rmse24h": 0.4469,
+  "denorm_sanity_checkpoint": 0.4469,
+  "persistence_rmse_ug_m3": {
+    "6h": 2.96,
+    "12h": 5.19,
+    "24h": 8.7,
+    "48h": 12.99
+  },
+  "ablation": {
+    "full": {
+      "rmse_ug_m3": {
+        "6h": 4.52,
+        "12h": 5.93,
+        "24h": 8.76,
+        "48h": 12.66
+      },
+      "delta_vs_full": {
+        "6h": 0.0,
+        "12h": 0.0,
+        "24h": 0.0,
+        "48h": 0.0
+      }
+    },
+    "no_type_b": {
+      "rmse_ug_m3": {
+        "6h": 4.91,
+        "12h": 6.6,
+        "24h": 8.99,
+        "48h": 12.99
+      },
+      "delta_vs_full": {
+        "6h": 0.39,
+        "12h": 0.67,
+        "24h": 0.23,
+        "48h": 0.33
+      }
+    },
+    "no_type_c": {
+      "rmse_ug_m3": {
+        "6h": 4.56,
+        "12h": 6.1,
+        "24h": 9.04,
+        "48h": 12.79
+      },
+      "delta_vs_full": {
+        "6h": 0.04,
+        "12h": 0.17,
+        "24h": 0.28,
+        "48h": 0.13
+      }
+    },
+    "no_adaptive": {
+      "rmse_ug_m3": {
+        "6h": 4.95,
+        "12h": 6.15,
+        "24h": 8.83,
+        "48h": 12.66
+      },
+      "delta_vs_full": {
+        "6h": 0.43,
+        "12h": 0.22,
+        "24h": 0.07,
+        "48h": 0.0
+      }
+    },
+    "temporal_only": {
+      "rmse_ug_m3": {
+        "6h": 5.68,
+        "12h": 6.84,
+        "24h": 9.28,
+        "48h": 13.29
+      },
+      "delta_vs_full": {
+        "6h": 1.16,
+        "12h": 0.91,
+        "24h": 0.52,
+        "48h": 0.63
+      }
+    }
+  },
+  "caveat": "Each variant is one training run (no fixed seed), so per-channel deltas of a few tenths of a ug/m3 are within run-to-run variance; read the direction, not fine ranking. This supersedes the inference-time ablation (08), which was a lower bound."
+}
