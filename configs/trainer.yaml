@@ -6,3 +6,4 @@ trainer:
   device: cuda           # falls back to cpu automatically if CUDA unavailable
   wandb_project: null    # set to "pm25-stgnn-thailand" to enable W&B logging
   output_dir: checkpoints
+  seed: null             # set an int for reproducible / multi-seed training runs

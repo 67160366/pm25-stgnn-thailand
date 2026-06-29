@@ -12,6 +12,7 @@ data/processed/
 *.ckpt
 checkpoints/
 checkpoints_split2/
+checkpoints_split2_seeds/
 wandb/
 lightning_logs/
 mlruns/

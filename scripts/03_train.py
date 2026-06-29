@@ -41,6 +41,11 @@ def main(cfg: DictConfig) -> None:
         logger.warning("CUDA not available — falling back to CPU.")
         device = "cpu"
 
+    if cfg.trainer.seed is not None:
+        torch.manual_seed(int(cfg.trainer.seed))
+        torch.cuda.manual_seed_all(int(cfg.trainer.seed))
+        logger.info("Random seed set to %d", int(cfg.trainer.seed))
+
     logger.info("=== PM2.5 STGNN Training ===")
     logger.info("Model: %s", cfg.model._target_)
     logger.info("Device: %s", device)
@@ -104,7 +109,9 @@ def main(cfg: DictConfig) -> None:
         (v for v in history[f"val_rmse_{cfg.trainer.primary_horizon}h"] if v == v),  # skip NaN
         default=float("nan"),
     )
-    logger.info("Best val RMSE@%dh = %.4f (normalized scale)", cfg.trainer.primary_horizon, best_rmse)
+    logger.info(
+        "Best val RMSE@%dh = %.4f (normalized scale)", cfg.trainer.primary_horizon, best_rmse
+    )
 
 
 if __name__ == "__main__":
