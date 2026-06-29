@@ -338,22 +338,23 @@ def _aggregate_reports(
 def main(cfg: DictConfig) -> None:
     """Load MTGNN checkpoint and run attribution on March 2024 peak haze."""
     device = "cpu"  # attribution runs on CPU
+    split = OmegaConf.select(cfg, "split", default="val")
 
     model = _load_attribution_model(cfg, device)
 
-    # ── Load train dataset (March 2024 is in train split) ────────────────────
+    # ── Load the split holding the event (March 2024 -> val after the Session-8 re-split) ──
     wind_mode = getattr(cfg.data, "wind_mode", "constant_ne")
     ds = PM25GraphDataset(
         dataset_path=Path(cfg.data.dataset_path),
         hotspots_path=Path(cfg.data.hotspots_path),
         metadata_path=Path(cfg.data.metadata_path),
         scalers_path=Path(cfg.data.scalers_path),
-        split="train",
+        split=split,
         window_in=cfg.data.window_in,
         horizons=list(cfg.data.horizons),
         graph_config={"wind_mode": wind_mode},
     )
-    logger.info("Train dataset: %d samples", len(ds))
+    logger.info("Dataset split=%s: %d samples", split, len(ds))
 
     # ── Find Chiang Mai station index ─────────────────────────────────────────
     meta = pd.read_parquet(cfg.data.metadata_path).rename(columns={"location_id": "station_id"})
@@ -453,7 +454,7 @@ def main(cfg: DictConfig) -> None:
         "hotspot_impact_ug_m3_24h": hotspot_impact_ug_m3,
         "interpretation": interpretation,
     }
-    out_path = output_dir / "attribution_march2024.json"
+    out_path = Path(OmegaConf.select(cfg, "output", default="outputs/attribution_march2024.json"))
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
     logger.info("Saved to %s", out_path)

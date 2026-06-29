@@ -1,0 +1,53 @@
+{
+  "station": "City Hall, Chiangmai",
+  "station_idx": 12,
+  "horizon_h": 24,
+  "year_month": "2024-03",
+  "n_samples": 10,
+  "peak_pm25_ug_m3": [
+    144.1999969482422,
+    143.89999389648438,
+    143.60000610351562,
+    143.60000610351562,
+    143.39999389648438,
+    143.3000030517578,
+    142.89999389648438,
+    142.60000610351562,
+    142.39999389648438,
+    141.39999389648438
+  ],
+  "country_attribution": {
+    "Thailand": 1.0,
+    "Myanmar": 0.0
+  },
+  "ig_feature_importance": {
+    "d2m": 0.022927996702492237,
+    "t2m": 0.02288318481296301,
+    "pm25_scaled": 0.014412228669971227,
+    "blh": 0.0006588260032003746,
+    "doy_sin": 0.00032337198790628464,
+    "hour_cos": 0.00010506736366551195,
+    "v10": 8.541581319150282e-05,
+    "doy_cos": 8.286647571367211e-05,
+    "hour_sin": 6.636827442889626e-05,
+    "u10": 3.474033633210638e-05
+  },
+  "hotspot_frp_summary": {
+    "Thailand": {
+      "n_nodes_total": 220,
+      "mean_frp": 498.0200106257742,
+      "total_frp": 109564.40233767033
+    },
+    "Myanmar": {
+      "n_nodes_total": 10,
+      "mean_frp": 85.37999725341797,
+      "total_frp": 853.7999725341797
+    }
+  },
+  "hotspot_impact_ug_m3_24h": {
+    "mean": 3.927980341268358,
+    "min": 2.625159615969551,
+    "max": 6.7882994852698175
+  },
+  "interpretation": "Local Thai biomass burning dominates (22 Thai clusters vs 1 Myanmar cluster per peak sample). Thai FRP sum = 109564, Myanmar FRP sum = 854 (ratio 128x). Total hotspot contribution to 24h PM2.5 prediction: 3.9 ug/m3 above no-fire baseline."
+}
