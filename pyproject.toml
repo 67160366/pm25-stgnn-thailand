@@ -65,6 +65,7 @@ dependencies = [
     "pypdf>=6.11.0",
     "python-docx>=1.2.0",
     "fpdf2>=2.8.7",
+    "python-pptx>=1.0.2",
 ]
 
 [project.optional-dependencies]
@@ -110,6 +111,9 @@ ignore = []
 "tests/**/*.py" = ["S101", "ANN"]
 "notebooks/**/*.py" = ["ANN", "E402"]
 "scripts/**/*.py" = ["S101"]
+# Thai-content deck/proposal generators: long Thai display strings (E501) and
+# intentional ambiguous glyphs in Thai text/comments (x as U+00D7, en/em dashes).
+"scripts/generate_*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
