@@ -115,7 +115,9 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 
 ### 4.2 ทฤษฎี หลักการ และเทคนิคที่ใช้
 
-`[FIGURE: architecture_diagram.png — แผนภาพสถาปัตยกรรมระบบ (input 18 สถานี + โหนด hotspot → กราฟ 3 ชนิดเส้นเชื่อม → MTGNN → พยากรณ์ 4 ขอบฟ้า + GB-IG)]`
+![สถาปัตยกรรมระบบ](../architecture_diagram.png)
+
+*รูปที่ 1 สถาปัตยกรรมระบบ: input 18 สถานี + โหนด hotspot → กราฟ 3 ชนิดเส้นเชื่อม (พื้นที่/ลม/ไฟ) → MTGNN → พยากรณ์ 6/12/24/48 ชม. + โมดูล GB-IG*
 
 **(1) การสร้างกราฟพลวัต 3 ชนิดเส้นเชื่อม** — ระบบสร้างกราฟที่มี 18 station nodes และ M hotspot cluster nodes เชื่อมด้วยเส้นเชื่อม 3 ประเภทดังนี้:
 - **type_a (geographic):** ความใกล้เชิงพื้นที่แบบคงที่ น้ำหนัก `exp(−d/50)` สำหรับระยะ ≤ 100 กม.
@@ -212,7 +214,9 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 
 **การอ่านผลอย่างตรงไปตรงมา:** ในขอบฟ้าสั้น (6h, 12h) persistence เหนือกว่าโมเดลอย่างชัดเจน เนื่องจาก PM2.5 มี autocorrelation สูง (สอดคล้องกับวรรณกรรม PM2.5-GNN) MTGNN ชนะ persistence เพียงเล็กน้อยที่ 48h (12.66 เทียบ 12.99 บน held-out test; และ 12.68 จากโมเดลหลักบนปี 2568) ส่วนที่ 24h เสมอหรือแพ้เล็กน้อย เราจึงออกแบบ **ระบบ hybrid** (persistence ช่วงสั้น + MTGNN ช่วงยาว) ที่ให้ผล "ดีเท่าหรือดีกว่า baseline ทุกขอบฟ้า" สำหรับการใช้งานจริง เทียบกับโมเดลที่ไม่ใช้กราฟ (GBM) พบว่า GBM ใกล้เคียง MTGNN มาก (โมเดลหลักบนปี 2568 GBM ได้ 3.83/5.35/8.73/12.86) บ่งชี้ว่ากลไกกราฟให้ประโยชน์เพิ่มเพียงเล็กน้อย โดย MTGNN มี 252,588 พารามิเตอร์ (best epoch 15) ขณะที่ A3TGCN มี 27,164 พารามิเตอร์ (epoch 97) และ MTGNN ดีกว่า A3TGCN ที่ 24h ราว 7.1% ในเชิง normalized RMSE (0.4576 เทียบ 0.4928)
 
-`[FIGURE: RMSE-vs-horizon เปรียบเทียบ persistence/MTGNN/A3TGCN/GBM — held-out test 2568 และโมเดลหลักบนปี 2568]`
+![RMSE ต่อขอบฟ้า](../outputs/figures/report/rmse_by_horizon.png)
+
+*รูปที่ 2 RMSE ต่อขอบฟ้าบนชุด held-out test 2568 (ยิ่งต่ำยิ่งดี) — Persistence / MTGNN / A3TGCN / GBM*
 
 ### 6.2 นัยสำคัญทางสถิติ (paired block-bootstrap)
 
@@ -224,7 +228,9 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 
 **สรุป:** ความได้เปรียบที่ 48h **ยังไม่มีนัยสำคัญทางสถิติในข้อมูลปีเดียว** เราจึงไม่เคลมว่าชนะ persistence อย่างมีนัยสำคัญ และนำเสนอคุณค่าหลักของระบบด้วยการระบุแหล่งกำเนิด (XAI) ไม่ใช่ตัวเลข RMSE
 
-`[FIGURE: 48h bootstrap distribution + 95% CI คร่อม 0]`
+![นัยสำคัญ 48h](../outputs/figures/report/significance_48h.png)
+
+*รูปที่ 3 ความได้เปรียบที่ 48 ชม. เทียบ persistence พร้อม 95% CI — ทั้งสองชุดคร่อม 0 (ยังไม่มีนัยสำคัญ)*
 
 ### 6.3 การวิเคราะห์ผลของ 3 จุดใหม่ (Multi-seed Ablation)
 
@@ -236,7 +242,9 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 
 **ข้อสรุปที่ซื่อสัตย์:** กลไกกราฟ**ไม่ได้ยกระดับความแม่นยำการพยากรณ์อย่างมีนัยเหนือความผันผวนจากการสุ่ม seed** ผลเดิมจากการทดสอบ seed เดียวที่ดู "กราฟช่วย" เป็นเพียง artifact ของ seed การรายงานผลลบนี้อย่างเปิดเผยคือจุดแข็งด้านธรรมาภิบาล AI ของโครงงาน
 
-`[FIGURE: multi-seed ablation — mean±std ต่อ variant พร้อมแถบ noise]`
+![multi-seed ablation](../outputs/figures/report/ablation_multiseed.png)
+
+*รูปที่ 4 Ablation หลาย seed: ผลต่างของแต่ละองค์ประกอบเทียบ full (±combined std) อยู่ในช่วง noise ทุกขอบฟ้า*
 
 ### 6.4 ความทนต่อความคลาดเคลื่อนของพยากรณ์อากาศ (NWP Sensitivity)
 
@@ -251,7 +259,9 @@ ERA5 เป็น reanalysis ที่มีความล่าช้า ร�
 
 (persistence: 24h = 8.70, 48h = 12.99) ความได้เปรียบที่ **24h หายไปเมื่อ noise ถึง 0.25×** ส่วน **48h ทนได้เมื่อ noise ต่ำกว่า 0.5× และเริ่มเสียเปรียบที่ 0.5×** การออกแบบเชิงรับมือคือ (1) พึ่งโมเดลที่ขอบฟ้า 48h และใช้ hybrid กับช่วงสั้น (2) ระบบจริงควรใช้ NWP คุณภาพสูง (ECMWF HRES/GFS) (3) ความล่าช้าของ ERA5 กระทบเฉพาะ inference ไม่กระทบการเทรน
 
-`[FIGURE: NWP degradation curve — RMSE vs noise fraction, crossover 0.25/0.5]`
+![NWP sensitivity](../outputs/figures/report/nwp_sensitivity.png)
+
+*รูปที่ 5 ความทนต่อ noise ของ ERA5: ความได้เปรียบ 24h เสียที่ 0.25×, 48h ที่ 0.5×*
 
 ### 6.5 การระบุแหล่งกำเนิด (XAI Results) — คุณค่าหลักของระบบ
 
@@ -261,7 +271,17 @@ ERA5 เป็น reanalysis ที่มีความล่าช้า ร�
 
 **บทสรุป XAI:** ระบบจับการลำเลียงข้ามแดนได้จริง "เมื่อและที่ใด" ไฟข้ามแดนอยู่ใกล้สถานีชายแดน (แม่ฮ่องสอน) ขณะที่เมืองภายในแผ่นดิน (เชียงใหม่) เป็นไฟไทยเป็นหลัก — ความสามารถนี้ persistence และโมเดลที่ไม่ใช้กราฟ **ทำไม่ได้เลย** และคือคุณค่าที่พิสูจน์ได้ของระบบ
 
-`[FIGURE: (1) แผนที่ไฟแยกประเทศ + สถานีแม่ฮ่องสอน, (2) แท่งเทียบ % ไฟต่างชาติ vs % ที่โมเดลระบุ, (3) IG feature importance]`
+![แผนที่ไฟข้ามแดน](../outputs/figures/report/transboundary_map.png)
+
+*รูปที่ 6 จุดความร้อนใกล้สถานีแม่ฮ่องสอน (16 ก.พ. 2568) แยกสีตามประเทศ — ไฟเมียนมาอยู่ทางทิศตะวันตกของสถานี*
+
+![ไฟต่างชาติเทียบ attribution](../outputs/figures/report/transboundary_events.png)
+
+*รูปที่ 7 สัดส่วนไฟต่างชาติจริง (FRP) เทียบกับที่โมเดลระบุ รายเหตุการณ์ — 16 ก.พ. 2568 สอดคล้องกันดี (~37%)*
+
+![IG feature importance](../outputs/figures/report/ig_feature_importance.png)
+
+*รูปที่ 8 ความสำคัญของปัจจัย (Integrated Gradients) เคสเชียงใหม่ มี.ค. 2567 — ความชื้น/อุณหภูมิ (d2m, t2m) เด่น*
 
 ### 6.6 ความซื่อสัตย์ของการรายงานผล (Engineering Integrity)
 
@@ -318,4 +338,6 @@ ERA5 เป็น reanalysis ที่มีความล่าช้า ร�
 
 **License Agreement.** This software is a work developed by **Mr. Ronnachai Khaosa-ard** *[ยืนยันการสะกดชื่อภาษาอังกฤษ]* from **Burapha University** under the provision of **Dr. Watcharapong Yookwan** under the project *"Explainable Spatio-Temporal Graph Neural Network for PM2.5 Forecasting and Source Attribution in Northern Thailand"*, which has been supported by the National Science and Technology Development Agency (NSTDA), in order to encourage pupils and students to learn and practice their skills in developing software. Therefore, the intellectual property of this software shall belong to the developer and the developer gives NSTDA a permission to distribute this software as an "as is" and non-modified software for a temporary and non-exclusive use without remuneration to anyone for his or her own purpose or academic purpose, which are not commercial purposes. In this connection, NSTDA shall not be responsible to the user for taking care, maintaining, training, or developing the efficiency of this software. Moreover, NSTDA shall not be liable for any error, software efficiency and damages in connection with or arising out of the use of the software.
 
-<!-- END OF DRAFT (all 13 NSC sections + Ack + Appendix/Disclaimer). Figures = [FIGURE: ...] placeholders (P9.3). Word generation = later (scripts/generate_report.py). -->
+<!-- END OF DRAFT (all 13 NSC sections + Ack + Appendix/Disclaimer). Figures wired to
+     outputs/figures/report/*.png (generated by scripts/13_report_figures.py) + architecture_diagram.png.
+     Word generation (TH Sarabun New 16pt) = later (scripts/generate_report.py). -->
