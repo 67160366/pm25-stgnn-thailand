@@ -105,3 +105,6 @@ reports/*.pdf
 !reports/.gitkeep
 reports/figures/
 !reports/figures/.gitkeep
+
+# Dashboard package dir (the generic lib/ rule above would otherwise ignore it)
+!app/lib/

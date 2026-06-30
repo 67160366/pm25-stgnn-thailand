@@ -114,6 +114,8 @@ ignore = []
 # Thai-content deck/proposal generators: long Thai display strings (E501) and
 # intentional ambiguous glyphs in Thai text/comments (x as U+00D7, en/em dashes).
 "scripts/generate_*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
+# Streamlit dashboard: Thai UI strings (long lines + ambiguous glyphs by design).
+"app/**/*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
