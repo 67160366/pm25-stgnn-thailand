@@ -1,4 +1,6 @@
-# [TODO: NSC Disclaimer - see booklet page 44]
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
 """About & methodology: project summary, novelties, data sources, limits, disclaimer."""
 
 from __future__ import annotations
@@ -47,7 +49,6 @@ repo: https://github.com/67160366/pm25-stgnn-thailand
 """)
 
     st.divider()
-    st.markdown(f"**ข้อความปฏิเสธความรับผิด (NSC):** {ui.DISCLAIMER}")
-    st.caption(
-        "ข้อความ Disclaimer ฉบับเต็มจากคู่มือ NSC หน้า 44 (ไทย+อังกฤษ) จะถูกใส่ก่อนส่งผลงานจริง"
-    )
+    st.markdown("#### ข้อตกลงในการใช้ซอฟต์แวร์ (Disclaimer)")
+    st.markdown(ui.DISCLAIMER_FULL_TH)
+    st.markdown(f"_{ui.DISCLAIMER_FULL_EN}_")

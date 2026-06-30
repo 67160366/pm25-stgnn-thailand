@@ -1,4 +1,6 @@
-# [TODO: NSC Disclaimer - see booklet page 44]
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
 """Generate static result figures (PNG) for the NSC final report from the result JSONs.
 
 Reads ``outputs/*.json`` (the source of truth used by the report and pitch deck) and renders

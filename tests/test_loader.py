@@ -1,4 +1,5 @@
-"""[TODO: NSC Disclaimer — see booklet page 44]
+"""
+ข้อตกลงการใช้ซอฟต์แวร์ (NSC/สวทช.): เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ฉบับเต็มดู README.md
 
 Unit tests for src/data/loader.py (PM25GraphDataset class).
 
@@ -15,7 +16,7 @@ import pytest
 import torch
 from torch_geometric.loader import DataLoader
 
-from src.data.loader import PM25GraphDataset, _FEATURE_COLS
+from src.data.loader import _FEATURE_COLS, PM25GraphDataset
 
 # ---------------------------------------------------------------------------
 # Synthetic data fixtures

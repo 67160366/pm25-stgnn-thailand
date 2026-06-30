@@ -1,4 +1,6 @@
-# [TODO: NSC Disclaimer - see booklet page 44]
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
 """Thai PCD PM2.5 AQI helpers: category, colour, emoji, and health advice (Thai).
 
 Single source of truth for AQI banding in the dashboard so the KPI cards, the legend,

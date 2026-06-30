@@ -1,4 +1,6 @@
-# [TODO: NSC Disclaimer - Thai + English, booklet page 44]
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
 """Generate the AI Camp pitch deck (9 slides) as an editable .pptx.
 
 Mirrors the CORRECTED `outputs/pitch/presenter_script_th.md`: leads with XAI / source

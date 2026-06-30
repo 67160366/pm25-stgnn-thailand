@@ -49,21 +49,28 @@ dependencies before installing any of them.
 > **Restart your shell** after running it for the change to take effect. This is required when
 > the repo is checked out to a path containing non-ASCII characters (e.g. Thai).
 
-**Linux / macOS:**
+**Linux / macOS** (ยังไม่มีสคริปต์ `.sh` — รันคำสั่งเทียบเท่า / no `.sh` script yet; run the equivalent):
 
 ```bash
-./install_native_deps.sh
+TORCH=$(python -c "import torch; print(torch.__version__.split('+')[0])")
+CUDA=$(python -c "import torch; print('cu'+torch.version.cuda.replace('.','') if torch.cuda.is_available() else 'cpu')")
+pip install torch-scatter torch-sparse --find-links "https://data.pyg.org/whl/torch-${TORCH}+${CUDA}.html"
+pip install "torch-geometric-temporal>=0.54"
 ```
 
 ### ตัวแปรสภาพแวดล้อม / Environment variables
 
-คัดลอก `env.example` เป็น `.env` แล้วกรอก API keys ที่จำเป็น
+จำเป็นเฉพาะเมื่อจะดาวน์โหลดข้อมูลใหม่ (`scripts/01`) — dashboard และการประเมินผลใช้ข้อมูลที่เตรียมไว้แล้ว ไม่ต้องใช้ key
+สร้างไฟล์ `.env` ที่รากของโปรเจกต์ด้วยตนเอง (ดูรายละเอียดใน `docs/INSTALL.md`)
 
-Copy `env.example` to `.env` and fill in the required API keys.
+Only needed to re-download data (`scripts/01`); the dashboard and evaluation use prepared data. Create `.env` manually at the repo root:
 
-```bash
-cp env.example .env
 ```
+OPENAQ_API_KEY=<key from https://docs.openaq.org/>
+FIRMS_API_KEY=<MAP_KEY from https://firms.modaps.eosdis.nasa.gov/api/>
+```
+
+สำหรับ ERA5 (Copernicus) วางไฟล์ `~/.cdsapirc` / For ERA5, place `~/.cdsapirc` (see `docs/INSTALL.md`).
 
 ---
 
@@ -113,9 +120,9 @@ uv run black src/ tests/ && uv run ruff check --fix src/
 
 ## ข้อกำหนดการใช้งาน / Disclaimer
 
-```
-[TODO: NSC Disclaimer Thai + English]
-```
+ซอฟต์แวร์นี้เป็นผลงานที่พัฒนาขึ้นโดย **นายรณชัย ขาวสะอาด** จาก **มหาวิทยาลัยบูรพา** ภายใต้การดูแลของ **ดร.วัชรพงศ์ อยู่ขวัญ** ภายใต้โครงการ *“ระบบพยากรณ์ฝุ่นละออง PM2.5 และวิเคราะห์แหล่งกำเนิดด้วยโครงข่ายกราฟประสาทเทียมเชิงปริภูมิ-เวลาแบบอธิบายได้ สำหรับภาคเหนือของประเทศไทย”* ซึ่งสนับสนุนโดยสำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ โดยมีวัตถุประสงค์เพื่อส่งเสริมให้นักเรียนและนักศึกษาได้เรียนรู้และฝึกทักษะในการพัฒนาซอฟต์แวร์ ลิขสิทธิ์ของซอฟต์แวร์นี้จึงเป็นของผู้พัฒนา ซึ่งผู้พัฒนาได้อนุญาตให้สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติเผยแพร่ซอฟต์แวร์นี้ตาม “ต้นฉบับ” โดยไม่มีการแก้ไขดัดแปลงใด ๆ ทั้งสิ้น ให้แก่บุคคลทั่วไปได้ใช้เพื่อประโยชน์ส่วนบุคคลหรือประโยชน์ทางการศึกษาที่ไม่มีวัตถุประสงค์ในเชิงพาณิชย์ โดยไม่คิดค่าตอบแทนการใช้ซอฟต์แวร์ ดังนั้น สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติจึงไม่มีหน้าที่ในการดูแล บำรุงรักษา จัดการอบรมการใช้งาน หรือพัฒนาประสิทธิภาพซอฟต์แวร์ รวมทั้งไม่รับรองความถูกต้องหรือประสิทธิภาพการทำงานของซอฟต์แวร์ ตลอดจนไม่รับประกันความเสียหายต่าง ๆ อันเกิดจากการใช้ซอฟต์แวร์นี้ทั้งสิ้น
+
+**License Agreement.** This software is a work developed by **Mr. Ronnachai Khaosa-ard** from **Burapha University** under the provision of **Dr. Watcharapong Yookwan** under the project *“Explainable Spatio-Temporal Graph Neural Network for PM2.5 Forecasting and Source Attribution in Northern Thailand”*, which has been supported by the National Science and Technology Development Agency (NSTDA), in order to encourage pupils and students to learn and practice their skills in developing software. Therefore, the intellectual property of this software shall belong to the developer and the developer gives NSTDA a permission to distribute this software as an “as is” and non-modified software for a temporary and non-exclusive use without remuneration to anyone for his or her own purpose or academic purpose, which are not commercial purposes. In this connection, NSTDA shall not be responsible to the user for taking care, maintaining, training, or developing the efficiency of this software. Moreover, NSTDA shall not be liable for any error, software efficiency and damages in connection with or arising out of the use of the software.
 
 ---
 

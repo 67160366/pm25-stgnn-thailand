@@ -1,5 +1,5 @@
 """
-[TODO: NSC Disclaimer — see booklet page 44]
+ข้อตกลงการใช้ซอฟต์แวร์ (NSC/สวทช.): เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ฉบับเต็มดู README.md
 
 Tests for src/data/scrapers/openaq.py.
 All tests are offline and use requests-mock for HTTP mocking.

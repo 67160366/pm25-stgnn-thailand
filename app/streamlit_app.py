@@ -1,4 +1,6 @@
-# [TODO: NSC Disclaimer - see booklet page 44]
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
 """Entry point for the PM2.5 STGNN dashboard (Streamlit native multipage).
 
 Run: ``uv run streamlit run app/streamlit_app.py``
