@@ -61,7 +61,7 @@ def hotspots_for_date(date_str: str) -> pd.DataFrame:
     Returns columns ``latitude``, ``longitude``, ``frp``, ``country`` (possibly empty).
     """
     hs = load_hotspots()
-    day = hs[hs["date"] == date_str]
+    day = hs[hs["date"].astype(str) == date_str]  # 'date' column holds datetime.date objects
     return day.rename(
         columns={"centroid_lat": "latitude", "centroid_lon": "longitude", "total_frp": "frp"}
     )[["latitude", "longitude", "frp", "country"]]
