@@ -30,12 +30,12 @@ def _rmse_bar(persistence: dict, methods: dict[str, dict]) -> go.Figure:
         fig.add_bar(x=_HK, y=[d.get(h) for h in _HK], name=label)
     fig.update_layout(
         barmode="group",
-        title="RMSE ต่อช่วงเวลา (ยิ่งต่ำยิ่งดี)",
+        title=dict(text="RMSE ต่อช่วงเวลา (ยิ่งต่ำยิ่งดี)", x=0, xanchor="left"),
         yaxis_title="RMSE (µg/m³)",
         xaxis_title="ช่วงเวลาพยากรณ์",
-        height=400,
-        legend=dict(orientation="h", yanchor="bottom", y=1.04),
-        margin=dict(l=40, r=20, t=60, b=40),
+        height=450,
+        legend=dict(orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5),
+        margin=dict(l=50, r=20, t=44, b=104),
     )
     return fig
 

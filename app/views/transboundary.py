@@ -5,18 +5,61 @@
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from app.lib import data_access as da
-from app.lib import ui
+from app.lib import geo, ui
 
-_COUNTRY_COLOR = {"Thailand": "#2196F3", "Myanmar": "#FF5722", "Laos": "#4CAF50"}
+_COUNTRY_COLOR = {
+    "Thailand": "#2196F3",
+    "Myanmar": "#FF5722",
+    "Laos": "#4CAF50",
+    "other": "#9E9E9E",
+}
+_COUNTRY_TH = {"Thailand": "ไทย", "Myanmar": "เมียนมา", "Laos": "ลาว", "other": "อื่นๆ"}
+
+
+def _wind_arrow_trace(wind: pd.DataFrame) -> go.Scattermapbox | None:
+    """Fixed-length ERA5 wind-direction arrows (one per station); points to where wind blows."""
+    if wind is None or len(wind) == 0:
+        return None
+    lats: list[float | None] = []
+    lons: list[float | None] = []
+    shaft = 0.10  # degrees — fixed length so direction (not speed) is the message
+    for _, r in wind.iterrows():
+        u, v = float(r["u10"]), float(r["v10"])
+        sp = math.hypot(u, v)
+        if sp < 1e-6:
+            continue
+        lat0, lon0 = float(r["lat"]), float(r["lon"])
+        coslat = math.cos(math.radians(lat0)) or 1.0
+        dlon = (u / sp) * shaft / coslat  # u = eastward, v = northward
+        dlat = (v / sp) * shaft
+        lat1, lon1 = lat0 + dlat, lon0 + dlon
+        bx, by = -dlon * 0.4, -dlat * 0.4  # arrowhead barbs point back from the tip
+        a = math.radians(28)
+        b1x, b1y = bx * math.cos(a) - by * math.sin(a), bx * math.sin(a) + by * math.cos(a)
+        b2x, b2y = bx * math.cos(-a) - by * math.sin(-a), bx * math.sin(-a) + by * math.cos(-a)
+        lats += [lat0, lat1, None, lat1, lat1 + b1y, None, lat1, lat1 + b2y, None]
+        lons += [lon0, lon1, None, lon1, lon1 + b1x, None, lon1, lon1 + b2x, None]
+    if not lats:
+        return None
+    return go.Scattermapbox(
+        lat=lats,
+        lon=lons,
+        mode="lines",
+        line=dict(width=2, color="rgba(25,80,190,0.8)"),
+        name="ทิศลม (ERA5)",
+        hoverinfo="skip",
+    )
 
 
 def _fire_map(event_date: str, station_lat: float, station_lon: float) -> go.Figure:
-    """Map of FIRMS hotspots on an event date, coloured by country, plus the station."""
+    """FIRMS hotspots by country + national borders + ERA5 wind arrows + the station."""
     hs = da.hotspots_for_date(event_date)
     fig = go.Figure()
     for country, colour in _COUNTRY_COLOR.items():
@@ -27,12 +70,15 @@ def _fire_map(event_date: str, station_lat: float, station_lon: float) -> go.Fig
                     lat=sub["latitude"].tolist(),
                     lon=sub["longitude"].tolist(),
                     mode="markers",
-                    marker=go.scattermapbox.Marker(size=8, color=colour, opacity=0.7),
-                    name=f"ไฟ {country}",
-                    text=[f"{country} · FRP {f:.0f}" for f in sub["frp"]],
+                    marker=go.scattermapbox.Marker(size=9, color=colour, opacity=0.75),
+                    name=f"ไฟ {_COUNTRY_TH[country]}",
+                    text=[f"{_COUNTRY_TH[country]} · FRP {f:.0f}" for f in sub["frp"]],
                     hoverinfo="text",
                 )
             )
+    wind_trace = _wind_arrow_trace(da.wind_for_date(event_date))
+    if wind_trace is not None:
+        fig.add_trace(wind_trace)
     fig.add_trace(
         go.Scattermapbox(
             lat=[station_lat],
@@ -44,10 +90,30 @@ def _fire_map(event_date: str, station_lat: float, station_lon: float) -> go.Fig
         )
     )
     fig.update_layout(
-        mapbox=dict(style="carto-positron", center=dict(lat=station_lat, lon=station_lon), zoom=6),
+        mapbox=dict(
+            style="carto-positron",
+            center=dict(lat=station_lat, lon=station_lon),
+            zoom=6,
+            layers=[
+                dict(
+                    sourcetype="geojson",
+                    source=geo.border_geojson(),
+                    type="line",
+                    color="rgba(80,80,80,0.55)",
+                    line=dict(width=1.5),
+                )
+            ],
+        ),
         margin=dict(l=0, r=0, t=10, b=0),
-        height=460,
-        legend=dict(orientation="h", yanchor="bottom", y=1.01),
+        height=480,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=0.01,
+            xanchor="left",
+            x=0.01,
+            bgcolor="rgba(255,255,255,0.75)",
+        ),
     )
     return fig
 
@@ -91,22 +157,27 @@ def render() -> None:
     fig.add_bar(
         x=dates,
         y=[e["connected_foreign_fraction"] * 100 for e in events],
-        name="% ไฟต่างชาติ (FRP) ที่เชื่อมถึงสถานี",
+        name="ไฟต่างชาติจริง (FRP)",
         marker_color="#FF9800",
     )
     fig.add_bar(
         x=dates,
         y=[e["foreign_attribution"] * 100 for e in events],
-        name="% ที่โมเดลชี้ว่ามาจากต่างชาติ",
+        name="ที่โมเดลชี้ว่าต่างชาติ",
         marker_color="#FF5722",
     )
     fig.update_layout(
         barmode="group",
-        title="สัดส่วนไฟต่างชาติจริง เทียบกับที่โมเดลระบุ (รายเหตุการณ์)",
+        title=dict(
+            text="สัดส่วนไฟต่างชาติจริง เทียบกับที่โมเดลระบุ (รายเหตุการณ์)",
+            x=0,
+            xanchor="left",
+        ),
         yaxis_title="ร้อยละ (%)",
-        height=380,
-        legend=dict(orientation="h", yanchor="bottom", y=1.06),
-        margin=dict(l=40, r=20, t=60, b=40),
+        xaxis_title="วันที่เหตุการณ์",
+        height=430,
+        legend=dict(orientation="h", yanchor="top", y=-0.28, xanchor="center", x=0.5),
+        margin=dict(l=50, r=20, t=44, b=112),
     )
     st.plotly_chart(fig, width="stretch")
 
@@ -117,6 +188,12 @@ def render() -> None:
     s_lat = float(st_row.iloc[0]["lat"]) if len(st_row) else 19.3
     s_lon = float(st_row.iloc[0]["lon"]) if len(st_row) else 97.97
     st.plotly_chart(_fire_map(sel, s_lat, s_lon), width="stretch")
+    st.caption(
+        "🗺️ เส้นเทา = พรมแดนประเทศจริง (point-in-polygon) · จุดสี = ไฟแยกตามประเทศ · "
+        "ลูกศรน้ำเงิน = ทิศลม ERA5 (ชี้ไปทางที่ลมพัดพาควันไป) — ดูว่าลมพัดจากไฟฝั่งใดเข้าหาสถานี. "
+        "หมายเหตุ: สีจุด/พรมแดนคำนวณใหม่จากขอบเขตจริง ส่วนตัวเลข % ในตารางด้านบนยังมาจากการรัน "
+        "attribution เดิม (ป้าย bbox) — จะตรงกันเมื่อรัน attribution ซ้ำ"
+    )
 
     cm = da.load_output_json("attribution_march2024.json")
     th_pct = round(cm.get("country_attribution", {}).get("Thailand", 1.0) * 100) if cm else 100

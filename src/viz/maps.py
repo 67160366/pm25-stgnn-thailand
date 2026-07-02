@@ -81,7 +81,11 @@ def station_map(
                 colorscale=_PM25_COLORSCALE if pm25_values is not None else None,
                 cmin=0,
                 cmax=cmax,
-                colorbar=dict(title="PM2.5 (µg/m³)") if pm25_values is not None else None,
+                colorbar=(
+                    dict(title="PM2.5<br>(µg/m³)", len=0.72, y=0.5, x=0.99, thickness=14, xpad=2)
+                    if pm25_values is not None
+                    else None
+                ),
             ),
             text=hover_texts,
             hoverinfo="text",
@@ -103,14 +107,22 @@ def station_map(
         )
 
     fig.update_layout(
-        title=title,
+        title=dict(text=title, x=0, xanchor="left", y=0.98, yanchor="top"),
         mapbox=dict(
             style="carto-positron",
             center=dict(lat=18.8, lon=99.0),
             zoom=6,
         ),
-        margin=dict(l=0, r=0, t=40, b=0),
-        height=500,
+        margin=dict(l=0, r=0, t=64, b=0),
+        height=520,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=0.02,
+            xanchor="left",
+            x=0.01,
+            bgcolor="rgba(255,255,255,0.75)",
+        ),
     )
     return fig
 
