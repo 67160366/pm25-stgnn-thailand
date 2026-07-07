@@ -90,6 +90,12 @@ htmlcov/
 *.swo
 *~
 
+# --- Editor local history (VSCode Local History extension) ---
+.history/
+
+# --- External reference material (competition PDFs etc., not project source) ---
+ex/
+
 # --- OS ---
 .DS_Store
 Thumbs.db
