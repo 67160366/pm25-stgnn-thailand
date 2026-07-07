@@ -49,9 +49,7 @@ def _point_in_ring(lon: float, lat: float, ring: list[list[float]]) -> bool:
     for i in range(n):
         xi, yi = ring[i][0], ring[i][1]
         xj, yj = ring[j][0], ring[j][1]
-        if ((yi > lat) != (yj > lat)) and (
-            lon < (xj - xi) * (lat - yi) / (yj - yi + 1e-15) + xi
-        ):
+        if ((yi > lat) != (yj > lat)) and (lon < (xj - xi) * (lat - yi) / (yj - yi + 1e-15) + xi):
             inside = not inside
         j = i
     return inside

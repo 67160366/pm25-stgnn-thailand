@@ -12,6 +12,8 @@ over stored windows, not operational real-time forecasting — the UI must say s
 
 from __future__ import annotations
 
+from datetime import date
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -98,7 +100,7 @@ def date_bounds(split: str) -> tuple[pd.Timestamp, pd.Timestamp]:
     return ats.min().date(), ats.max().date()
 
 
-def resolve_anchor(split: str, day) -> str:
+def resolve_anchor(split: str, day: date | str) -> str:
     """ISO timestamp of the anchor nearest to noon on ``day`` for this split."""
     ds = get_dataset(split)
     ts = pd.Timestamp(day, tz="UTC") + pd.Timedelta(hours=12)
@@ -156,7 +158,9 @@ def forecast_at(split: str, anchor_iso: str) -> dict:
     }
 
 
-def station_history(split: str, station_id: int, anchor_iso: str, hours_back: int = 168) -> pd.DataFrame:
+def station_history(
+    split: str, station_id: int, anchor_iso: str, hours_back: int = 168
+) -> pd.DataFrame:
     """Observed PM2.5 for one station over [anchor - hours_back, anchor] (DataFrame)."""
     ds = get_dataset(split)
     anchor = pd.Timestamp(anchor_iso)

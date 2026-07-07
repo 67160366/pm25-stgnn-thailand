@@ -11,6 +11,7 @@ Commands:
 import logging
 from datetime import date
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
@@ -24,6 +25,9 @@ from src.data.scrapers.openaq import backfill_station
 
 app = typer.Typer()
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
+_ERA5_RAW_DIR = Path("data/raw/era5")
+_ERA5_PARQUET = Path("data/processed/era5.parquet")
 
 
 @app.command()
@@ -144,13 +148,13 @@ def firms_hybrid(
 def era5(
     start_year: int = typer.Option(2022, help="First year to download (inclusive)."),
     end_year: int = typer.Option(2025, help="Last year to download (inclusive)."),
-    output_dir: Path = typer.Option(
-        Path("data/raw/era5"), help="Directory for raw NetCDF files."
-    ),
-    processed_path: Path = typer.Option(
-        Path("data/processed/era5.parquet"),
-        help="Destination parquet for the tidy station-interpolated output.",
-    ),
+    output_dir: Annotated[
+        Path, typer.Option(help="Directory for raw NetCDF files.")
+    ] = _ERA5_RAW_DIR,
+    processed_path: Annotated[
+        Path,
+        typer.Option(help="Destination parquet for the tidy station-interpolated output."),
+    ] = _ERA5_PARQUET,
 ) -> None:
     """Download ERA5 reanalysis (u10, v10, t2m, d2m, blh) via CDS API.
 
@@ -168,9 +172,7 @@ def era5(
     date_from = _date(start_year, 1, 1)
     date_to = _date(end_year, 12, 31)
 
-    typer.echo(
-        f"Downloading ERA5 {start_year}-{end_year} -> {output_dir} ..."
-    )
+    typer.echo(f"Downloading ERA5 {start_year}-{end_year} -> {output_dir} ...")
     typer.echo("(This may take 10-30 min per year. Existing files are skipped.)")
 
     try:
@@ -188,9 +190,7 @@ def era5(
 
     n_rows = len(df)
     n_stations = df["station_id"].nunique() if n_rows > 0 else 0
-    typer.echo(
-        f"ERA5 done: {n_rows:,} rows, {n_stations} stations -> {processed_path}"
-    )
+    typer.echo(f"ERA5 done: {n_rows:,} rows, {n_stations} stations -> {processed_path}")
 
 
 if __name__ == "__main__":

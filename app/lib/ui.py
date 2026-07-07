@@ -112,7 +112,7 @@ def forecast_overlay_figure(
         (v for v in reversed(history["pm25"].tolist()) if pd.notna(v)), persistence_value
     )
     fx = [anchor_ts] + [anchor_ts + pd.Timedelta(hours=h) for h in horizons]
-    fy = [last_obs] + list(pred_station)
+    fy = [last_obs, *pred_station]
     fig.add_trace(
         go.Scatter(
             x=fx,
