@@ -24,7 +24,6 @@
       "Bash(curl https://firms.modaps.eosdis.nasa.gov*)"
     ],
     "deny": [
-      "Bash(git push:*)",
       "Bash(rm -rf:*)",
       "Bash(sudo:*)",
       "Bash(curl http*)",
@@ -32,6 +31,7 @@
     ],
     "ask": [
       "Bash(git push)",
+      "Bash(git push:*)",
       "Bash(uv add:*)",
       "Bash(uv pip install:*)"
     ]
