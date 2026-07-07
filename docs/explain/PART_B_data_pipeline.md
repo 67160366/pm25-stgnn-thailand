@@ -122,16 +122,16 @@ labels = DBSCAN(eps=_DBSCAN_EPS_RAD, min_samples=2, metric="haversine").fit_pred
   ```
 - ต่อคลัสเตอร์คำนวณ: `centroid_lat/lon` (mean), `total_frp` (**sum** ของ FRP), `point_count`, `country`
 
-**Country attribution** — geocode ด้วย bbox แบบง่าย (priority Thailand > Myanmar > Laos > other):
+**Country attribution** — geocode ด้วย point-in-polygon กับขอบเขตประเทศจริง (`src/data/geocode.py`,
+อ่าน `app/assets/borders_th_mm_la.geojson`; ยังคง**ไม่ใช้ shapely** — ray-casting เวกเตอร์ด้วย numpy
+พร้อม bbox pre-filter):
 ```python
-_COUNTRY_BBOXES = [
-    ("Thailand", 97.3, 5.6, 105.7, 20.5),
-    ("Myanmar",  92.2, 9.8, 101.2, 28.5),
-    ("Laos",    100.1,13.9, 107.6, 22.5),
-]
+country = geocode.country_of(lon, lat)  # 'Thailand' | 'Myanmar' | 'Laos' | 'other'
 ```
-> ⚠️ ข้อจำกัดที่โค้ดยอมรับเอง: **ไม่ใช้ shapely** (ดู SESSION2_NOTES) → เขตชายแดนอาจจัดประเทศผิด
-> `country` นี้แหละคือ field ที่ dashboard/attribution ใช้เล่าเรื่อง "ฝุ่นข้ามแดน" (PART E)
+> 📜 ประวัติ: รุ่นแรกใช้ bbox ทับซ้อนแบบหยาบ (priority Thailand > Myanmar > Laos) ซึ่งตรวจพบ
+> ภายหลัง (2026-07) ว่านับไฟเมียนมา/ลาวขาด ~25% ของกลุ่มไฟ จึงแทนที่ด้วย polygon จริงทั้ง pipeline
+> `country` นี้แหละคือ field ที่ dashboard/attribution ใช้เล่าเรื่อง "ฝุ่นข้ามแดน" (PART E) —
+> เป็น metadata สำหรับจัดกลุ่มตอน attribution เท่านั้น ไม่ใช่ฟีเจอร์เข้าโมเดล (แก้ป้ายจึงไม่ต้องเทรนใหม่)
 
 output: `hotspots.parquet` (date, cluster_id, centroid_lat/lon, total_frp, point_count, country)
 loader อ่านแบบ index-by-date → sample ที่ anchor วันไหน หยิบไฟของวันนั้น (รายวัน ไม่ใช่รายชั่วโมง)

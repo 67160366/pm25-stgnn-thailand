@@ -18,7 +18,8 @@
   `graph_builder.py`, FIRMS SP+NRT hybrid, test รวม **70/70 green**
 - **เรียนรู้/แก้:** FIRMS **SP cap = 5 วัน** (ไม่ใช่ 10); country attribution ทำด้วย bbox (ไม่ใช้ shapely
   → ชายแดนอาจผิด); DBSCAN noise point ไม่ทิ้ง แปลงเป็นคลัสเตอร์เดี่ยว
-- **deviation:** country geocode แบบ bbox แทน polygon จริง (ยอมรับข้อจำกัด)
+- **deviation:** country geocode แบบ bbox แทน polygon จริง (ยอมรับข้อจำกัด — ภายหลังแก้เป็น
+  polygon จริงทั้ง pipeline ใน Session 12, 2026-07-07; ป้ายเปลี่ยน 25.2% ของกลุ่มไฟ)
 - **ส่งต่อ:** training stack + ERA5 จริง
 
 ## Session 3 — Training Stack Debug & ERA5 Integration (2026-05-20)
