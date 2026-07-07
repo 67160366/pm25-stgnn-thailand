@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
 
+from src.data.geocode import country_of
+
 logger = logging.getLogger(__name__)
 
 # DBSCAN parameters for fire hotspot clustering.
@@ -20,16 +22,6 @@ _DBSCAN_EPS_KM: float = 25.0
 _EARTH_RADIUS_KM: float = 6371.0
 _DBSCAN_EPS_RAD: float = _DBSCAN_EPS_KM / _EARTH_RADIUS_KM
 _DBSCAN_MIN_SAMPLES: int = 2
-
-# Bounding boxes (lon_min, lat_min, lon_max, lat_max) for country attribution.
-# Priority order: Thailand > Myanmar > Laos > other.
-# Boxes are approximate; border regions may be misclassified.
-# See SESSION2_NOTES.md for why shapely was not used.
-_COUNTRY_BBOXES: list[tuple[str, float, float, float, float]] = [
-    ("Thailand", 97.3, 5.6, 105.7, 20.5),
-    ("Myanmar", 92.2, 9.8, 101.2, 28.5),
-    ("Laos", 100.1, 13.9, 107.6, 22.5),
-]
 
 # Required FIRMS CSV columns (superset; extra columns are kept).
 _FIRMS_DATE_COL: str = "acq_date"
@@ -40,10 +32,11 @@ _FIRMS_FRP_COL: str = "frp"
 
 
 def _country_from_centroid(lon: float, lat: float) -> str:
-    """Return the country name for a given centroid using simple bbox lookup.
+    """Return the country name for a given centroid using real border polygons.
 
-    Priority order: Thailand, Myanmar, Laos, other.
-    Border regions may be misclassified; this is documented in SESSION2_NOTES.md.
+    Delegates to ``src.data.geocode.country_of`` (point-in-polygon against
+    geoBoundaries outlines). Replaces the original overlapping-bbox lookup,
+    which undercounted Myanmar/Laos fires near the border.
 
     Args:
         lon: Centroid longitude (WGS84).
@@ -52,10 +45,7 @@ def _country_from_centroid(lon: float, lat: float) -> str:
     Returns:
         One of ``"Thailand"``, ``"Myanmar"``, ``"Laos"``, ``"other"``.
     """
-    for country, lon_min, lat_min, lon_max, lat_max in _COUNTRY_BBOXES:
-        if lon_min <= lon <= lon_max and lat_min <= lat <= lat_max:
-            return country
-    return "other"
+    return country_of(lon, lat)
 
 
 def _load_firms_csvs(firms_dir: Path) -> pd.DataFrame:
@@ -155,8 +145,8 @@ def cluster_hotspots(
         4. Aggregate clusters: centroid, total FRP, point count, country flag.
         5. Save to ``output_path``.
 
-    Country flag uses a simple bbox geocoder (Thailand > Myanmar > Laos > other).
-    Border-region accuracy is approximate; see SESSION2_NOTES.md.
+    Country flag uses point-in-polygon geocoding against real national
+    boundaries (see src/data/geocode.py); 'other' for points outside TH/MM/LA.
 
     Args:
         firms_dir: Directory containing FIRMS CSV files.

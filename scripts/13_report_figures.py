@@ -162,9 +162,15 @@ def fig_transboundary_events() -> None:
 
 
 def fig_transboundary_map() -> None:
-    """Scatter of FIRMS hotspots on 2025-02-16 coloured by country + the border station."""
+    """Scatter of FIRMS hotspots coloured by country + the border station.
+
+    Uses the flagship event: the test-split event with the highest
+    connected-foreign FRP fraction (per transboundary_attr_test_split2.json).
+    """
+    events = _load("transboundary_attr_test_split2.json")["events"]
+    flagship = max(events, key=lambda e: e["connected_foreign_fraction"])["date"]
     hs = pd.read_parquet(_ROOT / "data" / "processed" / "hotspots.parquet")
-    day = hs[hs["date"].astype(str) == "2025-02-16"]  # 'date' holds datetime.date objects
+    day = hs[hs["date"].astype(str) == flagship]  # 'date' holds datetime.date objects
     meta = pd.read_parquet(_ROOT / "data" / "processed" / "stations_metadata.parquet")
     st = meta[meta["location_id"] == 225648]
     fig, ax = plt.subplots(figsize=(6.5, 6))
@@ -184,7 +190,7 @@ def fig_transboundary_map() -> None:
         ax.scatter(st["lon"], st["lat"], marker="*", s=320, c="black", label="Mae Hong Son station")
     ax.set_xlabel("longitude")
     ax.set_ylabel("latitude")
-    ax.set_title("Connected fire hotspots near Mae Hong Son (2025-02-16)")
+    ax.set_title(f"Fire hotspots near Mae Hong Son ({flagship})")
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
     _save(fig, "transboundary_map.png")

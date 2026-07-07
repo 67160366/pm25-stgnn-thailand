@@ -16,8 +16,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from app.lib import geo
-
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _PROJECT_ROOT / "data" / "processed"
 _OUTPUTS_DIR = _PROJECT_ROOT / "outputs"
@@ -69,13 +67,8 @@ def hotspots_for_date(date_str: str) -> pd.DataFrame:
     day = day.rename(
         columns={"centroid_lat": "latitude", "centroid_lon": "longitude", "total_frp": "frp"}
     )[["latitude", "longitude", "frp", "country"]].copy()
-    # Override the coarse bbox-derived country with accurate point-in-polygon geocoding
-    # against real national boundaries (see app/lib/geo.py). Display only — the
-    # precomputed attribution JSONs still reflect the original bbox labels.
-    day["country"] = [
-        geo.country_of(float(lo), float(la))
-        for lo, la in zip(day["longitude"], day["latitude"], strict=True)
-    ]
+    # hotspots.parquet country labels are point-in-polygon geocoded (src/data/geocode.py),
+    # the same source of truth the attribution JSONs use — no display-time override needed.
     return day
 
 

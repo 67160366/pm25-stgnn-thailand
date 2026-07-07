@@ -226,7 +226,7 @@ def main() -> None:
         "station_id": station_id,
         "split": split,
         "horizon_h": horizons[horizon_idx],
-        "checkpoint": _MTGNN_CKPT,
+        "checkpoint": ckpt,
         "method": (
             "Rank split dates by Myanmar+Laos FRP; at the border station take the peak-PM2.5 "
             "anchor, read hotspots connected via type_c edges, then occlusion country "
