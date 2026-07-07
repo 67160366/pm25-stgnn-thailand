@@ -17,8 +17,9 @@
     141.39999389648438
   ],
   "country_attribution": {
-    "Thailand": 1.0,
-    "Myanmar": 0.0
+    "Thailand": 0.9960521376947791,
+    "Myanmar": 0.003947862305221016,
+    "Laos": 0.0
   },
   "ig_feature_importance": {
     "d2m": 0.022927996702492237,
@@ -34,14 +35,19 @@
   },
   "hotspot_frp_summary": {
     "Thailand": {
-      "n_nodes_total": 220,
-      "mean_frp": 498.0200106257742,
-      "total_frp": 109564.40233767033
+      "n_nodes_total": 170,
+      "mean_frp": 638.6423665811034,
+      "total_frp": 108569.20231878757
+    },
+    "Laos": {
+      "n_nodes_total": 20,
+      "mean_frp": 80.13999938964844,
+      "total_frp": 1602.7999877929688
     },
     "Myanmar": {
-      "n_nodes_total": 10,
-      "mean_frp": 85.37999725341797,
-      "total_frp": 853.7999725341797
+      "n_nodes_total": 40,
+      "mean_frp": 6.15500009059906,
+      "total_frp": 246.2000036239624
     }
   },
   "hotspot_impact_ug_m3_24h": {
@@ -49,5 +55,5 @@
     "min": 2.625159615969551,
     "max": 6.7882994852698175
   },
-  "interpretation": "Local Thai biomass burning dominates (22 Thai clusters vs 1 Myanmar cluster per peak sample). Thai FRP sum = 109564, Myanmar FRP sum = 854 (ratio 128x). Total hotspot contribution to 24h PM2.5 prediction: 3.9 ug/m3 above no-fire baseline."
+  "interpretation": "Local Thai biomass burning dominates (17 Thai clusters vs 4 Myanmar cluster per peak sample). Thai FRP sum = 108569, Myanmar FRP sum = 246 (ratio 441x). Total hotspot contribution to 24h PM2.5 prediction: 3.9 ug/m3 above no-fire baseline."
 }

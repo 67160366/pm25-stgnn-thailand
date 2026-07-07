@@ -8,91 +8,16 @@
   "n_events_with_connected_foreign_fire": 5,
   "events": [
     {
-      "date": "2025-03-25",
-      "peak_pm25_ug_m3": 126.7,
-      "connected_frp_by_country": {
-        "Thailand": 1305.9,
-        "Myanmar": 478.2
-      },
-      "connected_foreign_fraction": 0.268,
-      "country_attribution": {
-        "Laos": 0.0,
-        "Myanmar": 1.0,
-        "Thailand": 0.0
-      },
-      "foreign_attribution": 1.0,
-      "top_ig_features": {
-        "t2m": 0.0414,
-        "d2m": 0.0408,
-        "pm25_scaled": 0.014
-      }
-    },
-    {
-      "date": "2025-02-13",
-      "peak_pm25_ug_m3": 27.6,
-      "connected_frp_by_country": {
-        "Thailand": 1258.7,
-        "Myanmar": 87.2
-      },
-      "connected_foreign_fraction": 0.065,
-      "country_attribution": {
-        "Myanmar": 1.0,
-        "Thailand": 0.0
-      },
-      "foreign_attribution": 1.0,
-      "top_ig_features": {
-        "t2m": 0.0293,
-        "d2m": 0.0292,
-        "pm25_scaled": 0.0021
-      }
-    },
-    {
-      "date": "2025-03-05",
-      "peak_pm25_ug_m3": 52.4,
-      "connected_frp_by_country": {
-        "Thailand": 85.6,
-        "Myanmar": 6.3
-      },
-      "connected_foreign_fraction": 0.068,
-      "country_attribution": {
-        "Myanmar": 0.008,
-        "Thailand": 0.992
-      },
-      "foreign_attribution": 0.008,
-      "top_ig_features": {
-        "d2m": 0.0331,
-        "t2m": 0.0326,
-        "pm25_scaled": 0.0053
-      }
-    },
-    {
-      "date": "2025-02-16",
-      "peak_pm25_ug_m3": 38.7,
-      "connected_frp_by_country": {
-        "Myanmar": 5.5,
-        "Thailand": 9.3
-      },
-      "connected_foreign_fraction": 0.373,
-      "country_attribution": {
-        "Myanmar": 0.332,
-        "Thailand": 0.668
-      },
-      "foreign_attribution": 0.332,
-      "top_ig_features": {
-        "d2m": 0.0396,
-        "t2m": 0.0385,
-        "pm25_scaled": 0.0037
-      }
-    },
-    {
       "date": "2025-03-18",
       "peak_pm25_ug_m3": 69.1,
       "connected_frp_by_country": {
-        "Thailand": 1499.6,
-        "Myanmar": 3.7
+        "Myanmar": 677.8,
+        "Thailand": 419.5,
+        "Laos": 406.1
       },
-      "connected_foreign_fraction": 0.002,
+      "connected_foreign_fraction": 0.721,
       "country_attribution": {
+        "Laos": 0.0,
         "Myanmar": 0.0,
         "Thailand": 1.0
       },
@@ -102,7 +27,89 @@
         "t2m": 0.0364,
         "pm25_scaled": 0.0081
       }
+    },
+    {
+      "date": "2025-03-13",
+      "peak_pm25_ug_m3": 32.1,
+      "connected_frp_by_country": {
+        "Thailand": 895.5,
+        "Laos": 1000.1
+      },
+      "connected_foreign_fraction": 0.528,
+      "country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "foreign_attribution": 0.0,
+      "top_ig_features": {
+        "d2m": 0.0403,
+        "t2m": 0.04,
+        "pm25_scaled": 0.0028
+      }
+    },
+    {
+      "date": "2025-03-30",
+      "peak_pm25_ug_m3": 305.0,
+      "connected_frp_by_country": {
+        "Myanmar": 58.3,
+        "Thailand": 928.6,
+        "Laos": 62.7
+      },
+      "connected_foreign_fraction": 0.115,
+      "country_attribution": {
+        "Laos": 0.034,
+        "Myanmar": 0.029,
+        "Thailand": 0.937
+      },
+      "foreign_attribution": 0.063,
+      "top_ig_features": {
+        "t2m": 0.0379,
+        "d2m": 0.037,
+        "pm25_scaled": 0.0338
+      }
+    },
+    {
+      "date": "2025-03-11",
+      "peak_pm25_ug_m3": 29.2,
+      "connected_frp_by_country": {
+        "Thailand": 2986.6,
+        "Myanmar": 82.0,
+        "Laos": 31.5
+      },
+      "connected_foreign_fraction": 0.037,
+      "country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "foreign_attribution": 0.0,
+      "top_ig_features": {
+        "d2m": 0.0432,
+        "t2m": 0.0417,
+        "pm25_scaled": 0.0029
+      }
+    },
+    {
+      "date": "2025-03-17",
+      "peak_pm25_ug_m3": 76.1,
+      "connected_frp_by_country": {
+        "Thailand": 3854.0,
+        "Myanmar": 53.3
+      },
+      "connected_foreign_fraction": 0.014,
+      "country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "foreign_attribution": 0.0,
+      "top_ig_features": {
+        "t2m": 0.033,
+        "d2m": 0.0326,
+        "pm25_scaled": 0.0083
+      }
     }
   ],
-  "interpretation": "4/5 top events show non-zero foreign (Myanmar/Laos) attribution. Compare foreign_attribution vs connected_foreign_fraction per event: attribution ~0 despite a high connected-foreign fraction => the model does not capture transboundary transport at this station; attribution tracking the fraction => it is responsive to cross-border fire input."
+  "interpretation": "1/5 top events show non-zero foreign (Myanmar/Laos) attribution. Compare foreign_attribution vs connected_foreign_fraction per event: attribution ~0 despite a high connected-foreign fraction => the model does not capture transboundary transport at this station; attribution tracking the fraction => it is responsive to cross-border fire input."
 }
