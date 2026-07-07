@@ -72,10 +72,12 @@ pm25-stgnn-thailand/
 ├── .claude/
 │   ├── settings.json
 │   └── agents/
-├── CLAUDE.md, README.md, pyproject.toml, .env.example, .gitignore
+├── CLAUDE.md, README.md, pyproject.toml, .gitignore
+│   (.env is hand-made, never committed — see docs/INSTALL.md; there is no .env.example)
 ├── docs/
 │   ├── DESIGN.md
 │   ├── SESSION{N}_NOTES.md
+│   ├── INSTALL.md, USER_GUIDE.md, REPORT_DRAFT.md, CRITICAL_REVIEW.md
 │   └── api_quirks.md
 ├── data/
 │   ├── raw/         # gitignored
@@ -85,26 +87,31 @@ pm25-stgnn-thailand/
 ├── notebooks/                  # EDA only
 ├── src/
 │   ├── data/
-│   │   ├── scrapers/{openaq,air4thai,firms,era5}.py
+│   │   ├── scrapers/{openaq,firms,era5}.py   # air4thai realtime needs no scraper module
 │   │   ├── preprocessing.py
 │   │   ├── graph_builder.py    # critical, has tests
+│   │   ├── hotspot_clustering.py
 │   │   └── loader.py
-│   ├── models/{base,a3tgcn,pm25gnn,mtgnn}.py
-│   ├── training/{trainer,losses,metrics}.py
+│   ├── models/{base,a3tgcn,mtgnn}.py          # pm25gnn was descoped
+│   ├── training/{trainer,losses,metrics,evaluation}.py
 │   ├── explain/{gnn_explainer,gb_ig,attribution}.py
 │   └── viz/{maps,timeseries}.py
-├── app/streamlit_app.py
-├── scripts/01_*.py to 05_*.py
+├── app/
+│   ├── streamlit_app.py
+│   ├── lib/          # aqi, data_access, geo, inference, ui
+│   ├── views/        # overview, forecast, attribution, transboundary, performance, about
+│   └── assets/       # borders_th_mm_la.geojson (committed — app breaks without it)
+├── scripts/01_*.py to 13_*.py + generate_{report,proposal,pitch_deck,architecture_diagram}.py
 └── tests/
 ```
 
 ## Commands
 
-- Install (two steps): `uv sync` then `./install_native_deps.ps1` (Windows)
-  or `./install_native_deps.sh` (Linux). The native step installs
-  torch-scatter, torch-sparse, and torch-geometric-temporal which cannot
-  go in pyproject.toml because they require torch to exist before they
-  build.
+- Install (two steps): `uv sync` then `./install_native_deps.ps1` (Windows
+  only — no .sh exists; Linux/macOS run the manual commands in
+  docs/INSTALL.md). The native step installs torch-scatter, torch-sparse,
+  and torch-geometric-temporal which cannot go in pyproject.toml because
+  they require torch to exist before they build.
 - Add dep: `uv add <pkg>` (NEVER edit pyproject.toml deps manually)
 - Realtime snapshot: `uv run python scripts/01_download_all.py realtime`
 - Discover stations: `uv run python scripts/01_download_all.py discover`
@@ -124,8 +131,9 @@ installing any, these cannot be in pyproject.toml.
 
 After cloning or pulling fresh:
   1. `uv sync` — installs torch + all pure-Python deps
-  2. `./install_native_deps.ps1` (or `./install_native_deps.sh`) — installs the three native
-     packages from PyG's wheel index at https://data.pyg.org/whl/
+  2. `./install_native_deps.ps1` (Windows; Linux/macOS use the manual
+     commands in docs/INSTALL.md) — installs the three native packages
+     from PyG's wheel index at https://data.pyg.org/whl/
 
 This is also documented in README.md Quickstart and docs/api_quirks.md.
 
@@ -176,6 +184,44 @@ Full details in `docs/DESIGN.md` section 4.1. Critical points:
 - All source must be original. Flag if proposing to copy non-trivial code
   from elsewhere (allowed for clearly-credited reference implementations
   like PM2.5-GNN, but must cite).
+
+## Issue triage vocabulary
+
+When reviewing or reporting problems, always classify by tier:
+
+- 🔴 **Broken** — wrong results, crashes, data leaks, incorrect logic,
+  security issues. Fix before anything else.
+- 🟡 **Weak** — works but degraded: overfitting, data mismatch, unclear
+  eval, missing error handling, misleading docs.
+- 🟢 **Missing** — should exist but doesn't: tests, baselines,
+  validation, documentation.
+
+Never propose 🟢 work while 🔴 issues remain open. In review reports and
+handoffs, mark unverified claims `[ASSUMED]` or `[NEEDS VERIFICATION]` —
+never present a guess as a checked fact.
+
+## Session handoffs
+
+Every working session ends with a handoff written to
+`docs/SESSION{N}_NOTES.md` (existing convention — do NOT create a new
+directory for this). Structure:
+
+```markdown
+# SESSION {N} NOTES — {YYYY-MM-DD}
+Status: IN_PROGRESS | PHASE_COMPLETE | BLOCKED | COMPLETE
+
+## What was accomplished
+## Current state (branch, last commit, open work)
+## What was NOT done (and why)
+## Next session must start with (exact first actions)
+## Critical context to preserve (gotchas, fragile files, decisions)
+## Open questions
+```
+
+Compress ruthlessly: the goal is that the next session reconstructs
+understanding in under 5 minutes of reading. If a session ended without
+a handoff, treat its state as unverified and re-check before building
+on it.
 
 ## When uncertain
 
