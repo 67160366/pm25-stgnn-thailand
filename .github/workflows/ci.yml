@@ -1,0 +1,89 @@
+# CI — PM2.5 STGNN Thailand
+#
+# Runs the same quality gates documented in CLAUDE.md "Commands":
+#   uv run pytest tests/ -v
+#   uv run ruff check src/ app/ tests/ scripts/
+#   uv run black --check src/ tests/
+#
+# `torch-scatter`, `torch-sparse`, and `torch-geometric-temporal` cannot live
+# in pyproject.toml (they need `torch` already installed to build against —
+# see CLAUDE.md "Native dependencies" and docs/INSTALL.md step 3). This
+# workflow installs them after `uv sync`, replicating the Linux/macOS block
+# from docs/INSTALL.md (which is itself install_native_deps.ps1's logic
+# ported off PowerShell). On this CPU-only runner `torch.cuda.is_available()`
+# is False, so the resolved PyG wheel index is the CPU variant
+# (https://data.pyg.org/whl/torch-<version>+cpu.html) even though
+# pyproject.toml's `pytorch-cu126` index is still what `uv sync` pulls torch
+# itself from on sys_platform == "linux".
+#
+# tests/ needs no network and no local data/ or checkpoints/ — every scraper
+# test uses requests-mock (see tests/test_openaq.py, tests/test_firms.py,
+# tests/test_era5.py, tests/test_openmeteo.py) and model/graph/training tests
+# build synthetic fixtures in-process. No deselection needed.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Guards against the Thai-path .pth UnicodeDecodeError documented in
+  # docs/INSTALL.md step 4; harmless (no-op) on Linux CI runners.
+  PYTHONUTF8: "1"
+
+jobs:
+  test:
+    name: Test, lint, format
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.11"
+
+      # NOTE: plain `uv sync` only installs [project.dependencies] — pytest,
+      # ruff, and black live in the `dev` extra
+      # ([project.optional-dependencies].dev in pyproject.toml) and are NOT
+      # installed without `--extra dev` (verified with `uv sync --dry-run`,
+      # which shows a bare `uv sync` would *uninstall* pytest/ruff/black from
+      # an existing dev venv). Without this flag the test/lint/format steps
+      # below would fail with "command not found".
+      - name: Install dependencies (uv sync --extra dev)
+        run: uv sync --extra dev
+
+      - name: Install native PyG extensions (torch-scatter, torch-sparse, torch-geometric-temporal)
+        run: |
+          TORCH_VERSION=$(uv run python -c "import torch; print(torch.__version__.split('+')[0])")
+          CUDA_TAG=$(uv run python -c "import torch; print('cu' + torch.version.cuda.replace('.', '') if torch.cuda.is_available() else 'cpu')")
+          echo "Resolved torch ${TORCH_VERSION}, PyG wheel tag ${CUDA_TAG}"
+          # `uv pip` (not `python -m pip`): the CI venv is created fresh by
+          # `uv sync` and does not contain pip itself (pip is not a declared
+          # dependency; the local dev venv only has it from a manual seed).
+          uv pip install torch-scatter torch-sparse \
+            --find-links "https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_TAG}.html"
+          uv pip install "torch-geometric-temporal>=0.54"
+
+      - name: Verify native extensions import
+        run: uv run python -c "import torch_scatter, torch_sparse, torch_geometric_temporal; print('native PyG extensions OK')"
+
+      - name: Run tests
+        run: uv run pytest tests/ -v
+
+      - name: Ruff lint
+        run: uv run ruff check src/ app/ tests/ scripts/
+
+      - name: Black format check
+        run: uv run black --check src/ tests/
