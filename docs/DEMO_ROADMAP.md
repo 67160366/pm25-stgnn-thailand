@@ -68,7 +68,9 @@
 ### 7. Engineering polish
 - GitHub Actions CI: pytest + ruff + black ทุก push (ไม่มี network ใน tests อยู่แล้ว — ผ่านได้เลย)
 - Model Card + Data Card หนึ่งหน้า (docs/) — เข้าธีม AI governance
-- หน้า overview ดึง air4thai realtime สด (scraper มีแล้ว) เป็นค่า "ตอนนี้" คู่กับพยากรณ์
+- หน้า overview ดึง air4thai realtime สด เป็นค่า "ตอนนี้" คู่กับพยากรณ์
+  (แก้ข้อมูล 2026-07-10: scraper air4thai **ยังไม่มีในโค้ด** — สร้างใหม่ใน `app/lib/air4thai.py`
+  พร้อม mapping รหัสสถานี air4thai↔OpenAQ ที่ `configs/air4thai_station_codes.json`)
 
 ## ข้อเสนอเพิ่มเติมรอบสอง (Session 13, 2026-07-10 — ทำต่อหลังชุด 7 ข้อแรก)
 
