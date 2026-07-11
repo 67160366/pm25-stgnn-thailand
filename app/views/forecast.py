@@ -159,7 +159,8 @@ def _conformal_caption(live: bool = False) -> None:
     msg = (
         "แถบสีแดงอ่อน = ช่วงพยากรณ์ 90% แบบ split-conformal ปรับเทียบจากชุด validation ปี 2024 "
         "(residual จริงหน่วย µg/m³ แยกตาม horizon และรายสถานี) — การันตี marginal coverage "
-        "บน distribution เดียวกับ val"
+        "บน distribution เดียวกับ val; วัดจริงบนชุด test ปี 2025 (held-out) ได้ 0.87–0.88 "
+        "ต่ำกว่า nominal 0.90 เล็กน้อย"
     )
     if live:
         msg += (
