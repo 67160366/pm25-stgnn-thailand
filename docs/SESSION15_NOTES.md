@@ -1,5 +1,5 @@
 # SESSION 15 NOTES — 2026-07-11
-Status: PHASE_COMPLETE
+Status: COMPLETE
 
 ปิด roadmap คิวที่ค้างจาก S14 ครบทั้งสาม (ข้อ 9 → 3 → 6) + งานเก็บตก pitch
 ทำแบบ orchestrator: Fable ตรวจ+commit, architect ทำข้อ 9+3 (agent เดิมต่อ context),
@@ -33,8 +33,8 @@ implementer ทำ pitch re-sync + ข้อ 6 ขนาน (แบ่ง scope 
 
 ## Current state (branch, last commit, open work)
 
-- Branch `feat/demo-features`, HEAD = `6bedaf2` — **ยังไม่ push** (4 commits ค้าง: 32bb95a,
-  c19a872, 686251f, 6bedaf2) → CI ยังไม่เคยเห็นชุดนี้
+- Branch `feat/demo-features` — **pushed แล้ว (ผู้ใช้ confirm) + CI SUCCESS** ที่ `418b53f`
+  (run 29143170020: native PyG, pytest 308, ruff, black ผ่านหมด)
 - Working tree สะอาด ยกเว้น untracked-by-choice เดิม (docx/pdf/proposal_text/review_prompt)
 - Roadmap ก่อน-submit ครบแล้ว: ข้อ 1, 3, 6, 7, 9 เสร็จ; เหลือชุดหลัง-SIMS (2, 4, 5, 8, 10, 11, 12, 13)
 
@@ -52,10 +52,9 @@ implementer ทำ pitch re-sync + ข้อ 6 ขนาน (แบ่ง scope 
 
 ## Next session must start with (exact first actions)
 
-1. **Push `feat/demo-features`** (ขอ confirm ผู้ใช้ต่อครั้งตามกติกา) → เช็ค CI เขียว
-   (repo private, ไม่มี gh CLI — ใช้ token จาก `git credential fill` ยิง api.github.com)
-2. เช็คผู้ใช้: F9 TOC + upload SIMS แล้วหรือยัง (**เดดไลน์ 17 ก.ค. 17:00**) — ถ้า submit แล้ว
+1. เช็คผู้ใช้: F9 TOC + upload SIMS แล้วหรือยัง (**เดดไลน์ 17 ก.ค. 17:00**) — ถ้า submit แล้ว
    ปลดกติกาเหล็ก → เริ่มชุดหลัง-SIMS ได้ (ข้อ 8 คุ้มสุด → 10 → 2/4 → 11)
+2. เช็คผู้ใช้: สร้าง Telegram bot + ทดสอบส่งจริง 1 ครั้งหรือยัง (ก่อน demo 21 ส.ค.)
 3. ถ้ามีเวลา: วัด held-out conformal coverage บน test 2025 (ข้อ NOT done)
 
 ## Critical context to preserve (gotchas, fragile files, decisions)
