@@ -80,6 +80,36 @@ UV_NO_SYNC=1 uv run python scripts/04_evaluate.py
 
 ---
 
+## ส่วนที่ 2.5 — แจ้งเตือนล่วงหน้า 48 ชม. ผ่าน Telegram (สำหรับ demo สด)
+
+`scripts/16_telegram_alert.py` แปลงพยากรณ์สด (โหมด live NWP เดียวกับ dashboard —
+`app.lib.inference.live_forecast`) เป็นข้อความภาษาไทย (ระดับ AQI ไทย + คำแนะนำกลุ่มเสี่ยง +
+ช่วง 90% หากมีการ calibrate conformal แล้ว) แล้วส่งเข้า Telegram ผ่าน Bot API — ใช้สำหรับสาธิตสดต่อหน้ากรรมการ
+(โทรศัพท์ในห้องรับ push notification ทันที)
+
+ต้องตั้งค่า `TELEGRAM_BOT_TOKEN` และ `TELEGRAM_CHAT_ID` ก่อน (ดูวิธีสร้างบอทและหา chat id ใน
+`docs/INSTALL.md` ขั้นที่ 5) — ยกเว้นเมื่อใช้ `--dry-run` ซึ่งไม่ต้องตั้งค่าใด ๆ
+
+```bash
+# ดูข้อความตัวอย่างก่อน ไม่ส่งจริง
+uv run python scripts/16_telegram_alert.py --dry-run
+
+# ตรวจทุกสถานี ส่งเฉพาะสถานีที่พยากรณ์แตะเกณฑ์ (ค่าเริ่มต้น 37.5 µg/m³)
+uv run python scripts/16_telegram_alert.py --station all
+
+# บังคับส่งสถานีเดียวเสมอ (โหมด demo ไม่ต้องรอค่าฝุ่นสูงจริง)
+uv run python scripts/16_telegram_alert.py --station 225579 --force
+```
+
+พารามิเตอร์หลัก: `--station <station_id|all>`, `--threshold <ug/m3>`, `--force` (ส่งเสมอ),
+`--dry-run` (พิมพ์ข้อความแทนการส่งจริง) เกณฑ์เริ่มต้น 37.5 µg/m³ ตรงกับเส้นแบ่งระดับ AQI ไทย
+"ปานกลาง" → "เริ่มมีผลต่อกลุ่มเสี่ยง" ใน `app/lib/aqi.py` (มาตรฐาน PM2.5 24 ชม. ของไทย)
+
+> โหมดสดใช้ข้อมูลพยากรณ์อากาศ (NWP) แทน ERA5 ย้อนหลัง จึงมีความคลาดเคลื่อนมากกว่าผลประเมินหลักของระบบ
+> (ข้อความแจ้งเตือนมีบรรทัด caveat นี้กำกับไว้เสมอ)
+
+---
+
 ## ส่วนที่ 3 — การทำซ้ำผลหลัก (Reproduce key results)
 
 - **ความแม่นยำการพยากรณ์:** `UV_NO_SYNC=1 uv run python scripts/04_evaluate.py`

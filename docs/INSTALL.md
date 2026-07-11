@@ -88,10 +88,24 @@ printf '../../..\n' > .venv/Lib/site-packages/_editable_impl_pm25_stgnn_thailand
 ```
 OPENAQ_API_KEY=<API key จาก https://docs.openaq.org/>
 FIRMS_API_KEY=<MAP_KEY จาก https://firms.modaps.eosdis.nasa.gov/api/>
+TELEGRAM_BOT_TOKEN=<token จาก @BotFather — เฉพาะกรณีใช้ scripts/16_telegram_alert.py>
+TELEGRAM_CHAT_ID=<chat id ปลายทาง — เฉพาะกรณีใช้ scripts/16_telegram_alert.py>
 ```
 
 สำหรับ ERA5 (Copernicus): วางไฟล์ `~/.cdsapirc` ที่มี UID และ API key ตามคู่มือ
 https://cds.climate.copernicus.eu/how-to-api
+
+**สำหรับ Telegram Bot (การแจ้งเตือนล่วงหน้า 48 ชม.):** `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`
+จำเป็นเฉพาะเมื่อจะรัน `scripts/16_telegram_alert.py` แบบส่งจริง (ไม่ใช้กับ dashboard หลัก และไม่จำเป็นเมื่อใช้ `--dry-run`)
+
+1. เปิดแชทกับ [@BotFather](https://t.me/BotFather) ใน Telegram แล้วพิมพ์ `/newbot` ทำตามขั้นตอน
+   (ตั้งชื่อบอท) จะได้ **token** รูปแบบ `123456789:AAExampleTokenString` — นี่คือค่า `TELEGRAM_BOT_TOKEN`
+2. หา **chat id**:
+   - ส่งข้อความใด ๆ ให้บอทที่สร้างไว้ก่อน (ต้องกด Start หรือพิมพ์อะไรก็ได้ในแชทกับบอท)
+   - เปิด `https://api.telegram.org/bot<TOKEN>/getUpdates` ในเบราว์เซอร์ (แทน `<TOKEN>` ด้วย token จริง)
+   - หาค่า `"chat":{"id": ...}` ในผลลัพธ์ JSON — ตัวเลขนั้นคือ `TELEGRAM_CHAT_ID`
+   - หากต้องการส่งเข้ากลุ่ม ให้เชิญบอทเข้ากลุ่มก่อน แล้ว chat id ของกลุ่มจะเป็นเลขติดลบ
+3. ทดสอบไม่ส่งจริงก่อน: `uv run python scripts/16_telegram_alert.py --dry-run`
 
 ---
 
