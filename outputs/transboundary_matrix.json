@@ -1,0 +1,1191 @@
+{
+  "generated_by": "scripts/20_transboundary_matrix.py",
+  "method": "Rank split dates by Myanmar+Laos FRP; at each border station take the peak-PM2.5 anchor, read hotspots connected via type_c edges, then occlusion country attribution + IG. Compares model foreign attribution to connected-foreign FRP, across the demo and report checkpoints.",
+  "split": "test",
+  "horizon_h": 24,
+  "horizon_idx": 2,
+  "n_ig_steps": 50,
+  "n_candidates": 15,
+  "top_k": 5,
+  "wind_mode": "from_field",
+  "max_dist_km": 50.0,
+  "checkpoints": [
+    {
+      "label": "demo",
+      "path": "checkpoints/mtgnn/best_model.pt"
+    },
+    {
+      "label": "report",
+      "path": "checkpoints_split2/mtgnn/best_model.pt"
+    }
+  ],
+  "stations": [
+    {
+      "station_id": 225567,
+      "name": "Maesai Health Office",
+      "lat": 20.427325,
+      "lon": 99.883842,
+      "dist_km_nearest_foreign": 2.1,
+      "nearest_country": "Myanmar"
+    },
+    {
+      "station_id": 225626,
+      "name": "Non-Formal Education Centre, Mea Sot",
+      "lat": 16.734413,
+      "lon": 98.566961,
+      "dist_km_nearest_foreign": 6.5,
+      "nearest_country": "Myanmar"
+    },
+    {
+      "station_id": 225648,
+      "name": "Natural Resources and Environment Office, Mae Hongson",
+      "lat": 19.30455,
+      "lon": 97.97165,
+      "dist_km_nearest_foreign": 13.5,
+      "nearest_country": "Myanmar"
+    },
+    {
+      "station_id": 2328,
+      "name": "Natural Resources and Environment Office, Chiangrai",
+      "lat": 19.909217,
+      "lon": 99.823467,
+      "dist_km_nearest_foreign": 40.7,
+      "nearest_country": "Myanmar"
+    },
+    {
+      "station_id": 225674,
+      "name": "Municipality Office, Nan",
+      "lat": 18.7888833,
+      "lon": 100.7763166,
+      "dist_km_nearest_foreign": 45.5,
+      "nearest_country": "Laos"
+    }
+  ],
+  "results": [
+    {
+      "station_id": 225567,
+      "station_name": "Maesai Health Office",
+      "checkpoint_label": "demo",
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 148.6,
+          "connected_frp_by_country": {
+            "Myanmar": 33941.9,
+            "Thailand": 1003.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.971,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 1.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0,
+          "top_ig_features": {
+            "t2m": 0.0393,
+            "d2m": 0.0391,
+            "pm25_scaled": 0.0128
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 139.7,
+          "connected_frp_by_country": {
+            "Thailand": 3814.8,
+            "Myanmar": 55.1,
+            "Laos": 1464.2
+          },
+          "connected_foreign_fraction": 0.285,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0384,
+            "t2m": 0.0379,
+            "pm25_scaled": 0.0123
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 68.3,
+          "connected_frp_by_country": {
+            "Thailand": 1358.4,
+            "Myanmar": 351.1,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.499,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.653,
+            "Thailand": 0.347
+          },
+          "foreign_attribution": 0.653,
+          "top_ig_features": {
+            "d2m": 0.0362,
+            "t2m": 0.0356,
+            "pm25_scaled": 0.0054
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 98.7,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 256.9,
+            "Laos": 424.3
+          },
+          "connected_foreign_fraction": 0.811,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0377,
+            "t2m": 0.0369,
+            "pm25_scaled": 0.0084
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 69.9,
+          "connected_frp_by_country": {
+            "Thailand": 2997.6,
+            "Myanmar": 79.3,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.036,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0393,
+            "t2m": 0.0387,
+            "pm25_scaled": 0.0054
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225626,
+      "station_name": "Non-Formal Education Centre, Mea Sot",
+      "checkpoint_label": "demo",
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 70.7,
+          "connected_frp_by_country": {
+            "Myanmar": 1013.5,
+            "Thailand": 8.4
+          },
+          "connected_foreign_fraction": 0.992,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 1.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0,
+          "top_ig_features": {
+            "d2m": 0.0294,
+            "t2m": 0.0286,
+            "pm25_scaled": 0.0048
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 54.6,
+          "connected_frp_by_country": {
+            "Myanmar": 192.1,
+            "Thailand": 42.1
+          },
+          "connected_foreign_fraction": 0.82,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.957,
+            "Thailand": 0.043
+          },
+          "foreign_attribution": 0.957,
+          "top_ig_features": {
+            "d2m": 0.0373,
+            "t2m": 0.0366,
+            "pm25_scaled": 0.0036
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 40.7,
+          "connected_frp_by_country": {
+            "Thailand": 228.1,
+            "Myanmar": 71.9
+          },
+          "connected_foreign_fraction": 0.24,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.4,
+            "Thailand": 0.6
+          },
+          "foreign_attribution": 0.4,
+          "top_ig_features": {
+            "d2m": 0.0437,
+            "t2m": 0.043,
+            "pm25_scaled": 0.0025
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 66.1,
+          "connected_frp_by_country": {
+            "Thailand": 61.6,
+            "Myanmar": 67.4
+          },
+          "connected_foreign_fraction": 0.522,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.732,
+            "Thailand": 0.268
+          },
+          "foreign_attribution": 0.732,
+          "top_ig_features": {
+            "t2m": 0.0312,
+            "d2m": 0.0312,
+            "pm25_scaled": 0.0047
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 39.7,
+          "connected_frp_by_country": {
+            "Thailand": 81.7,
+            "Myanmar": 21.9
+          },
+          "connected_foreign_fraction": 0.211,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.339,
+            "Thailand": 0.661
+          },
+          "foreign_attribution": 0.339,
+          "top_ig_features": {
+            "d2m": 0.0478,
+            "t2m": 0.0459,
+            "pm25_scaled": 0.0028
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225648,
+      "station_name": "Natural Resources and Environment Office, Mae Hongson",
+      "checkpoint_label": "demo",
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 69.1,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 419.5,
+            "Laos": 406.1
+          },
+          "connected_foreign_fraction": 0.721,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0368,
+            "t2m": 0.0364,
+            "pm25_scaled": 0.0081
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 32.1,
+          "connected_frp_by_country": {
+            "Thailand": 895.5,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.528,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0403,
+            "t2m": 0.04,
+            "pm25_scaled": 0.0028
+          }
+        },
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 305.0,
+          "connected_frp_by_country": {
+            "Myanmar": 58.3,
+            "Thailand": 928.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.115,
+          "country_attribution": {
+            "Laos": 0.034,
+            "Myanmar": 0.029,
+            "Thailand": 0.937
+          },
+          "foreign_attribution": 0.063,
+          "top_ig_features": {
+            "t2m": 0.0379,
+            "d2m": 0.037,
+            "pm25_scaled": 0.0338
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 29.2,
+          "connected_frp_by_country": {
+            "Thailand": 2986.6,
+            "Myanmar": 82.0,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.037,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0432,
+            "t2m": 0.0417,
+            "pm25_scaled": 0.0029
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 76.1,
+          "connected_frp_by_country": {
+            "Thailand": 3854.0,
+            "Myanmar": 53.3
+          },
+          "connected_foreign_fraction": 0.014,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "t2m": 0.033,
+            "d2m": 0.0326,
+            "pm25_scaled": 0.0083
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 2328,
+      "station_name": "Natural Resources and Environment Office, Chiangrai",
+      "checkpoint_label": "demo",
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 40.0,
+          "connected_frp_by_country": {
+            "Thailand": 1358.4,
+            "Myanmar": 351.1,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.499,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.459,
+            "Thailand": 0.541
+          },
+          "foreign_attribution": 0.459,
+          "top_ig_features": {
+            "d2m": 0.0368,
+            "t2m": 0.0366,
+            "pm25_scaled": 0.0025
+          }
+        },
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 96.0,
+          "connected_frp_by_country": {
+            "Thailand": 1003.6,
+            "Myanmar": 1018.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.519,
+          "country_attribution": {
+            "Laos": 0.079,
+            "Myanmar": 0.0,
+            "Thailand": 0.921
+          },
+          "foreign_attribution": 0.079,
+          "top_ig_features": {
+            "t2m": 0.0368,
+            "d2m": 0.0364,
+            "pm25_scaled": 0.0082
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 70.2,
+          "connected_frp_by_country": {
+            "Myanmar": 621.3,
+            "Thailand": 257.8,
+            "Laos": 166.2
+          },
+          "connected_foreign_fraction": 0.753,
+          "country_attribution": {
+            "Laos": 0.156,
+            "Myanmar": 0.0,
+            "Thailand": 0.844
+          },
+          "foreign_attribution": 0.156,
+          "top_ig_features": {
+            "d2m": 0.0327,
+            "t2m": 0.0323,
+            "pm25_scaled": 0.0051
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 97.3,
+          "connected_frp_by_country": {
+            "Thailand": 3832.9,
+            "Myanmar": 67.4,
+            "Laos": 61.2
+          },
+          "connected_foreign_fraction": 0.032,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0306,
+            "t2m": 0.0304,
+            "pm25_scaled": 0.0077
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 36.2,
+          "connected_frp_by_country": {
+            "Thailand": 2999.5,
+            "Myanmar": 82.0,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.036,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.044,
+            "t2m": 0.0423,
+            "pm25_scaled": 0.0025
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225674,
+      "station_name": "Municipality Office, Nan",
+      "checkpoint_label": "demo",
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 112.6,
+          "connected_frp_by_country": {
+            "Thailand": 318.1,
+            "Myanmar": 1018.6,
+            "Laos": 25.2
+          },
+          "connected_foreign_fraction": 0.766,
+          "country_attribution": {
+            "Laos": 0.1,
+            "Myanmar": 0.0,
+            "Thailand": 0.9
+          },
+          "foreign_attribution": 0.1,
+          "top_ig_features": {
+            "d2m": 0.0312,
+            "t2m": 0.0309,
+            "pm25_scaled": 0.0096
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 70.1,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 241.0
+          },
+          "connected_foreign_fraction": 0.738,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0315,
+            "t2m": 0.0312,
+            "pm25_scaled": 0.0048
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 60.6,
+          "connected_frp_by_country": {
+            "Thailand": 444.4,
+            "Myanmar": 82.0,
+            "Laos": 126.5
+          },
+          "connected_foreign_fraction": 0.319,
+          "country_attribution": {
+            "Laos": 0.18,
+            "Myanmar": 0.044,
+            "Thailand": 0.776
+          },
+          "foreign_attribution": 0.224,
+          "top_ig_features": {
+            "d2m": 0.0451,
+            "t2m": 0.0438,
+            "pm25_scaled": 0.0042
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 68.5,
+          "connected_frp_by_country": {
+            "Thailand": 1196.4,
+            "Myanmar": 56.1
+          },
+          "connected_foreign_fraction": 0.045,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.002,
+            "Thailand": 0.998
+          },
+          "foreign_attribution": 0.002,
+          "top_ig_features": {
+            "d2m": 0.0297,
+            "t2m": 0.0297,
+            "pm25_scaled": 0.0049
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 73.5,
+          "connected_frp_by_country": {
+            "Thailand": 20.3,
+            "Laos": 7.8
+          },
+          "connected_foreign_fraction": 0.276,
+          "country_attribution": {
+            "Laos": 0.283,
+            "Myanmar": 0.0,
+            "Thailand": 0.717
+          },
+          "foreign_attribution": 0.283,
+          "top_ig_features": {
+            "d2m": 0.0316,
+            "t2m": 0.0312,
+            "pm25_scaled": 0.0053
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225567,
+      "station_name": "Maesai Health Office",
+      "checkpoint_label": "report",
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 148.6,
+          "connected_frp_by_country": {
+            "Myanmar": 33941.9,
+            "Thailand": 1003.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.971,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 1.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0,
+          "top_ig_features": {
+            "t2m": 0.0247,
+            "d2m": 0.0239,
+            "pm25_scaled": 0.0126
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 139.7,
+          "connected_frp_by_country": {
+            "Thailand": 3814.8,
+            "Myanmar": 55.1,
+            "Laos": 1464.2
+          },
+          "connected_foreign_fraction": 0.285,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0231,
+            "t2m": 0.0222,
+            "pm25_scaled": 0.013
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 68.3,
+          "connected_frp_by_country": {
+            "Thailand": 1358.4,
+            "Myanmar": 351.1,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.499,
+          "country_attribution": {
+            "Laos": 0.964,
+            "Myanmar": 0.0,
+            "Thailand": 0.036
+          },
+          "foreign_attribution": 0.964,
+          "top_ig_features": {
+            "d2m": 0.0259,
+            "t2m": 0.0242,
+            "pm25_scaled": 0.0058
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 98.7,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 256.9,
+            "Laos": 424.3
+          },
+          "connected_foreign_fraction": 0.811,
+          "country_attribution": {
+            "Laos": 0.888,
+            "Myanmar": 0.055,
+            "Thailand": 0.057
+          },
+          "foreign_attribution": 0.943,
+          "top_ig_features": {
+            "d2m": 0.0236,
+            "t2m": 0.0229,
+            "pm25_scaled": 0.0086
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 69.9,
+          "connected_frp_by_country": {
+            "Thailand": 2997.6,
+            "Myanmar": 79.3,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.036,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0251,
+            "t2m": 0.0235,
+            "pm25_scaled": 0.0059
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225626,
+      "station_name": "Non-Formal Education Centre, Mea Sot",
+      "checkpoint_label": "report",
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 70.7,
+          "connected_frp_by_country": {
+            "Myanmar": 1013.5,
+            "Thailand": 8.4
+          },
+          "connected_foreign_fraction": 0.992,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 1.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0,
+          "top_ig_features": {
+            "d2m": 0.026,
+            "t2m": 0.0246,
+            "pm25_scaled": 0.0055
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 54.6,
+          "connected_frp_by_country": {
+            "Myanmar": 192.1,
+            "Thailand": 42.1
+          },
+          "connected_foreign_fraction": 0.82,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.994,
+            "Thailand": 0.006
+          },
+          "foreign_attribution": 0.994,
+          "top_ig_features": {
+            "d2m": 0.0267,
+            "t2m": 0.0247,
+            "pm25_scaled": 0.004
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 40.7,
+          "connected_frp_by_country": {
+            "Thailand": 228.1,
+            "Myanmar": 71.9
+          },
+          "connected_foreign_fraction": 0.24,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.262,
+            "Thailand": 0.738
+          },
+          "foreign_attribution": 0.262,
+          "top_ig_features": {
+            "d2m": 0.0248,
+            "t2m": 0.0241,
+            "pm25_scaled": 0.002
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 66.1,
+          "connected_frp_by_country": {
+            "Thailand": 61.6,
+            "Myanmar": 67.4
+          },
+          "connected_foreign_fraction": 0.522,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.738,
+            "Thailand": 0.262
+          },
+          "foreign_attribution": 0.738,
+          "top_ig_features": {
+            "d2m": 0.0264,
+            "t2m": 0.0251,
+            "pm25_scaled": 0.0051
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 39.7,
+          "connected_frp_by_country": {
+            "Thailand": 81.7,
+            "Myanmar": 21.9
+          },
+          "connected_foreign_fraction": 0.211,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.345,
+            "Thailand": 0.655
+          },
+          "foreign_attribution": 0.345,
+          "top_ig_features": {
+            "d2m": 0.0244,
+            "t2m": 0.0235,
+            "pm25_scaled": 0.0018
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225648,
+      "station_name": "Natural Resources and Environment Office, Mae Hongson",
+      "checkpoint_label": "report",
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 69.1,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 419.5,
+            "Laos": 406.1
+          },
+          "connected_foreign_fraction": 0.721,
+          "country_attribution": {
+            "Laos": 0.111,
+            "Myanmar": 0.516,
+            "Thailand": 0.373
+          },
+          "foreign_attribution": 0.627,
+          "top_ig_features": {
+            "d2m": 0.0236,
+            "t2m": 0.0228,
+            "pm25_scaled": 0.0074
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 32.1,
+          "connected_frp_by_country": {
+            "Thailand": 895.5,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.528,
+          "country_attribution": {
+            "Laos": 0.403,
+            "Myanmar": 0.0,
+            "Thailand": 0.597
+          },
+          "foreign_attribution": 0.403,
+          "top_ig_features": {
+            "d2m": 0.024,
+            "t2m": 0.0229,
+            "pm25_scaled": 0.0028
+          }
+        },
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 305.0,
+          "connected_frp_by_country": {
+            "Myanmar": 58.3,
+            "Thailand": 928.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.115,
+          "country_attribution": {
+            "Laos": 0.003,
+            "Myanmar": 0.002,
+            "Thailand": 0.995
+          },
+          "foreign_attribution": 0.005,
+          "top_ig_features": {
+            "pm25_scaled": 0.0329,
+            "t2m": 0.0226,
+            "d2m": 0.0212
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 29.2,
+          "connected_frp_by_country": {
+            "Thailand": 2986.6,
+            "Myanmar": 82.0,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.037,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0244,
+            "t2m": 0.0234,
+            "pm25_scaled": 0.0022
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 76.1,
+          "connected_frp_by_country": {
+            "Thailand": 3854.0,
+            "Myanmar": 53.3
+          },
+          "connected_foreign_fraction": 0.014,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0223,
+            "t2m": 0.0221,
+            "pm25_scaled": 0.0078
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 2328,
+      "station_name": "Natural Resources and Environment Office, Chiangrai",
+      "checkpoint_label": "report",
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 40.0,
+          "connected_frp_by_country": {
+            "Thailand": 1358.4,
+            "Myanmar": 351.1,
+            "Laos": 1000.1
+          },
+          "connected_foreign_fraction": 0.499,
+          "country_attribution": {
+            "Laos": 0.7,
+            "Myanmar": 0.019,
+            "Thailand": 0.282
+          },
+          "foreign_attribution": 0.718,
+          "top_ig_features": {
+            "d2m": 0.0255,
+            "t2m": 0.0239,
+            "pm25_scaled": 0.0025
+          }
+        },
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 96.0,
+          "connected_frp_by_country": {
+            "Thailand": 1003.6,
+            "Myanmar": 1018.6,
+            "Laos": 62.7
+          },
+          "connected_foreign_fraction": 0.519,
+          "country_attribution": {
+            "Laos": 0.006,
+            "Myanmar": 0.127,
+            "Thailand": 0.867
+          },
+          "foreign_attribution": 0.133,
+          "top_ig_features": {
+            "d2m": 0.0242,
+            "t2m": 0.0234,
+            "pm25_scaled": 0.0076
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 70.2,
+          "connected_frp_by_country": {
+            "Myanmar": 621.3,
+            "Thailand": 257.8,
+            "Laos": 166.2
+          },
+          "connected_foreign_fraction": 0.753,
+          "country_attribution": {
+            "Laos": 0.231,
+            "Myanmar": 0.276,
+            "Thailand": 0.493
+          },
+          "foreign_attribution": 0.507,
+          "top_ig_features": {
+            "d2m": 0.0275,
+            "t2m": 0.0254,
+            "pm25_scaled": 0.0058
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 97.3,
+          "connected_frp_by_country": {
+            "Thailand": 3832.9,
+            "Myanmar": 67.4,
+            "Laos": 61.2
+          },
+          "connected_foreign_fraction": 0.032,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "t2m": 0.0226,
+            "d2m": 0.0224,
+            "pm25_scaled": 0.0075
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 36.2,
+          "connected_frp_by_country": {
+            "Thailand": 2999.5,
+            "Myanmar": 82.0,
+            "Laos": 31.5
+          },
+          "connected_foreign_fraction": 0.036,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0245,
+            "t2m": 0.0234,
+            "pm25_scaled": 0.0019
+          }
+        }
+      ]
+    },
+    {
+      "station_id": 225674,
+      "station_name": "Municipality Office, Nan",
+      "checkpoint_label": "report",
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "n_events_with_connected_foreign_fire": 5,
+      "events": [
+        {
+          "date": "2025-03-30",
+          "peak_pm25_ug_m3": 112.6,
+          "connected_frp_by_country": {
+            "Thailand": 318.1,
+            "Myanmar": 1018.6,
+            "Laos": 25.2
+          },
+          "connected_foreign_fraction": 0.766,
+          "country_attribution": {
+            "Laos": 0.005,
+            "Myanmar": 0.825,
+            "Thailand": 0.17
+          },
+          "foreign_attribution": 0.83,
+          "top_ig_features": {
+            "d2m": 0.0222,
+            "t2m": 0.0222,
+            "pm25_scaled": 0.009
+          }
+        },
+        {
+          "date": "2025-03-18",
+          "peak_pm25_ug_m3": 70.1,
+          "connected_frp_by_country": {
+            "Myanmar": 677.8,
+            "Thailand": 241.0
+          },
+          "connected_foreign_fraction": 0.738,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.655,
+            "Thailand": 0.345
+          },
+          "foreign_attribution": 0.655,
+          "top_ig_features": {
+            "d2m": 0.026,
+            "t2m": 0.0251,
+            "pm25_scaled": 0.0053
+          }
+        },
+        {
+          "date": "2025-03-11",
+          "peak_pm25_ug_m3": 60.6,
+          "connected_frp_by_country": {
+            "Thailand": 444.4,
+            "Myanmar": 82.0,
+            "Laos": 126.5
+          },
+          "connected_foreign_fraction": 0.319,
+          "country_attribution": {
+            "Laos": 0.079,
+            "Myanmar": 0.021,
+            "Thailand": 0.901
+          },
+          "foreign_attribution": 0.099,
+          "top_ig_features": {
+            "d2m": 0.0253,
+            "t2m": 0.0239,
+            "pm25_scaled": 0.0042
+          }
+        },
+        {
+          "date": "2025-03-13",
+          "peak_pm25_ug_m3": 68.5,
+          "connected_frp_by_country": {
+            "Thailand": 1196.4,
+            "Myanmar": 56.1
+          },
+          "connected_foreign_fraction": 0.045,
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0,
+          "top_ig_features": {
+            "d2m": 0.0262,
+            "t2m": 0.0248,
+            "pm25_scaled": 0.0052
+          }
+        },
+        {
+          "date": "2025-03-17",
+          "peak_pm25_ug_m3": 73.5,
+          "connected_frp_by_country": {
+            "Thailand": 20.3,
+            "Laos": 7.8
+          },
+          "connected_foreign_fraction": 0.276,
+          "country_attribution": {
+            "Laos": 0.332,
+            "Myanmar": 0.0,
+            "Thailand": 0.668
+          },
+          "foreign_attribution": 0.332,
+          "top_ig_features": {
+            "d2m": 0.0251,
+            "t2m": 0.024,
+            "pm25_scaled": 0.0056
+          }
+        }
+      ]
+    }
+  ],
+  "caveats": [
+    "ขนาดของสัดส่วน attribution ขึ้นกับโมเดล — แสดงทั้ง checkpoint (demo และ report/split2) โดยไม่เลือกเฉพาะอันที่สวย",
+    "foreign_attribution ≈ 0 ที่สถานี/เหตุการณ์ซึ่งไฟต่างชาติเชื่อมถึงน้อย = ผลลบเชิงซื่อสัตย์ (โมเดลไล่ตามไฟจริง ไม่ตั้งธงการเมือง) ไม่ใช่ความล้มเหลว",
+    "เป็นการประมาณจากโมเดล (occlusion/IG) เทียบกับไฟจริง FIRMS — ไม่ใช่การวัดในอากาศ ห้ามใช้กล่าวโทษเชิงการทูต"
+  ]
+}
