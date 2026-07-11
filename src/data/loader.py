@@ -242,6 +242,7 @@ def _build_anchor_index(
     mask_in_loss: np.ndarray,
     exclude: np.ndarray,
     pm25_raw: np.ndarray,
+    split_bounds: dict[str, tuple[pd.Timestamp, pd.Timestamp]] | None = None,
 ) -> np.ndarray:
     """Compute valid window anchor offsets into full_idx.
 
@@ -260,11 +261,16 @@ def _build_anchor_index(
         mask_in_loss: (T_full, N) bool array.
         exclude: (T_full, N) bool array.
         pm25_raw: (T_full, N) float32 array.
+        split_bounds: Optional override of the split-to-(start, end) map. When
+            ``None`` (default) the module-level ``_SPLIT_BOUNDS`` is used, so
+            existing callers are unaffected. Used by the frozen 2026 out-of-sample
+            evaluation (scripts/19_eval_2026.py) to score a custom time window.
 
     Returns:
         1-D int64 ndarray of valid anchor offsets into full_idx.
     """
-    split_start, split_end = _SPLIT_BOUNDS[split]
+    bounds = split_bounds if split_bounds is not None else _SPLIT_BOUNDS
+    split_start, split_end = bounds[split]
 
     # Map timestamps to integer offsets (searchsorted is O(log T))
     i_start = int(full_idx.searchsorted(split_start, side="left"))
@@ -326,6 +332,8 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         graph_config: dict[str, Any] | None = None,
         exclude_stations: list[int] | None = None,
         scalers_path: Path | None = None,
+        full_index: pd.DatetimeIndex | None = None,
+        split_bounds: dict[str, tuple[pd.Timestamp, pd.Timestamp]] | None = None,
     ) -> None:
         """Initialise dataset for a given split.
 
@@ -339,6 +347,15 @@ class PM25GraphDataset(torch.utils.data.Dataset):
             graph_config: Override keys for graph construction. Unset keys use defaults.
             exclude_stations: Station IDs to drop from the dataset.
             scalers_path: Path to scalers.json. Defaults to dataset_path.parent/scalers.json.
+            full_index: Optional override of the hourly UTC grid the dataset parquet
+                is pivoted onto. When ``None`` (default) the module-level
+                ``_FULL_INDEX`` (2022-2025) is used, so existing callers are
+                unaffected. The frozen 2026 out-of-sample evaluation
+                (scripts/19_eval_2026.py) passes a Jan-Apr 2026 grid.
+            split_bounds: Optional override of the split-to-(start, end) map, paired
+                with ``full_index``. When ``None`` (default) the module-level
+                ``_SPLIT_BOUNDS`` is used. Both must be supplied together for a
+                custom time window.
         """
         if split not in {"train", "val", "test"}:
             raise ValueError(f"split must be 'train', 'val', or 'test'; got {split!r}")
@@ -346,6 +363,11 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         self.split = split
         self.window_in = window_in
         self.horizons: tuple[int, ...] = tuple(sorted(horizons or [6, 12, 24, 48]))
+
+        self._full_index: pd.DatetimeIndex = full_index if full_index is not None else _FULL_INDEX
+        self._split_bounds: dict[str, tuple[pd.Timestamp, pd.Timestamp]] = (
+            split_bounds if split_bounds is not None else _SPLIT_BOUNDS
+        )
 
         _exclude_set: set[int] = set(exclude_stations or [])
 
@@ -380,7 +402,7 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         self._stations_static: pd.DataFrame = meta[keep_cols].copy()
 
         # Load wide feature arrays
-        wide = _load_dataset_wide(dataset_path, self._station_ids, _FULL_INDEX)
+        wide = _load_dataset_wide(dataset_path, self._station_ids, self._full_index)
         self._pm25_raw: np.ndarray = wide["pm25_raw"]
         self._pm25_scaled: np.ndarray = wide["pm25_scaled"]
         self._hour_sin: np.ndarray = wide["hour_sin"]
@@ -405,7 +427,7 @@ class PM25GraphDataset(torch.utils.data.Dataset):
         self._d2m: np.ndarray = wide.get("d2m", _zero)
         self._blh: np.ndarray = wide.get("blh", _zero)
 
-        self._timestamps: pd.DatetimeIndex = _FULL_INDEX
+        self._timestamps: pd.DatetimeIndex = self._full_index
 
         # Scalers
         _scalers_path = scalers_path or (dataset_path.parent / "scalers.json")
@@ -423,6 +445,7 @@ class PM25GraphDataset(torch.utils.data.Dataset):
             mask_in_loss=self._mask_in_loss,
             exclude=self._exclude,
             pm25_raw=self._pm25_raw,
+            split_bounds=self._split_bounds,
         )
 
         if len(self._anchor_indices) == 0:

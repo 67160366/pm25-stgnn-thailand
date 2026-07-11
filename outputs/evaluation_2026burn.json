@@ -1,0 +1,177 @@
+{
+  "split_description": "frozen eval, Jan-Apr 2026 (100% out-of-sample burning season)",
+  "window": {
+    "start": "2026-01-01",
+    "end": "2026-04-30"
+  },
+  "n_samples": 2809,
+  "n_stations": 18,
+  "horizons_h": [
+    6,
+    12,
+    24,
+    48
+  ],
+  "wind_mode": "from_field",
+  "persistence_rmse_ug_m3": {
+    "6h": 4.08,
+    "12h": 7.22,
+    "24h": 11.99,
+    "48h": 17.52
+  },
+  "checkpoints": {
+    "mtgnn_split2": {
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "rmse_ug_m3": {
+        "6h": 5.47,
+        "12h": 7.67,
+        "24h": 11.46,
+        "48h": 15.92
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": true,
+        "48h": true
+      },
+      "improvement_vs_persistence_pct": {
+        "6h": -34.1,
+        "12h": -6.2,
+        "24h": 4.4,
+        "48h": 9.1
+      }
+    },
+    "mtgnn_demo": {
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "rmse_ug_m3": {
+        "6h": 5.2,
+        "12h": 7.62,
+        "24h": 11.64,
+        "48h": 16.45
+      },
+      "beats_persistence": {
+        "6h": false,
+        "12h": false,
+        "24h": true,
+        "48h": true
+      },
+      "improvement_vs_persistence_pct": {
+        "6h": -27.5,
+        "12h": -5.5,
+        "24h": 2.9,
+        "48h": 6.1
+      }
+    }
+  },
+  "per_station_coverage": {
+    "2328": {
+      "name": "Natural Resources and Environment Office, Chiangrai",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "2411": {
+      "name": "Health Promotion Hospital Banthasri",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225567": {
+      "name": "Maesai Health Office",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225570": {
+      "name": "Meteorological stations, Lampang",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225579": {
+      "name": "Yupparaj Wittayalai School",
+      "valid_hours": 2854,
+      "total_hours": 2880,
+      "coverage_pct": 99.1
+    },
+    "225585": {
+      "name": "Chom Nan Chaloem Phrakiat Public Park",
+      "valid_hours": 2836,
+      "total_hours": 2880,
+      "coverage_pct": 98.5
+    },
+    "225626": {
+      "name": "Non-Formal Education Centre, Mea Sot",
+      "valid_hours": 2832,
+      "total_hours": 2880,
+      "coverage_pct": 98.3
+    },
+    "225630": {
+      "name": "Meteorology Center, Phrae",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225646": {
+      "name": "Provincial Waterworks Authority Mae Moh",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225648": {
+      "name": "Natural Resources and Environment Office, Mae Hongson",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225655": {
+      "name": "Meteorological Staions, Lamphun",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225666": {
+      "name": "Phayao Provincial, Phayao",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225669": {
+      "name": "City Hall, Chiangmai",
+      "valid_hours": 2813,
+      "total_hours": 2880,
+      "coverage_pct": 97.7
+    },
+    "225674": {
+      "name": "Municipality Office, Nan",
+      "valid_hours": 2321,
+      "total_hours": 2880,
+      "coverage_pct": 80.6
+    },
+    "225692": {
+      "name": "Health Promotion Hospital Sob Pad, Lampang",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "225693": {
+      "name": "Debaratana Vejjanukul Hospital, Mae Chaem",
+      "valid_hours": 2557,
+      "total_hours": 2880,
+      "coverage_pct": 88.8
+    },
+    "228543": {
+      "name": "72nd Anniversary King Bhumibol Public Park, Uttaradit",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    },
+    "270250": {
+      "name": "Phetbura garden",
+      "valid_hours": 2879,
+      "total_hours": 2880,
+      "coverage_pct": 100.0
+    }
+  },
+  "note": "Frozen-model out-of-sample evaluation. No retrain and no scaler refit: the training-era per-station RobustScaler (scalers.json) is reused verbatim, and ERA5 weather features enter raw exactly as during training. RMSE in ug/m3, targets/persistence from raw PM2.5, model predictions denormalized via per-station IQR; NaN targets and low-coverage stations masked. Protocol matches scripts/11_ablation_eval.py so numbers are comparable to outputs/evaluation_test2025.json. FIRMS provenance: VIIRS_NOAA20_SP (Standard Product; the Jan-Apr 2026 window is > the ~60-day SP lag, so no NRT was needed)."
+}
