@@ -1055,6 +1055,10 @@ for i, t in enumerate(
         "Hersbach, H., et al. (2020). The ERA5 global reanalysis. Quarterly Journal of the Royal "
         "Meteorological Society, 146(730), 1999–2049. https://doi.org/10.24381/cds.adbb2d47",
         "Graph-based Integrated Gradients for source attribution (2025). https://arxiv.org/abs/2509.07648",
+        "Runfola, D. et al. (2020). geoBoundaries: A global database of political administrative "
+        "boundaries. PLoS ONE 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866 — "
+        "ข้อมูลเส้นพรมแดนประเทศ (ไทย/เมียนมา/ลาว) จาก geoBoundaries (gbOpen, ADM0 simplified); "
+        "ข้อมูลต้นทาง © ผู้ร่วมพัฒนา OpenStreetMap (ODbL 1.0 / CC BY-SA 2.0)",
     ],
     1,
 ):
