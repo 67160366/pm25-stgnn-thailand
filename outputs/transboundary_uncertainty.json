@@ -1,0 +1,288 @@
+{
+  "generated_by": "scripts/21_transboundary_uncertainty.py",
+  "station_id": 225648,
+  "station": "Natural Resources and Environment Office, Mae Hongson",
+  "method": "Same report-protocol events as scripts/10_transboundary_attr.py (rank split dates by Myanmar+Laos FRP, take the peak-PM2.5 anchor at the border station, read hotspots connected via type_c edges, then occlusion country attribution + IG), rerun across 3 fixed checkpoints of the full variant to report attribution mean +/- spread (std ddof=1 and min-max range) per event.",
+  "split": "test",
+  "horizon_h": 24,
+  "horizon_idx": 2,
+  "n_ig_steps": 50,
+  "n_candidates": 15,
+  "top_k": 5,
+  "wind_mode": "from_field",
+  "seeds": [
+    {
+      "label": "report_orig",
+      "path": "checkpoints_split2/mtgnn/best_model.pt"
+    },
+    {
+      "label": "full_s0",
+      "path": "checkpoints_split2_seeds/full_s0/best_model.pt"
+    },
+    {
+      "label": "full_s1",
+      "path": "checkpoints_split2_seeds/full_s1/best_model.pt"
+    }
+  ],
+  "events": [
+    {
+      "date": "2025-03-18",
+      "peak_pm25_ug_m3": 69.1,
+      "connected_foreign_fraction": 0.721,
+      "connected_frp_by_country": {
+        "Myanmar": 677.8,
+        "Thailand": 419.5,
+        "Laos": 406.1
+      },
+      "per_seed": {
+        "report_orig": {
+          "country_attribution": {
+            "Laos": 0.111,
+            "Myanmar": 0.516,
+            "Thailand": 0.373
+          },
+          "foreign_attribution": 0.627
+        },
+        "full_s0": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s1": {
+          "country_attribution": {
+            "Laos": 0.142,
+            "Myanmar": 0.858,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0
+        }
+      },
+      "foreign_attribution_mean": 0.542,
+      "foreign_attribution_std": 0.505,
+      "foreign_attribution_min": 0.0,
+      "foreign_attribution_max": 1.0,
+      "country_attribution_mean": {
+        "Laos": 0.084,
+        "Myanmar": 0.458,
+        "Thailand": 0.124
+      },
+      "country_attribution_std": {
+        "Laos": 0.075,
+        "Myanmar": 0.432,
+        "Thailand": 0.215
+      }
+    },
+    {
+      "date": "2025-03-13",
+      "peak_pm25_ug_m3": 32.1,
+      "connected_foreign_fraction": 0.528,
+      "connected_frp_by_country": {
+        "Thailand": 895.5,
+        "Laos": 1000.1
+      },
+      "per_seed": {
+        "report_orig": {
+          "country_attribution": {
+            "Laos": 0.403,
+            "Myanmar": 0.0,
+            "Thailand": 0.597
+          },
+          "foreign_attribution": 0.403
+        },
+        "full_s0": {
+          "country_attribution": {
+            "Laos": 0.021,
+            "Myanmar": 0.0,
+            "Thailand": 0.979
+          },
+          "foreign_attribution": 0.021
+        },
+        "full_s1": {
+          "country_attribution": {
+            "Laos": 1.0,
+            "Myanmar": 0.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 1.0
+        }
+      },
+      "foreign_attribution_mean": 0.475,
+      "foreign_attribution_std": 0.493,
+      "foreign_attribution_min": 0.021,
+      "foreign_attribution_max": 1.0,
+      "country_attribution_mean": {
+        "Laos": 0.475,
+        "Myanmar": 0.0,
+        "Thailand": 0.525
+      },
+      "country_attribution_std": {
+        "Laos": 0.493,
+        "Myanmar": 0.0,
+        "Thailand": 0.493
+      }
+    },
+    {
+      "date": "2025-03-30",
+      "peak_pm25_ug_m3": 305.0,
+      "connected_foreign_fraction": 0.115,
+      "connected_frp_by_country": {
+        "Myanmar": 58.3,
+        "Thailand": 928.6,
+        "Laos": 62.7
+      },
+      "per_seed": {
+        "report_orig": {
+          "country_attribution": {
+            "Laos": 0.003,
+            "Myanmar": 0.002,
+            "Thailand": 0.995
+          },
+          "foreign_attribution": 0.005
+        },
+        "full_s0": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 0.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s1": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        }
+      },
+      "foreign_attribution_mean": 0.002,
+      "foreign_attribution_std": 0.003,
+      "foreign_attribution_min": 0.0,
+      "foreign_attribution_max": 0.005,
+      "country_attribution_mean": {
+        "Laos": 0.001,
+        "Myanmar": 0.001,
+        "Thailand": 0.665
+      },
+      "country_attribution_std": {
+        "Laos": 0.002,
+        "Myanmar": 0.001,
+        "Thailand": 0.576
+      }
+    },
+    {
+      "date": "2025-03-11",
+      "peak_pm25_ug_m3": 29.2,
+      "connected_foreign_fraction": 0.037,
+      "connected_frp_by_country": {
+        "Thailand": 2986.6,
+        "Myanmar": 82.0,
+        "Laos": 31.5
+      },
+      "per_seed": {
+        "report_orig": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s0": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s1": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        }
+      },
+      "foreign_attribution_mean": 0.0,
+      "foreign_attribution_std": 0.0,
+      "foreign_attribution_min": 0.0,
+      "foreign_attribution_max": 0.0,
+      "country_attribution_mean": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "country_attribution_std": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 0.0
+      }
+    },
+    {
+      "date": "2025-03-17",
+      "peak_pm25_ug_m3": 76.1,
+      "connected_foreign_fraction": 0.014,
+      "connected_frp_by_country": {
+        "Thailand": 3854.0,
+        "Myanmar": 53.3
+      },
+      "per_seed": {
+        "report_orig": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s0": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        },
+        "full_s1": {
+          "country_attribution": {
+            "Laos": 0.0,
+            "Myanmar": 0.0,
+            "Thailand": 1.0
+          },
+          "foreign_attribution": 0.0
+        }
+      },
+      "foreign_attribution_mean": 0.0,
+      "foreign_attribution_std": 0.0,
+      "foreign_attribution_min": 0.0,
+      "foreign_attribution_max": 0.0,
+      "country_attribution_mean": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "country_attribution_std": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 0.0
+      }
+    }
+  ],
+  "summary": {
+    "n_seeds": 3,
+    "n_events": 5,
+    "mean_foreign_attribution": 0.204,
+    "mean_event_spread_minmax": 0.397
+  },
+  "caveats": [
+    "n=3 seeds เป็นตัวอย่างเล็ก — รายงานช่วง min-max คู่กับ mean±std ไม่ตีความ std เกินตัว",
+    "spread นี้คือความไวของ 'ขนาด' attribution ต่อ seed — เปลี่ยน caveat เดิม 'ขนาดขึ้นกับโมเดล' ให้เป็นตัวเลขที่วัดจริง",
+    "การเลือกเหตุการณ์เหมือนกันทุก seed (ขับด้วยข้อมูล) ต่างเฉพาะตัวเลข attribution"
+  ]
+}
