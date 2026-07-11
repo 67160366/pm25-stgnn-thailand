@@ -12,23 +12,37 @@ over stored windows, not operational real-time forecasting — the UI must say s
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import numpy as np
 import pandas as pd
+import requests
 import streamlit as st
 import torch
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
 from hydra.utils import instantiate
+from torch_geometric.data import HeteroData
 from torch_geometric.loader import DataLoader
 
+from app.lib import air4thai
 from app.lib import data_access as da
-from src.data.loader import PM25GraphDataset
+from app.lib import nwp as nwp_lib
+from src.data.graph_builder import build_graph
+from src.data.loader import EMPTY_HOTSPOT_DF, PM25GraphDataset
 from src.training import evaluation
 
 HORIZONS: list[int] = [6, 12, 24, 48]
 _DEVICE = "cpu"
+
+# Live-mode input window (matches the pitch dataset's window_in) and gap policy.
+WINDOW_IN: int = 24
+LIVE_MIN_COVERAGE: float = 0.70
+
+
+class LiveDataError(RuntimeError):
+    """Raised when live inputs cannot be fetched/assembled (shown as a Thai error)."""
+
 
 # User-facing period label -> dataset split (years per loader._SPLIT_BOUNDS).
 PERIOD_TO_SPLIT: dict[str, str] = {
@@ -171,3 +185,134 @@ def station_history(
     ts = ds._timestamps[start_idx : anchor_idx + 1]
     vals = ds._pm25_raw[start_idx : anchor_idx + 1, sidx]
     return pd.DataFrame({"timestamp": ts, "pm25": vals})
+
+
+# ---------------------------------------------------------------------------
+# Live mode: forecast-from-now using air4thai PM2.5 + Open-Meteo NWP
+# ---------------------------------------------------------------------------
+
+
+@st.cache_data(show_spinner=False)
+def load_air4thai_map() -> dict[int, str]:
+    """Cached OpenAQ station_id -> air4thai code map (empty if the file is absent)."""
+    return air4thai.load_station_code_map()
+
+
+def _scalers_in_order(station_ids: list[int]) -> tuple[np.ndarray, np.ndarray]:
+    """(centers, scales) arrays aligned to ``station_ids`` from scalers.json."""
+    raw = da.load_scalers()
+    centers = np.array([float(raw[str(s)]["center_"]) for s in station_ids], dtype=np.float64)
+    scales = np.array([float(raw[str(s)]["scale_"]) for s in station_ids], dtype=np.float64)
+    return centers, scales
+
+
+def _build_live_sample(
+    lw: nwp_lib.LiveWindow, station_ids: list[int], lats: np.ndarray, lons: np.ndarray
+) -> HeteroData:
+    """HeteroData for one live window: wind-aware graph + empty hotspot nodes.
+
+    Mirrors ``loader._build_graph_full`` in ``from_field`` mode (wind read from
+    per-station anchor arrays) but with zero hotspot nodes — FIRMS NRT is not
+    ingested in live v1, so attribution is unavailable and fires are absent.
+    """
+    cfg = {
+        "wind_mode": "from_arrays",
+        "_u10_per_station": lw.anchor_u,
+        "_v10_per_station": lw.anchor_v,
+        "_station_lats": lats,
+        "_station_lons": lons,
+    }
+    df_stations = pd.DataFrame({"station_id": station_ids, "lat": lats, "lon": lons})
+    data = build_graph(df_stations, EMPTY_HOTSPOT_DF, wind_field=None, config=cfg)
+    data["hotspot"].country = []
+    data["station"].x = torch.from_numpy(lw.x).contiguous().float()
+    return data
+
+
+@st.cache_data(show_spinner="กำลังดึงข้อมูลสดและพยากรณ์…", ttl=1800)
+def live_forecast() -> dict:
+    """Forecast from *now* using live air4thai PM2.5 + Open-Meteo NWP.
+
+    Fetches a 24 h PM2.5 window (air4thai history) and a past+future NWP window
+    (Open-Meteo), assembles the model input, runs the pitch checkpoint, and
+    returns the 6/12/24/48 h forecast from the current hour.
+
+    Returns:
+        Dict with ``anchor_iso``, ``station_ids``, ``pred_ug`` (N,H),
+        ``observed`` (N,), ``horizons``, ``excluded_ids`` (center-filled
+        stations), ``coverage`` {sid: frac}, ``slots`` (list of ISO strings),
+        ``window_raw`` (N,T µg/m³), ``hotspots_empty`` (always True in v1).
+
+    Raises:
+        LiveDataError: If inputs cannot be fetched or coverage is too low
+            (already Thai-worded for direct display).
+    """
+    meta = da.load_stations_meta()
+    station_ids = meta["station_id"].tolist()
+    lats = meta["lat"].to_numpy(dtype=np.float64)
+    lons = meta["lon"].to_numpy(dtype=np.float64)
+
+    code_map = load_air4thai_map()
+    if not code_map:
+        raise LiveDataError(
+            "ไม่พบตารางรหัสสถานี air4thai (configs/air4thai_station_codes.json) — "
+            "โหมดสดใช้ไม่ได้ กรุณารัน scripts/14_air4thai_station_map.py ก่อน"
+        )
+
+    anchor_ts = pd.Timestamp.now(tz="UTC").floor("h")
+    bkk_today = pd.Timestamp.now(tz="Asia/Bangkok").date()
+    bkk_start = bkk_today - timedelta(days=3)
+
+    try:
+        pm25_hist = air4thai.fetch_history_stations(code_map, bkk_start, bkk_today)
+        nwp_frames = []
+        for row in meta.itertuples(index=False):
+            nwp_df = nwp_lib.fetch_forecast_window(
+                lat=float(row.lat), lon=float(row.lon), past_days=3, forecast_days=3
+            )
+            nwp_df.insert(0, "station_id", int(row.station_id))
+            nwp_frames.append(nwp_df)
+    except requests.RequestException as exc:
+        raise LiveDataError(
+            "ดึงข้อมูลสดไม่สำเร็จ (เครือข่ายหรือบริการต้นทางขัดข้อง) — โปรดลองใหม่ภายหลัง"
+        ) from exc
+
+    nwp = pd.concat(nwp_frames, ignore_index=True)
+    raw_scalers = da.load_scalers()
+    scalers = {int(s): raw_scalers[str(s)] for s in station_ids}
+
+    lw = nwp_lib.build_live_window(
+        pm25_hist,
+        nwp,
+        scalers,
+        station_ids,
+        anchor_ts,
+        window_in=WINDOW_IN,
+        min_coverage=LIVE_MIN_COVERAGE,
+    )
+
+    if len(lw.excluded) == len(station_ids):
+        raise LiveDataError(
+            "ข้อมูล PM2.5 ย้อนหลังไม่พอสำหรับทุกสถานี (ต่ำกว่าเกณฑ์ 70% ของหน้าต่าง 24 ชม.) — "
+            "โปรดลองใหม่ภายหลัง"
+        )
+
+    model = load_model()
+    sample = _build_live_sample(lw, station_ids, lats, lons)
+    loader = DataLoader([sample], batch_size=1, shuffle=False)
+    pred_norm = evaluation.predict(model, loader, _DEVICE)  # (N, H)
+    centers, scales = _scalers_in_order(station_ids)
+    pred_ug = evaluation.denorm_pred(pred_norm, centers, scales, len(station_ids))  # (N, H)
+
+    return {
+        "anchor_iso": anchor_ts.isoformat(),
+        "station_ids": station_ids,
+        "pred_ug": pred_ug,
+        "observed": lw.observed,
+        "horizons": list(HORIZONS),
+        "excluded_ids": lw.excluded,
+        "coverage": lw.coverage,
+        "slots": [pd.Timestamp(s).isoformat() for s in lw.slots],
+        "window_raw": lw.window_raw,
+        "hotspots_empty": True,
+    }

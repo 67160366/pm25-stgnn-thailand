@@ -1,0 +1,121 @@
+{
+  "2328": {
+    "air4thai_id": "57t",
+    "air4thai_name": "Natural Resources and Environment Office, Chiangrai",
+    "openaq_name": "Natural Resources and Environment Office, Chiangrai",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "2411": {
+    "air4thai_id": "39t",
+    "air4thai_name": "Health Promotion Hospital Banthasri",
+    "openaq_name": "Health Promotion Hospital Banthasri",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225567": {
+    "air4thai_id": "73t",
+    "air4thai_name": "Maesai Health Office",
+    "openaq_name": "Maesai Health Office",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225570": {
+    "air4thai_id": "37t",
+    "air4thai_name": "Meteorological stations, Lampang",
+    "openaq_name": "Meteorological stations, Lampang",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225579": {
+    "air4thai_id": "36t",
+    "air4thai_name": "Yupparaj Wittayalai School",
+    "openaq_name": "Yupparaj Wittayalai School",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225585": {
+    "air4thai_id": "86t",
+    "air4thai_name": "Chom Nan Chaloem Phrakiat Public Park",
+    "openaq_name": "Chom Nan Chaloem Phrakiat Public Park",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225626": {
+    "air4thai_id": "76t",
+    "air4thai_name": "Non-Formal Education Centre, Mea Sot",
+    "openaq_name": "Non-Formal Education Centre, Mea Sot",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225630": {
+    "air4thai_id": "69t",
+    "air4thai_name": "Meteorology Center, Phrae",
+    "openaq_name": "Meteorology Center, Phrae",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225646": {
+    "air4thai_id": "40t",
+    "air4thai_name": "Provincial Waterworks Authority Mae Moh",
+    "openaq_name": "Provincial Waterworks Authority Mae Moh",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225648": {
+    "air4thai_id": "58t",
+    "air4thai_name": "Natural Resources and Environment Office, Mae Hongson",
+    "openaq_name": "Natural Resources and Environment Office, Mae Hongson",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225655": {
+    "air4thai_id": "68t",
+    "air4thai_name": "Meteorological Staions, Lamphun",
+    "openaq_name": "Meteorological Staions, Lamphun",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225666": {
+    "air4thai_id": "70t",
+    "air4thai_name": "Phayao Provincial, Phayao",
+    "openaq_name": "Phayao Provincial, Phayao",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225669": {
+    "air4thai_id": "35t",
+    "air4thai_name": "City Hall, Chiangmai",
+    "openaq_name": "City Hall, Chiangmai",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225674": {
+    "air4thai_id": "67t",
+    "air4thai_name": "Municipality Office, Nan",
+    "openaq_name": "Municipality Office, Nan",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "225692": {
+    "air4thai_id": "38t",
+    "air4thai_name": "Health Promotion Hospital Sob Pad, Lampang",
+    "openaq_name": "Health Promotion Hospital Sob Pad, Lampang",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "228543": {
+    "air4thai_id": "92t",
+    "air4thai_name": "72nd Anniversary King Bhumibol Public Park, Uttaradit",
+    "openaq_name": "72nd Anniversary King Bhumibol Public Park, Uttaradit",
+    "distance_m": 0.0,
+    "needs_verification": false
+  },
+  "270250": {
+    "air4thai_id": "97t",
+    "air4thai_name": "Phetbura garden",
+    "openaq_name": "Phetbura garden",
+    "distance_m": 0.0,
+    "needs_verification": false
+  }
+}
