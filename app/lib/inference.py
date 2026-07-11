@@ -187,6 +187,40 @@ def station_history(
     return pd.DataFrame({"timestamp": ts, "pm25": vals})
 
 
+def conformal_halfwidths(conf: dict, station_id: int, horizons: list[int]) -> list[float] | None:
+    """Resolve split-conformal half-widths (µg/m³) per horizon for one station.
+
+    Prefers per-station quantiles when the calibration served in ``per_station``
+    mode and the station is present; otherwise falls back to the pooled quantile.
+    Returns ``None`` if any horizon has no usable (finite) quantile, so the caller
+    can simply omit the band.
+
+    Args:
+        conf: Parsed ``conformal_intervals.json`` (see ``data_access.load_conformal``).
+        station_id: OpenAQ station id.
+        horizons: Forecast horizons in hours.
+
+    Returns:
+        List of half-widths aligned to ``horizons``, or ``None`` if unavailable.
+    """
+    if not conf:
+        return None
+    pooled: dict = conf.get("pooled", {})
+    mode = conf.get("meta", {}).get("mode", "pooled")
+    per_station: dict = conf.get("per_station", {}) if mode == "per_station" else {}
+    station_q: dict = per_station.get(str(station_id), {})
+    out: list[float] = []
+    for h in horizons:
+        key = f"{h}h"
+        q = station_q.get(key)
+        if q is None:
+            q = pooled.get(key)
+        if q is None:
+            return None
+        out.append(float(q))
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Live mode: forecast-from-now using air4thai PM2.5 + Open-Meteo NWP
 # ---------------------------------------------------------------------------

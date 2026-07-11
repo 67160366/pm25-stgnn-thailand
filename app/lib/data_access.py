@@ -106,3 +106,20 @@ def load_scalers() -> dict:
     """Per-station RobustScaler params keyed by station_id (string)."""
     with SCALERS_PATH.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+CONFORMAL_PATH = _OUTPUTS_DIR / "conformal" / "conformal_intervals.json"
+
+
+@st.cache_data(show_spinner=False)
+def load_conformal() -> dict:
+    """Split-conformal interval quantiles (µg/m³); {} if not yet calibrated.
+
+    Produced by ``scripts/15_conformal_calibrate.py``. Structure documented there:
+    ``meta`` (mode, alpha, coverage_target, …), ``pooled`` {horizon: q}, and
+    ``per_station`` {station_id: {horizon: q}}.
+    """
+    if not CONFORMAL_PATH.exists():
+        return {}
+    with CONFORMAL_PATH.open(encoding="utf-8") as fh:
+        return json.load(fh)

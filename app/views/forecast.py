@@ -52,11 +52,16 @@ def _render_hindcast() -> None:
     horizons: list[int] = fc["horizons"]
     anchor_ts = pd.Timestamp(fc["anchor_iso"])
 
+    hw = inf.conformal_halfwidths(da.load_conformal(), sid, horizons)
+    interval = _interval_from_halfwidths(pred, hw)
     hist = inf.station_history(split, sid, anchor_iso, hours_back=168)
-    fig = ui.forecast_overlay_figure(hist, pred.tolist(), pers, anchor_ts, horizons, sel_name)
+    fig = ui.forecast_overlay_figure(
+        hist, pred.tolist(), pers, anchor_ts, horizons, sel_name, interval=interval
+    )
     st.plotly_chart(fig, width="stretch")
 
-    _forecast_metrics(horizons, pred)
+    _forecast_metrics(horizons, pred, hw)
+    _conformal_caption()
 
     st.caption(
         "หมายเหตุ (ตามจริง): ในช่วงสั้น 6–12 ชม. ค่า baseline persistence มักแม่นกว่าโมเดล "
@@ -119,19 +124,62 @@ def _render_live() -> None:
     window_raw = np.asarray(fc["window_raw"], dtype=float)[i]
     hist = pd.DataFrame({"timestamp": slots, "pm25": window_raw})
     pers = observed if np.isfinite(observed) else 0.0
-    fig = ui.forecast_overlay_figure(hist, pred.tolist(), pers, anchor_ts, horizons, sel_name)
+    hw = inf.conformal_halfwidths(da.load_conformal(), sid, horizons)
+    interval = _interval_from_halfwidths(pred, hw)
+    fig = ui.forecast_overlay_figure(
+        hist, pred.tolist(), pers, anchor_ts, horizons, sel_name, interval=interval
+    )
     st.plotly_chart(fig, width="stretch")
 
     cov = fc["coverage"].get(sid, fc["coverage"].get(str(sid), 0.0))
     st.caption(f"ความครบของข้อมูล PM2.5 ในหน้าต่าง 24 ชม.: {cov * 100:.0f}%")
 
-    _forecast_metrics(horizons, pred)
+    _forecast_metrics(horizons, pred, hw)
+    _conformal_caption(live=True)
 
 
-def _forecast_metrics(horizons: list[int], pred: np.ndarray) -> None:
-    """Per-horizon metric cards + AQI badges shared by both modes."""
+def _interval_from_halfwidths(
+    pred: np.ndarray, halfwidths: list[float] | None
+) -> tuple[list[float], list[float]] | None:
+    """Build (lower, upper) bounds from point forecasts and conformal half-widths.
+
+    Lower bound is clipped at 0 (PM2.5 cannot be negative). Returns ``None`` when
+    no half-widths are available so the band is simply omitted.
+    """
+    if halfwidths is None:
+        return None
+    pred_list = np.asarray(pred, dtype=float).tolist()
+    lower = [max(0.0, p - q) for p, q in zip(pred_list, halfwidths, strict=True)]
+    upper = [p + q for p, q in zip(pred_list, halfwidths, strict=True)]
+    return lower, upper
+
+
+def _conformal_caption(live: bool = False) -> None:
+    """Explain the 90% conformal band and keep the honest coverage caveat visible."""
+    msg = (
+        "แถบสีแดงอ่อน = ช่วงพยากรณ์ 90% แบบ split-conformal ปรับเทียบจากชุด validation ปี 2024 "
+        "(residual จริงหน่วย µg/m³ แยกตาม horizon และรายสถานี) — การันตี marginal coverage "
+        "บน distribution เดียวกับ val"
+    )
+    if live:
+        msg += (
+            ". หมายเหตุโหมดสด: ช่วงนี้ปรับเทียบบน input ERA5 ปี 2024 แต่โหมดสดใช้ NWP "
+            "จึงอาจ cover คลาดเคลื่อน (mis-cover) ได้"
+        )
+    st.caption(msg)
+
+
+def _forecast_metrics(
+    horizons: list[int], pred: np.ndarray, halfwidths: list[float] | None = None
+) -> None:
+    """Per-horizon metric cards + AQI badges + optional 90% range, shared by both modes."""
     st.subheader("ค่าพยากรณ์รายช่วงเวลา")
     cols = st.columns(len(horizons))
-    for col, h, val in zip(cols, horizons, pred, strict=True):
+    for idx, (col, h, val) in enumerate(zip(cols, horizons, pred, strict=True)):
         col.metric(f"+{h} ชม.", f"{val:.0f} µg/m³")
         col.markdown(ui.aqi_badge_md(float(val)))
+        if halfwidths is not None:
+            q = halfwidths[idx]
+            lo = max(0.0, float(val) - q)
+            hi = float(val) + q
+            col.caption(f"90%: {lo:.0f}–{hi:.0f}")

@@ -9,6 +9,7 @@ import math
 
 from app.lib import aqi
 from app.lib.data_access import _province_from_name
+from app.lib.inference import conformal_halfwidths
 
 
 def test_aqi_category_bands():
@@ -51,3 +52,33 @@ def test_province_parsing():
     assert _province_from_name(office) == "Mae Hongson"
     assert _province_from_name("NoComma") == "NoComma"
     assert _province_from_name("") == ""
+
+
+_CONF = {
+    "meta": {"mode": "per_station"},
+    "pooled": {"6h": 6.0, "12h": 8.0, "24h": 11.0, "48h": 15.0},
+    "per_station": {"101": {"6h": 4.0, "12h": 5.0, "24h": 9.0, "48h": 13.0}},
+}
+
+
+def test_conformal_halfwidths_per_station_preferred():
+    hw = conformal_halfwidths(_CONF, 101, [6, 12, 24, 48])
+    assert hw == [4.0, 5.0, 9.0, 13.0]
+
+
+def test_conformal_halfwidths_falls_back_to_pooled():
+    # Station 999 absent from per_station -> pooled quantiles used.
+    hw = conformal_halfwidths(_CONF, 999, [6, 12, 24, 48])
+    assert hw == [6.0, 8.0, 11.0, 15.0]
+
+
+def test_conformal_halfwidths_pooled_mode_ignores_per_station():
+    conf = {**_CONF, "meta": {"mode": "pooled"}}
+    hw = conformal_halfwidths(conf, 101, [6, 12])
+    assert hw == [6.0, 8.0]
+
+
+def test_conformal_halfwidths_missing_returns_none():
+    assert conformal_halfwidths({}, 101, [6, 12]) is None
+    # Horizon 72h has no quantile anywhere -> None so the caller omits the band.
+    assert conformal_halfwidths(_CONF, 101, [6, 72]) is None

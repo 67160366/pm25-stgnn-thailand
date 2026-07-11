@@ -95,11 +95,17 @@ def forecast_overlay_figure(
     anchor_ts: pd.Timestamp,
     horizons: list[int],
     station_name: str,
+    interval: tuple[list[float], list[float]] | None = None,
 ) -> go.Figure:
     """Observed history (with AQI bands) plus the multi-horizon MTGNN forecast.
 
     Reuses ``forecast_vs_actual`` for the observed line + AQI bands, then overlays the
     forecast points at origin+h and a flat persistence reference.
+
+    Args:
+        interval: Optional ``(lower, upper)`` split-conformal bounds in µg/m³, one
+            value per horizon. When given, a shaded prediction band is drawn around
+            the forecast line (pinned to the last observation at the origin).
     """
     fig = forecast_vs_actual(
         timestamps=history["timestamp"].tolist(),
@@ -113,6 +119,32 @@ def forecast_overlay_figure(
     )
     fx = [anchor_ts] + [anchor_ts + pd.Timedelta(hours=h) for h in horizons]
     fy = [last_obs, *pred_station]
+    if interval is not None:
+        lower, upper = interval
+        # Upper edge first (invisible), then lower edge fills up to it. Band is
+        # pinned to the last observation at the origin so it fans out with horizon.
+        fig.add_trace(
+            go.Scatter(
+                x=fx,
+                y=[last_obs, *upper],
+                mode="lines",
+                line=dict(width=0),
+                hoverinfo="skip",
+                showlegend=False,
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=fx,
+                y=[last_obs, *lower],
+                mode="lines",
+                line=dict(width=0),
+                fill="tonexty",
+                fillcolor="rgba(214,39,40,0.15)",
+                name="ช่วงพยากรณ์ 90% (conformal)",
+                hoverinfo="skip",
+            )
+        )
     fig.add_trace(
         go.Scatter(
             x=fx,
