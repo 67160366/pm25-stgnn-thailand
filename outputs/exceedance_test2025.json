@@ -1,0 +1,500 @@
+{
+  "meta": {
+    "split": "test",
+    "split_range": "2025-01-01 to 2025-12-31",
+    "n_stations": 18,
+    "n_samples": 3637,
+    "horizons_h": [
+      6,
+      12,
+      24,
+      48
+    ],
+    "thresholds_ugm3": [
+      37.5,
+      75.0
+    ],
+    "wind_mode": "from_field",
+    "climatology_period": "2022-01-01 to 2024-12-31 (train+val; disjoint from the scored test period, no leakage)",
+    "event_definition": "event = value > threshold (strict); see src/training/exceedance.py"
+  },
+  "base_rate_trainval_ugm3": {
+    "37.5": 0.1951,
+    "75.0": 0.0441
+  },
+  "persistence": {
+    "6h": {
+      "37.5": {
+        "pod": 0.9453,
+        "far": 0.0508,
+        "csi": 0.8998,
+        "accuracy": 0.9642,
+        "brier": 0.0358,
+        "base_rate_test": 0.3401,
+        "n": 60238,
+        "counts": {
+          "hits": 19366,
+          "misses": 1120,
+          "false_alarms": 1036,
+          "correct_negatives": 38716
+        },
+        "bss": 0.8542
+      },
+      "75.0": {
+        "pod": 0.9109,
+        "far": 0.081,
+        "csi": 0.8432,
+        "accuracy": 0.9907,
+        "brier": 0.0093,
+        "base_rate_test": 0.055,
+        "n": 60238,
+        "counts": {
+          "hits": 3016,
+          "misses": 295,
+          "false_alarms": 266,
+          "correct_negatives": 56661
+        },
+        "bss": 0.8211
+      }
+    },
+    "12h": {
+      "37.5": {
+        "pod": 0.8987,
+        "far": 0.0939,
+        "csi": 0.8222,
+        "accuracy": 0.9339,
+        "brier": 0.0661,
+        "base_rate_test": 0.3403,
+        "n": 60168,
+        "counts": {
+          "hits": 18400,
+          "misses": 2073,
+          "false_alarms": 1906,
+          "correct_negatives": 37789
+        },
+        "bss": 0.7307
+      },
+      "75.0": {
+        "pod": 0.8427,
+        "far": 0.1425,
+        "csi": 0.7391,
+        "accuracy": 0.9837,
+        "brier": 0.0163,
+        "base_rate_test": 0.0549,
+        "n": 60168,
+        "counts": {
+          "hits": 2785,
+          "misses": 520,
+          "false_alarms": 463,
+          "correct_negatives": 56400
+        },
+        "bss": 0.686
+      }
+    },
+    "24h": {
+      "37.5": {
+        "pod": 0.8201,
+        "far": 0.1666,
+        "csi": 0.7046,
+        "accuracy": 0.8829,
+        "brier": 0.1171,
+        "base_rate_test": 0.3405,
+        "n": 60067,
+        "counts": {
+          "hits": 16774,
+          "misses": 3679,
+          "false_alarms": 3353,
+          "correct_negatives": 36261
+        },
+        "bss": 0.5235
+      },
+      "75.0": {
+        "pod": 0.7295,
+        "far": 0.2371,
+        "csi": 0.5947,
+        "accuracy": 0.9727,
+        "brier": 0.0273,
+        "base_rate_test": 0.0548,
+        "n": 60067,
+        "counts": {
+          "hits": 2403,
+          "misses": 891,
+          "false_alarms": 747,
+          "correct_negatives": 56026
+        },
+        "bss": 0.4751
+      }
+    },
+    "48h": {
+      "37.5": {
+        "pod": 0.7231,
+        "far": 0.2498,
+        "csi": 0.5828,
+        "accuracy": 0.8233,
+        "brier": 0.1767,
+        "base_rate_test": 0.3414,
+        "n": 59938,
+        "counts": {
+          "hits": 14797,
+          "misses": 5666,
+          "false_alarms": 4927,
+          "correct_negatives": 34548
+        },
+        "bss": 0.2823
+      },
+      "75.0": {
+        "pod": 0.5487,
+        "far": 0.379,
+        "csi": 0.4111,
+        "accuracy": 0.9565,
+        "brier": 0.0435,
+        "base_rate_test": 0.0553,
+        "n": 59938,
+        "counts": {
+          "hits": 1819,
+          "misses": 1496,
+          "false_alarms": 1110,
+          "correct_negatives": 55513
+        },
+        "bss": 0.1699
+      }
+    }
+  },
+  "climatology": {
+    "6h": {
+      "37.5": {
+        "brier": 0.2455,
+        "base_rate_trainval": 0.1951,
+        "base_rate_test": 0.3401
+      },
+      "75.0": {
+        "brier": 0.0521,
+        "base_rate_trainval": 0.0441,
+        "base_rate_test": 0.055
+      }
+    },
+    "12h": {
+      "37.5": {
+        "brier": 0.2456,
+        "base_rate_trainval": 0.1951,
+        "base_rate_test": 0.3403
+      },
+      "75.0": {
+        "brier": 0.052,
+        "base_rate_trainval": 0.0441,
+        "base_rate_test": 0.0549
+      }
+    },
+    "24h": {
+      "37.5": {
+        "brier": 0.2457,
+        "base_rate_trainval": 0.1951,
+        "base_rate_test": 0.3405
+      },
+      "75.0": {
+        "brier": 0.0519,
+        "base_rate_trainval": 0.0441,
+        "base_rate_test": 0.0548
+      }
+    },
+    "48h": {
+      "37.5": {
+        "brier": 0.2463,
+        "base_rate_trainval": 0.1951,
+        "base_rate_test": 0.3414
+      },
+      "75.0": {
+        "brier": 0.0524,
+        "base_rate_trainval": 0.0441,
+        "base_rate_test": 0.0553
+      }
+    }
+  },
+  "checkpoints": {
+    "primary": {
+      "checkpoint": "checkpoints_split2/mtgnn/best_model.pt",
+      "note": "3-way split retrain (train 2022-23 / val 2024 / test 2025); the held-out report protocol behind outputs/evaluation_test2025.json.",
+      "model": {
+        "6h": {
+          "37.5": {
+            "pod": 0.9257,
+            "far": 0.0881,
+            "csi": 0.8497,
+            "accuracy": 0.9443,
+            "brier": 0.0557,
+            "base_rate_test": 0.3401,
+            "n": 60238,
+            "counts": {
+              "hits": 18964,
+              "misses": 1522,
+              "false_alarms": 1832,
+              "correct_negatives": 37920
+            },
+            "bss": 0.7732
+          },
+          "75.0": {
+            "pod": 0.9145,
+            "far": 0.1596,
+            "csi": 0.7792,
+            "accuracy": 0.9858,
+            "brier": 0.0142,
+            "base_rate_test": 0.055,
+            "n": 60238,
+            "counts": {
+              "hits": 3028,
+              "misses": 283,
+              "false_alarms": 575,
+              "correct_negatives": 56352
+            },
+            "bss": 0.7264
+          }
+        },
+        "12h": {
+          "37.5": {
+            "pod": 0.8947,
+            "far": 0.1179,
+            "csi": 0.7991,
+            "accuracy": 0.9235,
+            "brier": 0.0765,
+            "base_rate_test": 0.3403,
+            "n": 60168,
+            "counts": {
+              "hits": 18317,
+              "misses": 2156,
+              "false_alarms": 2448,
+              "correct_negatives": 37247
+            },
+            "bss": 0.6884
+          },
+          "75.0": {
+            "pod": 0.8487,
+            "far": 0.19,
+            "csi": 0.7078,
+            "accuracy": 0.9808,
+            "brier": 0.0192,
+            "base_rate_test": 0.0549,
+            "n": 60168,
+            "counts": {
+              "hits": 2805,
+              "misses": 500,
+              "false_alarms": 658,
+              "correct_negatives": 56205
+            },
+            "bss": 0.6301
+          }
+        },
+        "24h": {
+          "37.5": {
+            "pod": 0.8196,
+            "far": 0.1702,
+            "csi": 0.7017,
+            "accuracy": 0.8813,
+            "brier": 0.1187,
+            "base_rate_test": 0.3405,
+            "n": 60067,
+            "counts": {
+              "hits": 16764,
+              "misses": 3689,
+              "false_alarms": 3439,
+              "correct_negatives": 36175
+            },
+            "bss": 0.517
+          },
+          "75.0": {
+            "pod": 0.7155,
+            "far": 0.2272,
+            "csi": 0.5912,
+            "accuracy": 0.9729,
+            "brier": 0.0271,
+            "base_rate_test": 0.0548,
+            "n": 60067,
+            "counts": {
+              "hits": 2357,
+              "misses": 937,
+              "false_alarms": 693,
+              "correct_negatives": 56080
+            },
+            "bss": 0.4776
+          }
+        },
+        "48h": {
+          "37.5": {
+            "pod": 0.7478,
+            "far": 0.2491,
+            "csi": 0.5991,
+            "accuracy": 0.8292,
+            "brier": 0.1708,
+            "base_rate_test": 0.3414,
+            "n": 59938,
+            "counts": {
+              "hits": 15302,
+              "misses": 5161,
+              "false_alarms": 5077,
+              "correct_negatives": 34398
+            },
+            "bss": 0.3064
+          },
+          "75.0": {
+            "pod": 0.5183,
+            "far": 0.3551,
+            "csi": 0.4032,
+            "accuracy": 0.9576,
+            "brier": 0.0424,
+            "base_rate_test": 0.0553,
+            "n": 59938,
+            "counts": {
+              "hits": 1718,
+              "misses": 1597,
+              "false_alarms": 946,
+              "correct_negatives": 55677
+            },
+            "bss": 0.1899
+          }
+        }
+      }
+    },
+    "secondary": {
+      "checkpoint": "checkpoints/mtgnn/best_model.pt",
+      "note": "demo/app checkpoint; original split where 2025 was its VALIDATION split (used for early-stop model selection, not gradient updates) -- see docs/SESSION8_NOTES.md section 1. Scored on the same 2025 window for comparability, NOT a fully held-out evaluation for this checkpoint.",
+      "model": {
+        "6h": {
+          "37.5": {
+            "pod": 0.9135,
+            "far": 0.0769,
+            "csi": 0.8489,
+            "accuracy": 0.9447,
+            "brier": 0.0553,
+            "base_rate_test": 0.3401,
+            "n": 60238,
+            "counts": {
+              "hits": 18714,
+              "misses": 1772,
+              "false_alarms": 1559,
+              "correct_negatives": 38193
+            },
+            "bss": 0.7747
+          },
+          "75.0": {
+            "pod": 0.8632,
+            "far": 0.097,
+            "csi": 0.7899,
+            "accuracy": 0.9874,
+            "brier": 0.0126,
+            "base_rate_test": 0.055,
+            "n": 60238,
+            "counts": {
+              "hits": 2858,
+              "misses": 453,
+              "false_alarms": 307,
+              "correct_negatives": 56620
+            },
+            "bss": 0.7577
+          }
+        },
+        "12h": {
+          "37.5": {
+            "pod": 0.8892,
+            "far": 0.1137,
+            "csi": 0.7981,
+            "accuracy": 0.9235,
+            "brier": 0.0765,
+            "base_rate_test": 0.3403,
+            "n": 60168,
+            "counts": {
+              "hits": 18205,
+              "misses": 2268,
+              "false_alarms": 2336,
+              "correct_negatives": 37359
+            },
+            "bss": 0.6884
+          },
+          "75.0": {
+            "pod": 0.7997,
+            "far": 0.1374,
+            "csi": 0.7093,
+            "accuracy": 0.982,
+            "brier": 0.018,
+            "base_rate_test": 0.0549,
+            "n": 60168,
+            "counts": {
+              "hits": 2643,
+              "misses": 662,
+              "false_alarms": 421,
+              "correct_negatives": 56442
+            },
+            "bss": 0.6541
+          }
+        },
+        "24h": {
+          "37.5": {
+            "pod": 0.8291,
+            "far": 0.1768,
+            "csi": 0.7038,
+            "accuracy": 0.8812,
+            "brier": 0.1188,
+            "base_rate_test": 0.3405,
+            "n": 60067,
+            "counts": {
+              "hits": 16958,
+              "misses": 3495,
+              "false_alarms": 3641,
+              "correct_negatives": 35973
+            },
+            "bss": 0.5165
+          },
+          "75.0": {
+            "pod": 0.6606,
+            "far": 0.1976,
+            "csi": 0.5681,
+            "accuracy": 0.9725,
+            "brier": 0.0275,
+            "base_rate_test": 0.0548,
+            "n": 60067,
+            "counts": {
+              "hits": 2176,
+              "misses": 1118,
+              "false_alarms": 536,
+              "correct_negatives": 56237
+            },
+            "bss": 0.4699
+          }
+        },
+        "48h": {
+          "37.5": {
+            "pod": 0.7266,
+            "far": 0.2318,
+            "csi": 0.5959,
+            "accuracy": 0.8318,
+            "brier": 0.1682,
+            "base_rate_test": 0.3414,
+            "n": 59938,
+            "counts": {
+              "hits": 14868,
+              "misses": 5595,
+              "false_alarms": 4486,
+              "correct_negatives": 34989
+            },
+            "bss": 0.317
+          },
+          "75.0": {
+            "pod": 0.3798,
+            "far": 0.2793,
+            "csi": 0.3311,
+            "accuracy": 0.9576,
+            "brier": 0.0424,
+            "base_rate_test": 0.0553,
+            "n": 59938,
+            "counts": {
+              "hits": 1259,
+              "misses": 2056,
+              "false_alarms": 488,
+              "correct_negatives": 56135
+            },
+            "bss": 0.1896
+          }
+        }
+      }
+    }
+  },
+  "note": "Deterministic (model/persistence) forecasters are scored for Brier as a degenerate probabilistic forecast p in {0,1} derived from the point forecast (Brier 1950; Wilks 2011 sec. 8.4.2). Climatology is a constant probability equal to the exceedance base rate over train+val (2022-2024) ONLY -- never the scored 2025 test period -- so its Brier score is not optimistic by construction (see src/training/exceedance.py). BSS = 1 - BS/BS_clim; positive means the forecaster beats climatology at that horizon/threshold. POD/FAR/CSI are undefined (reported null) when their denominator is zero, e.g. FAR is null if the forecaster never predicted an event, and POD is null if the threshold was never actually exceeded in this sample -- this happens at 75 ug/m3 for some horizons; check 'n'/'counts' before trusting a ratio. This is a pure re-scoring of already-computed point forecasts: no retraining, no new data, same test split and mask as outputs/evaluation_test2025.json (n_samples/n_stations should match)."
+}
