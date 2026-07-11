@@ -50,8 +50,20 @@ def test_province_parsing():
     office = "Natural Resources and Environment Office, Mae Hongson"
     assert _province_from_name("City Hall, Chiangmai") == "Chiangmai"
     assert _province_from_name(office) == "Mae Hongson"
-    assert _province_from_name("NoComma") == "NoComma"
     assert _province_from_name("") == ""
+
+
+def test_province_parsing_no_comma_returns_empty():
+    # No comma to parse -> "" (not the full name), so callers never see the
+    # province duplicate the station name (see scripts/16_telegram_alert.py).
+    assert _province_from_name("NoComma") == ""
+    assert _province_from_name(None) == ""
+
+
+def test_province_parsing_strips_whitespace():
+    assert _province_from_name("City Hall ,  Chiangmai  ") == "Chiangmai"
+    assert _province_from_name("  ,  ") == ""
+    assert _province_from_name("Station,") == ""
 
 
 _CONF = {

@@ -29,10 +29,14 @@ CHECKPOINT_PATH = _PROJECT_ROOT / "checkpoints" / "mtgnn" / "best_model.pt"
 
 
 def _province_from_name(name: str) -> str:
-    """Best-effort province from a station name (text after the last comma)."""
+    """Best-effort province from a station name (text after the last comma).
+
+    Returns "" when ``name`` has no comma (nothing to parse) rather than the full
+    name, so callers never need to special-case "province duplicates the name".
+    """
     if isinstance(name, str) and "," in name:
         return name.rsplit(",", 1)[-1].strip()
-    return name or ""
+    return ""
 
 
 @st.cache_data(show_spinner=False)

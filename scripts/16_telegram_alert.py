@@ -112,12 +112,8 @@ def _process_station(
     row = meta.loc[sid]
     halfwidths = conformal_halfwidths(conf, sid, HORIZONS) if conf else None
 
-    # data_access._province_from_name falls back to the full station name when it
-    # contains no comma, which would otherwise duplicate the name in the header.
     station_name = str(row["name"])
     province = str(row["province"])
-    if province == station_name:
-        province = ""
 
     try:
         text = telegram.format_alert(
