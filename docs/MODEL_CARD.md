@@ -56,7 +56,46 @@ RMSE (µg/m³, ยิ่งต่ำยิ่งดี) บนชุด held-out
 persistence ที่ 48h บนชุด held-out test: **+2.54%, 95% CI [-1.44%, +6.28%]** — คร่อม 0 คือ
 **ยังไม่มีนัยสำคัญทางสถิติ** (ที่มา: `outputs/significance_test2025.json`)
 
-## 5. ข้อจำกัด (Limitations) — วิทยานิพนธ์หลักที่ต้องอ่านก่อนใช้งาน
+## 5. การประมาณความไม่แน่นอน (Uncertainty quantification)
+
+- **วิธีการ:** split-conformal prediction intervals เป้าหมาย 90% (Lei et al., 2018,
+  finite-sample quantile `k=ceil((n+1)(1-α))`) — calibrate บนชุด validation 2567 (2024) ใช้
+  per-station quantile เป็นหลัก และ fallback เป็น pooled quantile เมื่อสถานีไม่มีค่าที่จำกัด
+  (mode ปัจจุบัน = `per_station`) intervals ผูกกับ checkpoint `checkpoints/mtgnn/best_model.pt`
+  โดยตรง **ต้อง calibrate ใหม่ทุกครั้งที่ checkpoint เปลี่ยน** (ที่มา: `src/training/conformal.py`,
+  `scripts/15_conformal_calibrate.py`, `outputs/conformal/conformal_intervals.json`)
+- **Pooled half-width (µg/m³):**
+
+  | ขอบฟ้า | 6h | 12h | 24h | 48h |
+  |---|---|---|---|---|
+  | Half-width (±µg/m³) | 5.9 | 7.8 | 11.5 | 15.5 |
+
+  (ที่มา: `outputs/conformal/conformal_intervals.json`)
+- **Coverage — in-sample เทียบ held-out:** ค่า in-sample 0.900 ที่ได้จากการ calibrate (script 15)
+  เกิดจาก residual ชุดเดียวกันทั้งตั้ง quantile และวัด coverage จึง**ไม่ใช่**ตัวเลขที่ควรอ้างอิงประเมินผล
+  จริง ตัวเลขที่ควรใช้คือ coverage แบบ held-out บนชุด test 2568 ที่ไม่เคยใช้ calibrate เลย
+  (`scripts/17_conformal_holdout.py`, `outputs/conformal/holdout_coverage_test2025.json`):
+
+  | ขอบฟ้า | Coverage เป้าหมาย | Coverage held-out (test 2568) |
+  |---|---|---|
+  | 6h | 0.90 | **0.885** |
+  | 12h | 0.90 | **0.882** |
+  | 24h | 0.90 | **0.882** |
+  | 48h | 0.90 | **0.870** |
+
+  Coverage ต่ำกว่าเป้าหมายเล็กน้อยทุกขอบฟ้า (undercoverage) สอดคล้องกับการเปลี่ยนแปลงของการ
+  กระจายตัวข้อมูลระหว่างปี 2567 (calibration) กับปี 2568 (test) — เป็นตัวเลขที่ซื่อสัตย์กว่าค่า
+  in-sample และควรใช้อ้างอิงในรายงาน (ที่มา: `outputs/conformal/holdout_coverage_test2025.json`)
+- **ข้อจำกัดที่ทราบ:**
+  1. สถานี 225585 มี coverage ต่ำที่สุดในทุกขอบฟ้า และแย่ลงตามขอบฟ้าที่ยาวขึ้น (0.818 ที่ 6h →
+     0.698 ที่ 48h) แสดงว่า quantile ที่ calibrate จากปี 2567 แคบเกินไปสำหรับ residual ของสถานีนี้ใน
+     ปี 2568 (ที่มา: `outputs/conformal/holdout_coverage_test2025.json`)
+  2. Coverage ในโหมด live/NWP **ยังไม่ได้ตรวจสอบ** — intervals ทั้งหมด calibrate จาก input ที่เป็น
+     ERA5 reanalysis เท่านั้น การพยากรณ์จริงในโหมด live ของ dashboard ใช้ NWP forecast แทน ซึ่งทำลาย
+     สมมติฐาน exchangeability ของ conformal prediction และอาจทำให้ coverage คลาดเคลื่อนมากกว่าที่วัด
+     ได้ที่นี่ (ที่มา: `src/training/conformal.py` caveat, `app/lib/inference.py`)
+
+## 6. ข้อจำกัด (Limitations) — วิทยานิพนธ์หลักที่ต้องอ่านก่อนใช้งาน
 
 โครงงานนี้ยึดหลักการประเมินผลอย่างเข้มงวดและซื่อสัตย์ (ที่มา: บทคัดย่อ/Abstract ของ
 `docs/REPORT_DRAFT.md`):
@@ -94,7 +133,7 @@ persistence ที่ 48h บนชุด held-out test: **+2.54%, 95% CI [-1.44
 **สรุปคำแนะนำการใช้งาน:** ควรใช้ระบบในบทบาทการเตือนภัยล่วงหน้า 48 ชั่วโมง**ร่วมกับ**การระบุแหล่ง
 กำเนิดที่อธิบายได้ ไม่ใช่มุ่งเอาชนะ persistence ด้าน RMSE เป็นหลัก (ที่มา: `docs/REPORT_DRAFT.md` §9)
 
-## 6. ข้อพิจารณาทางจริยธรรม (Ethical considerations)
+## 7. ข้อพิจารณาทางจริยธรรม (Ethical considerations)
 
 - ซอฟต์แวร์นี้เป็นผลงานทางวิชาการ (NSC 2026) **ไม่ใช่เครื่องมือเตือนภัยทางการ** และไม่ทดแทน
   ประกาศ/คำเตือนอย่างเป็นทางการของกรมควบคุมมลพิษ (PCD) หรือหน่วยงานสาธารณสุข
@@ -109,4 +148,4 @@ persistence ที่ 48h บนชุด held-out test: **+2.54%, 95% CI [-1.44
 
 *เอกสารนี้เป็น one-page model card ตามมาตรฐานความโปร่งใสของโมเดล ML สร้างขึ้นสำหรับ NSC 2026
 ทุกตัวเลขคัดลอกจากไฟล์ `outputs/*.json` หรือ `docs/*.md` ที่อ้างอิงไว้ในวงเล็บ ณ วันที่ตรวจสอบ
-2026-07-10*
+2026-07-11*
