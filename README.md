@@ -143,3 +143,9 @@ under the theme "Sustainability Innovation".
 - OpenAQ API v3. https://docs.openaq.org/
 - NASA FIRMS API. https://firms.modaps.eosdis.nasa.gov/api/
 - ERA5 via CDS API. https://cds.climate.copernicus.eu/how-to-api
+- Country borders (`app/assets/borders_th_mm_la.geojson`): geoBoundaries gbOpen ADM0 simplified
+  (data build 2023-12-12, wmgeolab/geoBoundaries@9469f09); boundary data © OpenStreetMap
+  contributors — Thailand/Laos under ODbL 1.0, Myanmar under CC BY-SA 2.0 (the geojson file
+  remains under these licenses). Runfola, D. et al. (2020). geoBoundaries: A global database of
+  political administrative boundaries. PLoS ONE 15(4): e0231866.
+  https://doi.org/10.1371/journal.pone.0231866

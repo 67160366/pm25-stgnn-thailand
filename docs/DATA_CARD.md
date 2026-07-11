@@ -56,10 +56,10 @@ NSC 2026 หมวด 14 · แหล่งข้อมูลทั้งหม�
 | หัวข้อ | รายละเอียด |
 |---|---|
 | เนื้อหา | ขอบเขตประเทศจริง (real-border polygons) ของไทย/เมียนมา/ลาว (features `id: "THA"` และประเทศข้างเคียง) |
-| แหล่งที่มา | geoBoundaries — ระบุไว้ใน `docs/SESSION_HANDOFF_pitch_review.md`: "ขอบเขต TH/MM/LA จาก geoBoundaries (1.5MB)" [NEEDS VERIFICATION: ระดับความละเอียด/เวอร์ชัน ADM ของ geoBoundaries ที่ดาวน์โหลดมาไม่ได้ระบุไว้ในเอกสาร] |
+| แหล่งที่มา | geoBoundaries, gbOpen release, ADM0 (ระดับประเทศ) แบบ **simplified** — data build 2023-12-12 (repo commit `wmgeolab/geoBoundaries@9469f09`) ตรวจยืนยันแล้ว 2026-07-11 ด้วยการเทียบ geometry ทุกพิกัดกับไฟล์ต้นฉบับ `geoBoundaries-{THA,MMR,LAO}-ADM0_simplified.geojson` จาก API ปัจจุบัน: **เหมือนกันทุกจุด** (THA: MultiPolygon 70 polygons / 13,538 จุด; MMR: 374 / 21,314; LAO: Polygon 5,919) ต่างเพียง properties ถูกเปลี่ยนชื่อจาก `shapeName/shapeISO/...` เป็น `id: "<ISO3>"` + `properties: {"name": ...}` |
 | ขนาดไฟล์ | 1,494,259 bytes (~1.4 MB), ตรวจสอบจริงในโฟลเดอร์ `app/assets/` วันที่ตรวจสอบ 2026-07-10 |
 | การใช้งาน | `src/data/geocode.py` ใช้ point-in-polygon (numpy ray-casting) กับไฟล์นี้เป็น single source of truth สำหรับป้ายประเทศต้นทางของกลุ่มไฟ (hotspot clusters); `app/lib/geo.py` re-export ใช้วาดเส้นพรมแดนบน dashboard |
-| License | ไม่ได้ระบุใน repo — [NEEDS VERIFICATION: license ของไฟล์ geoBoundaries ที่ใช้ ควรตรวจสอบกับ geoboundaries.org ก่อนเผยแพร่ต่อสาธารณะ] |
+| License | **per-boundary** (gbOpen ไม่ใช่ CC BY 4.0 ทั้งหมด) — จาก metadata ของ geoBoundaries API: THA (`THA-ADM0-76911100`) และ LAO (`LAO-ADM0-69401296`) = **ODbL 1.0**, MMR (`MMR-ADM0-35516675`) = **CC BY-SA 2.0**; ทั้งสามมีต้นทางจาก OpenStreetMap จึงต้องให้เครดิต **© OpenStreetMap contributors** เงื่อนไข share-alike (ODbL/CC BY-SA) ใช้กับ**ตัวไฟล์ geojson นี้เท่านั้น** (เป็น derivative database) ไม่ลามถึงซอร์สโค้ดของโครงงาน การ commit ไฟล์ลง repo สาธารณะทำได้เมื่อให้เครดิตครบ (ระบุแล้วใน README.md และหน้า About ของ dashboard) อ้างอิง: Runfola, D. et al. (2020). geoBoundaries: A global database of political administrative boundaries. *PLoS ONE* 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866 |
 
 (ที่มา: `docs/SESSION_HANDOFF_pitch_review.md`, `src/data/geocode.py`, `docs/SESSION11_NOTES.md`, `docs/SESSION12_NOTES.md`)
 
