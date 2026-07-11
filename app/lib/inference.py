@@ -30,6 +30,7 @@ from app.lib import data_access as da
 from app.lib import nwp as nwp_lib
 from src.data.graph_builder import build_graph
 from src.data.loader import EMPTY_HOTSPOT_DF, PM25GraphDataset
+from src.explain import gb_ig as explain_gb_ig
 from src.training import evaluation
 
 HORIZONS: list[int] = [6, 12, 24, 48]
@@ -185,6 +186,55 @@ def station_history(
     ts = ds._timestamps[start_idx : anchor_idx + 1]
     vals = ds._pm25_raw[start_idx : anchor_idx + 1, sidx]
     return pd.DataFrame({"timestamp": ts, "pm25": vals})
+
+
+@st.cache_data(show_spinner=False)
+def hotspot_countries_at(split: str, anchor_iso: str) -> list[str]:
+    """Sorted unique country labels of the hotspot nodes at this forecast origin.
+
+    Empty list when the sample has no fires (e.g. off-season) — the caller then
+    hides the counterfactual controls. Hindcast only (live mode has no fire nodes).
+    """
+    ds = get_dataset(split)
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+    return sorted(set(getattr(sample["hotspot"], "country", [])))
+
+
+@st.cache_data(show_spinner="กำลังจำลองมาตรการดับไฟ…")
+def counterfactual_at(split: str, anchor_iso: str, country: str) -> dict:
+    """Occlude one country's fires and return before/after PM2.5 across the grid.
+
+    Runs the pitch checkpoint twice (full + occluded) on the single stored window
+    and denormalises both grids via ``src.training.evaluation`` (identical to the
+    forecast path). Hindcast only.
+
+    Returns:
+        Dict with ``station_ids`` (list), ``horizons`` (list), ``pred_full_ug``
+        (N,H), ``pred_occluded_ug`` (N,H), ``delta_ug`` (N,H, full−occluded),
+        ``country``, ``n_occluded`` (int), ``available_countries`` (list).
+    """
+    ds = get_dataset(split)
+    model = load_model()
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+    countries = list(getattr(sample["hotspot"], "country", []))
+
+    cf = explain_gb_ig.counterfactual_occlusion(model, sample, country, countries, device=_DEVICE)
+    centers, scales = evaluation.station_scalers(ds)
+    full_ug = evaluation.denorm_pred(cf["pred_full"].numpy(), centers, scales, ds.n_stations)
+    occ_ug = evaluation.denorm_pred(cf["pred_occluded"].numpy(), centers, scales, ds.n_stations)
+
+    return {
+        "station_ids": ds._station_ids.tolist(),
+        "horizons": list(HORIZONS),
+        "pred_full_ug": full_ug,
+        "pred_occluded_ug": occ_ug,
+        "delta_ug": full_ug - occ_ug,
+        "country": country,
+        "n_occluded": int(cf["n_occluded"]),
+        "available_countries": list(cf["available_countries"]),
+    }
 
 
 def conformal_halfwidths(conf: dict, station_id: int, horizons: list[int]) -> list[float] | None:

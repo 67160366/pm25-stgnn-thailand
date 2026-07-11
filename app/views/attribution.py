@@ -67,3 +67,72 @@ def render() -> None:
     )
     with st.expander("ข้อมูลดิบ (raw attribution report)"):
         st.json(report)
+
+    _render_counterfactual(split, anchor_iso, meta, sel_name, sid, h_label, horizon_idx)
+
+
+def _render_counterfactual(
+    split: str,
+    anchor_iso: str,
+    meta: pd.DataFrame,
+    sel_name: str,
+    sid: int,
+    h_label: str,
+    horizon_idx: int,
+) -> None:
+    """Interactive 'what-if we put out this country's fires' policy simulator."""
+    st.divider()
+    st.subheader("จำลองนโยบาย: ถ้าดับไฟของประเทศต้นทาง ฝุ่นจะลดเท่าไร")
+    st.caption(
+        "เลือกประเทศต้นทางเพื่อ 'ดับไฟ' (occlude) ของประเทศนั้นในกราฟ แล้วเทียบค่าพยากรณ์ "
+        "ก่อน–หลัง เป็น µg/m³ รายสถานี — คันโยกนโยบาย ‘มาตรการในประเทศ vs การทูตข้ามพรมแดน’"
+    )
+
+    countries = inf.hotspot_countries_at(split, anchor_iso)
+    if not countries:
+        st.warning(
+            "วันนี้ไม่มีจุดไฟ (hotspot) ในกราฟ จึงจำลองการดับไฟไม่ได้ — ลองเลือกวันในช่วงฤดูหมอกควัน"
+        )
+        return
+
+    country = st.selectbox("เลือกประเทศต้นทางที่จะ ‘ดับไฟ’", countries, key="cf_country")
+    cf = inf.counterfactual_at(split, anchor_iso, country)
+
+    if cf["n_occluded"] == 0:
+        st.info(f"ไม่พบจุดไฟของ ‘{country}’ ในตัวอย่างนี้ — ไม่มีการเปลี่ยนแปลง")
+        return
+
+    sids: list[int] = cf["station_ids"]
+    delta = np.asarray(cf["delta_ug"], dtype=float)[:, horizon_idx]
+    full = np.asarray(cf["pred_full_ug"], dtype=float)[:, horizon_idx]
+    occ = np.asarray(cf["pred_occluded_ug"], dtype=float)[:, horizon_idx]
+
+    st.caption(
+        f"ดับไฟของ **{country}** ({cf['n_occluded']} จุด) · ช่วงพยากรณ์ **{h_label}** · "
+        "ค่าบวก = ฝุ่นลดลงเมื่อดับไฟประเทศนี้"
+    )
+
+    i = sids.index(sid)
+    m1, m2, m3 = st.columns(3)
+    m1.metric(f"{sel_name} · ก่อนดับไฟ", f"{full[i]:.0f} µg/m³")
+    m2.metric("หลังดับไฟ", f"{occ[i]:.0f} µg/m³", delta=f"{-delta[i]:.1f}", delta_color="inverse")
+    m3.metric("ฝุ่นที่ลดได้", f"{delta[i]:.1f} µg/m³")
+
+    name_by_sid = dict(zip(meta["station_id"], meta["name"], strict=False))
+    df = pd.DataFrame(
+        {
+            "สถานี": [name_by_sid.get(s, str(s)) for s in sids],
+            "ก่อนดับไฟ (µg/m³)": np.round(full, 1),
+            "หลังดับไฟ (µg/m³)": np.round(occ, 1),
+            "ลดลง (µg/m³)": np.round(delta, 1),
+        }
+    ).sort_values("ลดลง (µg/m³)", ascending=False, ignore_index=True)
+
+    st.dataframe(df, width="stretch", hide_index=True)
+    st.bar_chart(df.set_index("สถานี")["ลดลง (µg/m³)"])
+
+    st.info(
+        "ℹ️ นี่คือการจำลองแบบ **what-if ภายใต้โมเดล** (occlusion) ไม่ใช่ข้อสรุปเชิงสาเหตุ (causal) ที่ "
+        "ผ่านการพิสูจน์ — ขนาดของผลขึ้นกับความไวที่โมเดลเรียนรู้ และ**ไม่ควรใช้กล่าวโทษเชิงการทูต** "
+        "ใช้เป็นเครื่องมือสำรวจเชิงนโยบายเท่านั้น"
+    )

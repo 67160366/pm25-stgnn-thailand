@@ -25,7 +25,11 @@ from src.explain.attribution import (
     load_hotspot_countries,
     station_source_report,
 )
-from src.explain.gb_ig import integrated_gradients, occlusion_country_attribution
+from src.explain.gb_ig import (
+    counterfactual_occlusion,
+    integrated_gradients,
+    occlusion_country_attribution,
+)
 from src.explain.gnn_explainer import gradient_x_input
 from src.models.base import PM25ModelBase
 
@@ -67,6 +71,26 @@ class _StubModel(PM25ModelBase):
         x = data["station"].x  # (B*N, T_in, F)
         mean_feat = x.mean(dim=(1, 2), keepdim=True)  # (B*N, 1, 1)
         out = self.linear(mean_feat.squeeze(-1))  # (B*N, H)
+        return self._postprocess(out)
+
+
+class _HotspotSensitiveModel(PM25ModelBase):
+    """Stub whose output depends on hotspot total_frp, so occlusion changes it.
+
+    Prediction for every station/horizon = station-feature mean + sum of hotspot
+    column 0 (total_frp). Zeroing a country's hotspot rows therefore lowers the
+    output by exactly that country's summed frp — a deterministic occlusion effect.
+    """
+
+    def __init__(self, n_stations: int = 3, horizons: list[int] | None = None):
+        super().__init__(n_stations=n_stations, n_features=5, horizons=horizons or [6, 24])
+
+    def forward(self, data: HeteroData) -> torch.Tensor:
+        x = data["station"].x  # (N, T, F)
+        base = x.mean(dim=(1, 2))  # (N,)
+        hx = data["hotspot"].x
+        frp_sum = hx[:, 0].sum() if hx.numel() else x.new_zeros(())
+        out = base.unsqueeze(1).expand(x.shape[0], len(self.horizons)) + frp_sum
         return self._postprocess(out)
 
 
@@ -436,6 +460,83 @@ class TestOcclusionCountryAttribution:
         )
         # Should work without error
         assert isinstance(result, dict)
+
+
+class TestCounterfactualOcclusion:
+    """Test suite for src.explain.gb_ig.counterfactual_occlusion."""
+
+    def test_returns_full_grid_shapes(self, stub_model: _StubModel) -> None:
+        """pred_full / pred_occluded / delta are all (N, H)."""
+        countries = ["Thailand", "Myanmar", "Thailand", "Laos"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=4)
+        cf = counterfactual_occlusion(stub_model, data, "Thailand", countries)
+        n, h = 3, len(stub_model.horizons)
+        assert cf["pred_full"].shape == (n, h)
+        assert cf["pred_occluded"].shape == (n, h)
+        assert cf["delta"].shape == (n, h)
+
+    def test_delta_equals_full_minus_occluded(self, stub_model: _StubModel) -> None:
+        """delta is exactly pred_full - pred_occluded."""
+        countries = ["Thailand", "Myanmar", "Thailand", "Laos"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=4)
+        cf = counterfactual_occlusion(stub_model, data, "Myanmar", countries)
+        assert torch.allclose(cf["delta"], cf["pred_full"] - cf["pred_occluded"])
+
+    def test_occlusion_changes_prediction_by_country_frp(self) -> None:
+        """With a frp-sensitive model, delta equals the occluded country's frp sum."""
+        model = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        model.eval()
+        countries = ["Thailand", "Myanmar", "Thailand", "Laos"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=4)
+        data["hotspot"].x = torch.ones(4, 3)  # frp = 1 per node
+        cf = counterfactual_occlusion(model, data, "Thailand", countries)
+        # Two Thailand nodes zeroed -> every entry drops by 2.0.
+        assert cf["n_occluded"] == 2
+        assert torch.allclose(cf["delta"], torch.full_like(cf["delta"], 2.0), atol=1e-5)
+
+    def test_missing_country_is_noop(self) -> None:
+        """A country absent from the labels leaves the prediction unchanged."""
+        model = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        model.eval()
+        countries = ["Thailand", "Myanmar"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=2)
+        data["hotspot"].x = torch.ones(2, 3)
+        cf = counterfactual_occlusion(model, data, "Cambodia", countries)
+        assert cf["n_occluded"] == 0
+        assert torch.allclose(cf["delta"], torch.zeros_like(cf["delta"]))
+        assert torch.allclose(cf["pred_occluded"], cf["pred_full"])
+
+    def test_empty_hotspots_is_noop(self) -> None:
+        """No hotspot nodes -> no-op, no crash."""
+        model = _HotspotSensitiveModel(n_stations=2, horizons=[6])
+        model.eval()
+        data = HeteroData()
+        data["station"].x = torch.randn(2, 4, 5)
+        data["hotspot"].x = torch.zeros(0, 3)
+        data["hotspot"].country = []
+        data["station", "spatial", "station"].edge_index = torch.zeros(2, 0, dtype=torch.long)
+        cf = counterfactual_occlusion(model, data, "Thailand", [])
+        assert cf["n_occluded"] == 0
+        assert cf["available_countries"] == []
+        assert torch.allclose(cf["delta"], torch.zeros_like(cf["delta"]))
+
+    def test_state_restored_after_call(self) -> None:
+        """hotspot.x is unchanged after the counterfactual runs."""
+        model = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        model.eval()
+        countries = ["Thailand", "Myanmar", "Thailand", "Laos"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=4)
+        data["hotspot"].x = torch.arange(12, dtype=torch.float32).reshape(4, 3)
+        before = data["hotspot"].x.clone()
+        counterfactual_occlusion(model, data, "Thailand", countries)
+        assert torch.allclose(data["hotspot"].x, before)
+
+    def test_available_countries_sorted_unique(self, stub_model: _StubModel) -> None:
+        """available_countries is the sorted unique label set."""
+        countries = ["Myanmar", "Thailand", "Myanmar", "Laos"]
+        data = _make_data(n_stations=3, t_in=6, n_features=5, n_hotspots=4)
+        cf = counterfactual_occlusion(stub_model, data, "Myanmar", countries)
+        assert cf["available_countries"] == ["Laos", "Myanmar", "Thailand"]
 
 
 # ---------------------------------------------------------------------------

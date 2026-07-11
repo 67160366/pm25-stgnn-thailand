@@ -106,6 +106,43 @@ def integrated_gradients(
     return {"station_x": attr.detach().cpu()}
 
 
+def _occlude_country_forward(
+    model: PM25ModelBase,
+    data: HeteroData,
+    hotspot_countries: list[str],
+    country: str,
+    device: torch.device,
+) -> tuple[torch.Tensor, int]:
+    """Forward pass with one country's hotspot features zeroed, state restored.
+
+    Zeroes every feature (frp, lat, lon) of the hotspot nodes labelled ``country``
+    and returns the full prediction grid. ``data["hotspot"].x`` is always restored
+    to its original value before returning (even on error).
+
+    Args:
+        model: Trained PM25ModelBase (already on ``device``, eval mode).
+        data: Single-sample HeteroData (already on ``device``).
+        hotspot_countries: Country label per hotspot node.
+        country: Country to occlude.
+        device: Torch device.
+
+    Returns:
+        Tuple ``(pred, n_occluded)`` where ``pred`` is the ``(N, H)`` prediction
+        with the country removed and ``n_occluded`` is the number of nodes zeroed.
+    """
+    mask = torch.tensor([c == country for c in hotspot_countries], dtype=torch.bool, device=device)
+    orig_hx = data["hotspot"].x
+    hx_occluded = orig_hx.clone()
+    hx_occluded[mask] = 0.0
+    data["hotspot"].x = hx_occluded
+    try:
+        with torch.no_grad():
+            pred = model(data).detach().clone()
+    finally:
+        data["hotspot"].x = orig_hx  # restore
+    return pred, int(mask.sum().item())
+
+
 def occlusion_country_attribution(
     model: PM25ModelBase,
     data: HeteroData,
@@ -151,29 +188,82 @@ def occlusion_country_attribution(
 
     countries = sorted(set(hotspot_countries))
     raw_attr: dict[str, float] = {}
-    orig_hx = data["hotspot"].x.clone()  # (n_hotspots, 3)
 
     for country in countries:
-        mask = torch.tensor(
-            [c == country for c in hotspot_countries],
-            dtype=torch.bool,
-            device=device,
-        )
-        if not mask.any():
-            continue
-
-        hx_occluded = orig_hx.clone()
-        hx_occluded[mask] = 0.0  # zero out all features (frp, lat, lon) for this country
-        data["hotspot"].x = hx_occluded
-
-        with torch.no_grad():
-            pred_occluded = model(data)[target_station_idx, target_horizon_idx].item()
-
+        pred, _ = _occlude_country_forward(model, data, hotspot_countries, country, device)
+        pred_occluded = pred[target_station_idx, target_horizon_idx].item()
         raw_attr[country] = max(0.0, pred_full - pred_occluded)
-
-    data["hotspot"].x = orig_hx  # restore
 
     total = sum(raw_attr.values())
     if total > 1e-8:
         return {c: v / total for c, v in raw_attr.items()}
     return {c: 0.0 for c in countries}
+
+
+def counterfactual_occlusion(
+    model: PM25ModelBase,
+    data: HeteroData,
+    country: str,
+    hotspot_countries: list[str],
+    device: str | torch.device = "cpu",
+) -> dict[str, object]:
+    """What-if: remove one country's fires and return the whole prediction grid.
+
+    Occludes (zeroes the features of) every hotspot node labelled ``country`` and
+    contrasts the model's full prediction with the occluded one across *all*
+    stations and horizons — the interactive "policy lever" behind the dashboard
+    counterfactual ("if these fires were put out, how much would PM2.5 drop?").
+
+    Predictions are returned in the model's normalised scale; the caller
+    denormalises per station via ``src.training.evaluation.denorm_pred``. The
+    per-station drop in µg/m³ is ``delta_norm * scale`` (the RobustScaler centre
+    cancels in the difference), so denormalising both grids and subtracting is
+    equivalent and numerically stable.
+
+    This is a *what-if under the model*, not a validated causal claim: the
+    magnitude depends entirely on the trained model's learned sensitivity.
+
+    Args:
+        model: Trained PM25ModelBase.
+        data: Single-sample HeteroData with ``hotspot.x`` (n_hotspots, 3).
+        country: Country whose hotspot nodes to occlude.
+        hotspot_countries: Country label per hotspot node.
+        device: Torch device.
+
+    Returns:
+        Dict with:
+            - ``"pred_full"``: FloatTensor (N, H) — unmodified prediction.
+            - ``"pred_occluded"``: FloatTensor (N, H) — with ``country`` removed.
+            - ``"delta"``: FloatTensor (N, H) = ``pred_full - pred_occluded``
+              (positive = removing the country lowers predicted PM2.5).
+            - ``"country"``: the requested country.
+            - ``"n_occluded"``: number of hotspot nodes zeroed (0 = no-op).
+            - ``"available_countries"``: sorted unique labels in the sample.
+
+        When the sample has no hotspots or ``country`` is absent, ``pred_occluded``
+        equals ``pred_full`` and ``delta`` is all zeros (a safe no-op).
+    """
+    device = torch.device(device)
+    model = model.eval().to(device)
+    data = data.to(device)
+
+    with torch.no_grad():
+        pred_full = model(data).detach().clone()  # (N, H)
+
+    available = sorted(set(hotspot_countries))
+    if hotspot_countries and country in available:
+        pred_occluded, n_occluded = _occlude_country_forward(
+            model, data, hotspot_countries, country, device
+        )
+    else:
+        pred_occluded, n_occluded = pred_full.clone(), 0
+
+    delta = pred_full - pred_occluded
+    return {
+        "pred_full": pred_full.cpu(),
+        "pred_occluded": pred_occluded.cpu(),
+        "delta": delta.cpu(),
+        "country": country,
+        "n_occluded": n_occluded,
+        "available_countries": available,
+    }
