@@ -10,11 +10,12 @@
 # see CLAUDE.md "Native dependencies" and docs/INSTALL.md step 3). This
 # workflow installs them after `uv sync`, replicating the Linux/macOS block
 # from docs/INSTALL.md (which is itself install_native_deps.ps1's logic
-# ported off PowerShell). On this CPU-only runner `torch.cuda.is_available()`
-# is False, so the resolved PyG wheel index is the CPU variant
-# (https://data.pyg.org/whl/torch-<version>+cpu.html) even though
-# pyproject.toml's `pytorch-cu126` index is still what `uv sync` pulls torch
-# itself from on sys_platform == "linux".
+# ported off PowerShell). On sys_platform == "linux" `uv sync` pulls torch
+# from PyTorch's CPU index (`pytorch-cpu` in pyproject.toml) — a +cu126 torch
+# cannot even be imported on this runner (no NVIDIA libs: "libcudart.so.12:
+# cannot open shared object file", seen on the first CI run). With CPU torch,
+# `torch.cuda.is_available()` is False and the resolved PyG wheel index is the
+# CPU variant (https://data.pyg.org/whl/torch-<version>+cpu.html).
 #
 # tests/ needs no network and no local data/ or checkpoints/ — every scraper
 # test uses requests-mock (see tests/test_openaq.py, tests/test_firms.py,
