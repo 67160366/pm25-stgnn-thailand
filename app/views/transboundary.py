@@ -118,6 +118,201 @@ def _fire_map(event_date: str, station_lat: float, station_lon: float) -> go.Fig
     return fig
 
 
+_CKPT_LABEL_TH = {"demo": "demo (โมเดล pitch)", "report": "report (split2 เข้มงวด)"}
+
+
+def _matrix_section(data: dict) -> None:
+    """Item-2 section: station x event attribution matrix, checkpoint-selectable.
+
+    Reads ``outputs/transboundary_matrix.json`` (Package A artifact, read-only).
+    Degrades to ``st.info`` when the file is absent so the page never crashes.
+    """
+    st.divider()
+    st.markdown("#### เมทริกซ์แหล่งกำเนิดข้ามแดน — หลายสถานีชายแดน × หลาย checkpoint")
+    if not data or not data.get("results"):
+        st.info(
+            "ℹ️ ยังไม่มีผลลัพธ์ transboundary_matrix.json (ยังไม่ได้รัน "
+            "scripts/20_transboundary_matrix.py) — ข้ามส่วนนี้ไปก่อน"
+        )
+        return
+
+    st.caption(
+        f"สถานีชายแดน {len(data.get('stations', []))} แห่ง (เกณฑ์: ระยะทางถึงพรมแดนพม่า/ลาวใกล้สุด "
+        f"≤ {data.get('max_dist_km', 50):.0f} กม.) × เหตุการณ์ไฟเชื่อมถึงสถานีสูงสุด "
+        f"{data.get('top_k', 5)} เหตุการณ์ต่อสถานี บนชุด held-out {data.get('split', 'test')} "
+        f"(ช่วงพยากรณ์ {data.get('horizon_h', '-')} ชม.)"
+    )
+
+    checkpoints = data.get("checkpoints", [])
+    labels = [c["label"] for c in checkpoints]
+    chosen = (
+        st.radio(
+            "เลือก checkpoint",
+            labels,
+            format_func=lambda label: _CKPT_LABEL_TH.get(label, label),
+            horizontal=True,
+            key="tb_matrix_checkpoint",
+        )
+        if labels
+        else None
+    )
+
+    results = [r for r in data.get("results", []) if r.get("checkpoint_label") == chosen]
+    if not results:
+        st.warning("ไม่พบผลลัพธ์สำหรับ checkpoint ที่เลือก")
+        return
+
+    station_names = [r["station_name"] for r in results]
+    all_dates = sorted({e["date"] for r in results for e in r.get("events", [])})
+    z: list[list[float | None]] = []
+    hover: list[list[str]] = []
+    for r in results:
+        by_date = {e["date"]: e for e in r.get("events", [])}
+        row_z: list[float | None] = []
+        row_hover: list[str] = []
+        for d in all_dates:
+            e = by_date.get(d)
+            if e is None:
+                row_z.append(None)
+                row_hover.append("")
+            else:
+                row_z.append(round(e["foreign_attribution"] * 100, 1))
+                row_hover.append(
+                    f"{r['station_name']}<br>{d}<br>"
+                    f"โมเดลชี้ต่างชาติ: {e['foreign_attribution'] * 100:.1f}%<br>"
+                    f"ไฟต่างชาติเชื่อมถึงจริง: {e['connected_foreign_fraction'] * 100:.1f}%"
+                )
+        z.append(row_z)
+        hover.append(row_hover)
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z,
+            x=all_dates,
+            y=station_names,
+            colorscale="Oranges",
+            zmin=0,
+            zmax=100,
+            text=hover,
+            hoverinfo="text",
+            colorbar=dict(title="% ต่างชาติ"),
+        )
+    )
+    fig.update_layout(
+        title=dict(
+            text=f"% ที่โมเดลชี้ว่าเป็นต่างชาติ — checkpoint: {_CKPT_LABEL_TH.get(chosen, chosen)}",
+            x=0,
+            xanchor="left",
+        ),
+        xaxis_title="วันที่เหตุการณ์",
+        height=380,
+        margin=dict(l=10, r=10, t=44, b=40),
+    )
+    st.plotly_chart(fig, width="stretch")
+
+    st.caption("ระยะทางสถานีถึงพรมแดนต่างชาติที่ใกล้ที่สุด (เกณฑ์การคัดเลือก ไม่ใช่การเลือกเฉพาะที่สวย):")
+    station_rows = [
+        {
+            "สถานี": s["name"],
+            "ระยะถึงพรมแดนใกล้สุด (กม.)": s["dist_km_nearest_foreign"],
+            "ประเทศใกล้สุด": _COUNTRY_TH.get(s["nearest_country"], s["nearest_country"]),
+        }
+        for s in data.get("stations", [])
+    ]
+    st.dataframe(pd.DataFrame(station_rows), width="stretch", hide_index=True)
+
+    for caveat in data.get("caveats", []):
+        st.caption(f"⚠️ {caveat}")
+
+
+def _uncertainty_section(data: dict) -> None:
+    """Item-4 section: per-event mean +/- seed spread for the flagship station.
+
+    Reads ``outputs/transboundary_uncertainty.json`` (Package B artifact, read-only).
+    Degrades to ``st.info`` when the file is absent so the page never crashes.
+    """
+    st.divider()
+    st.markdown("#### ความไม่แน่นอนของขนาด attribution ข้าม seed")
+    if not data or not data.get("events"):
+        st.info(
+            "ℹ️ ยังไม่มีผลลัพธ์ transboundary_uncertainty.json (ยังไม่ได้รัน "
+            "scripts/21_transboundary_uncertainty.py) — ข้ามส่วนนี้ไปก่อน"
+        )
+        return
+
+    seeds = data.get("seeds", [])
+    seed_labels = [s["label"] for s in seeds]
+    st.caption(
+        f"สถานี: {data.get('station', '-')} · เทรนซ้ำ variant เดียวกัน ({len(seeds)} seeds) แล้ววัด "
+        "foreign_attribution ที่เหตุการณ์เดียวกันทุก seed (การเลือกเหตุการณ์ไม่ขึ้นกับโมเดล — ขับด้วยข้อมูล "
+        "FIRMS/PM2.5 ล้วน ๆ) เพื่อรายงานค่าเฉลี่ยพร้อมช่วงที่วัดจริง แทนคำเตือนลอย ๆ ว่า 'ขึ้นกับโมเดล'"
+    )
+
+    events = data.get("events", [])
+    dates = [e["date"] for e in events]
+    means = [e["foreign_attribution_mean"] * 100 for e in events]
+    mins = [e["foreign_attribution_min"] * 100 for e in events]
+    maxs = [e["foreign_attribution_max"] * 100 for e in events]
+    err_plus = [mx - m for mx, m in zip(maxs, means, strict=True)]
+    err_minus = [m - mn for m, mn in zip(means, mins, strict=True)]
+
+    fig = go.Figure()
+    fig.add_bar(
+        x=dates,
+        y=means,
+        name="% ต่างชาติเฉลี่ย (ข้าม seeds)",
+        marker_color="#FF5722",
+        error_y=dict(
+            type="data",
+            symmetric=False,
+            array=err_plus,
+            arrayminus=err_minus,
+            visible=True,
+            color="#333",
+        ),
+    )
+    fig.update_layout(
+        title=dict(
+            text="ค่าเฉลี่ย % ต่างชาติต่อเหตุการณ์ พร้อมช่วง min–max ข้าม seed (error bar = ช่วงจริง ไม่ใช่ std)",
+            x=0,
+            xanchor="left",
+        ),
+        yaxis_title="ร้อยละ (%)",
+        xaxis_title="วันที่เหตุการณ์",
+        height=400,
+        margin=dict(l=50, r=20, t=56, b=60),
+    )
+    st.plotly_chart(fig, width="stretch")
+
+    rows = []
+    for e in events:
+        per_seed = e.get("per_seed", {})
+        row = {
+            "วันที่": e["date"],
+            "% ไฟต่างชาติเชื่อมถึง": round(e["connected_foreign_fraction"] * 100, 1),
+            "% ต่างชาติเฉลี่ย": round(e["foreign_attribution_mean"] * 100, 1),
+            "ช่วง min–max (%)": (
+                f"{e['foreign_attribution_min'] * 100:.1f}–{e['foreign_attribution_max'] * 100:.1f}"
+            ),
+        }
+        for label in seed_labels:
+            seed_val = per_seed.get(label, {}).get("foreign_attribution", 0.0)
+            row[f"seed {label} (%)"] = round(seed_val * 100, 1)
+        rows.append(row)
+    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+
+    summary = data.get("summary", {})
+    st.caption(
+        "สรุป: ค่าเฉลี่ยข้าม seed ของ foreign_attribution ทุกเหตุการณ์ = "
+        f"{summary.get('mean_foreign_attribution', 0.0) * 100:.1f}% · "
+        "ช่วง (max−min) เฉลี่ยต่อเหตุการณ์ = "
+        f"{summary.get('mean_event_spread_minmax', 0.0) * 100:.1f} จุดเปอร์เซ็นต์"
+    )
+
+    for caveat in data.get("caveats", []):
+        st.caption(f"⚠️ {caveat}")
+
+
 def render() -> None:
     """Render the transboundary attribution page."""
     ui.page_title(
@@ -202,3 +397,6 @@ def render() -> None:
         "จึงต้องรายงานพร้อม caveat เสมอ — ตรงข้ามกับเชียงใหม่กลางเมือง (มี.ค. 2024) ที่ผลชี้ไฟ"
         f"**ในไทยเป็นหลัก ~{th_pct}%** (FRP ไทยสูงกว่าไฟต่างชาติรวม ~59 เท่า) ซึ่งเป็นเมืองภายในแผ่นดิน"
     )
+
+    _matrix_section(da.load_transboundary_matrix())
+    _uncertainty_section(da.load_transboundary_uncertainty())

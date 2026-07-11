@@ -127,3 +127,25 @@ def load_conformal() -> dict:
         return {}
     with CONFORMAL_PATH.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+@st.cache_data(show_spinner=False)
+def load_transboundary_matrix() -> dict:
+    """Station x checkpoint transboundary attribution matrix; {} if not yet generated.
+
+    Produced by ``scripts/20_transboundary_matrix.py``. Schema documented there:
+    ``stations`` (border-station metadata), ``checkpoints`` (demo/report labels), and
+    ``results`` (one record per station x checkpoint, each with an ``events`` list).
+    """
+    return load_output_json("transboundary_matrix.json")
+
+
+@st.cache_data(show_spinner=False)
+def load_transboundary_uncertainty() -> dict:
+    """Multi-seed transboundary attribution spread for the flagship station; {} if absent.
+
+    Produced by ``scripts/21_transboundary_uncertainty.py``. Schema documented there:
+    ``seeds`` (3 fixed checkpoints), ``events`` (per-event ``per_seed`` + mean/std/min/max),
+    and ``summary`` (aggregate spread stats).
+    """
+    return load_output_json("transboundary_uncertainty.json")
