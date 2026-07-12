@@ -1,0 +1,1914 @@
+{
+  "station": "Natural Resources and Environment Office, Mae Hongson",
+  "station_id": 225648,
+  "split": "test",
+  "method": "Kinematic backward trajectory from ERA5 10m winds (u10/v10), bilinear space + linear time, RK2 backward integration, launched at the model's peak-PM2.5 anchor hour. Compares a binary 'trajectory foreign-influence plausible' witness to the model's foreign attribution.",
+  "trajectory_params": {
+    "hours_back": 48,
+    "dt_hours": 1.0,
+    "integrator": "rk2",
+    "corridor_radius_km": 50.0,
+    "foreign_hours_threshold": 0.15,
+    "model_foreign_tau": 0.05,
+    "era5_bbox": [
+      97.0,
+      16.0,
+      101.5,
+      21.0
+    ]
+  },
+  "model_attribution_source": "outputs/transboundary_attr_test_split2.json",
+  "n_events": 5,
+  "events": [
+    {
+      "date": "2025-03-18",
+      "launch_time_utc": "2025-03-18T00:00:00Z",
+      "peak_pm25_ug_m3": 69.1,
+      "model_foreign_attribution": 0.627,
+      "model_country_attribution": {
+        "Laos": 0.111,
+        "Myanmar": 0.516,
+        "Thailand": 0.373
+      },
+      "trajectory": {
+        "hours_integrated": 48,
+        "terminated_reason": "completed",
+        "points": [
+          {
+            "hour_offset": 0,
+            "time_utc": "2025-03-18T00:00:00Z",
+            "lat": 19.3045,
+            "lon": 97.9716,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 1,
+            "time_utc": "2025-03-17T23:00:00Z",
+            "lat": 19.2742,
+            "lon": 98.0058,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 2,
+            "time_utc": "2025-03-17T22:00:00Z",
+            "lat": 19.2373,
+            "lon": 98.0349,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 3,
+            "time_utc": "2025-03-17T21:00:00Z",
+            "lat": 19.1955,
+            "lon": 98.0625,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 4,
+            "time_utc": "2025-03-17T20:00:00Z",
+            "lat": 19.1481,
+            "lon": 98.0894,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 5,
+            "time_utc": "2025-03-17T19:00:00Z",
+            "lat": 19.0897,
+            "lon": 98.1122,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 6,
+            "time_utc": "2025-03-17T18:00:00Z",
+            "lat": 19.0213,
+            "lon": 98.1312,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 7,
+            "time_utc": "2025-03-17T17:00:00Z",
+            "lat": 18.9455,
+            "lon": 98.1455,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 8,
+            "time_utc": "2025-03-17T16:00:00Z",
+            "lat": 18.877,
+            "lon": 98.1535,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 9,
+            "time_utc": "2025-03-17T15:00:00Z",
+            "lat": 18.8119,
+            "lon": 98.153,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 10,
+            "time_utc": "2025-03-17T14:00:00Z",
+            "lat": 18.7453,
+            "lon": 98.1411,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 11,
+            "time_utc": "2025-03-17T13:00:00Z",
+            "lat": 18.6815,
+            "lon": 98.1101,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 12,
+            "time_utc": "2025-03-17T12:00:00Z",
+            "lat": 18.6284,
+            "lon": 98.0556,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 13,
+            "time_utc": "2025-03-17T11:00:00Z",
+            "lat": 18.5816,
+            "lon": 97.9783,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 14,
+            "time_utc": "2025-03-17T10:00:00Z",
+            "lat": 18.5292,
+            "lon": 97.893,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 15,
+            "time_utc": "2025-03-17T09:00:00Z",
+            "lat": 18.4741,
+            "lon": 97.8127,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 16,
+            "time_utc": "2025-03-17T08:00:00Z",
+            "lat": 18.4232,
+            "lon": 97.7419,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 17,
+            "time_utc": "2025-03-17T07:00:00Z",
+            "lat": 18.3717,
+            "lon": 97.6826,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 18,
+            "time_utc": "2025-03-17T06:00:00Z",
+            "lat": 18.3216,
+            "lon": 97.634,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 19,
+            "time_utc": "2025-03-17T05:00:00Z",
+            "lat": 18.2763,
+            "lon": 97.5969,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 20,
+            "time_utc": "2025-03-17T04:00:00Z",
+            "lat": 18.2362,
+            "lon": 97.5768,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 21,
+            "time_utc": "2025-03-17T03:00:00Z",
+            "lat": 18.1989,
+            "lon": 97.573,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 22,
+            "time_utc": "2025-03-17T02:00:00Z",
+            "lat": 18.1649,
+            "lon": 97.5799,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 23,
+            "time_utc": "2025-03-17T01:00:00Z",
+            "lat": 18.1407,
+            "lon": 97.5933,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 24,
+            "time_utc": "2025-03-17T00:00:00Z",
+            "lat": 18.12,
+            "lon": 97.6075,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 25,
+            "time_utc": "2025-03-16T23:00:00Z",
+            "lat": 18.0901,
+            "lon": 97.6229,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 26,
+            "time_utc": "2025-03-16T22:00:00Z",
+            "lat": 18.0505,
+            "lon": 97.6395,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 27,
+            "time_utc": "2025-03-16T21:00:00Z",
+            "lat": 18.012,
+            "lon": 97.6562,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 28,
+            "time_utc": "2025-03-16T20:00:00Z",
+            "lat": 17.9736,
+            "lon": 97.6729,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 29,
+            "time_utc": "2025-03-16T19:00:00Z",
+            "lat": 17.9301,
+            "lon": 97.6856,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 30,
+            "time_utc": "2025-03-16T18:00:00Z",
+            "lat": 17.8853,
+            "lon": 97.6928,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 31,
+            "time_utc": "2025-03-16T17:00:00Z",
+            "lat": 17.8408,
+            "lon": 97.6971,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 32,
+            "time_utc": "2025-03-16T16:00:00Z",
+            "lat": 17.7933,
+            "lon": 97.703,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 33,
+            "time_utc": "2025-03-16T15:00:00Z",
+            "lat": 17.7432,
+            "lon": 97.7142,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 34,
+            "time_utc": "2025-03-16T14:00:00Z",
+            "lat": 17.6965,
+            "lon": 97.728,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 35,
+            "time_utc": "2025-03-16T13:00:00Z",
+            "lat": 17.6531,
+            "lon": 97.7324,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 36,
+            "time_utc": "2025-03-16T12:00:00Z",
+            "lat": 17.6077,
+            "lon": 97.712,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 37,
+            "time_utc": "2025-03-16T11:00:00Z",
+            "lat": 17.5562,
+            "lon": 97.6604,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 38,
+            "time_utc": "2025-03-16T10:00:00Z",
+            "lat": 17.4962,
+            "lon": 97.59,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 39,
+            "time_utc": "2025-03-16T09:00:00Z",
+            "lat": 17.439,
+            "lon": 97.5134,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 40,
+            "time_utc": "2025-03-16T08:00:00Z",
+            "lat": 17.3903,
+            "lon": 97.4424,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 41,
+            "time_utc": "2025-03-16T07:00:00Z",
+            "lat": 17.3465,
+            "lon": 97.3828,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 42,
+            "time_utc": "2025-03-16T06:00:00Z",
+            "lat": 17.306,
+            "lon": 97.3346,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 43,
+            "time_utc": "2025-03-16T05:00:00Z",
+            "lat": 17.2689,
+            "lon": 97.307,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 44,
+            "time_utc": "2025-03-16T04:00:00Z",
+            "lat": 17.2367,
+            "lon": 97.3064,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 45,
+            "time_utc": "2025-03-16T03:00:00Z",
+            "lat": 17.2079,
+            "lon": 97.3294,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 46,
+            "time_utc": "2025-03-16T02:00:00Z",
+            "lat": 17.1718,
+            "lon": 97.3708,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 47,
+            "time_utc": "2025-03-16T01:00:00Z",
+            "lat": 17.129,
+            "lon": 97.4238,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 48,
+            "time_utc": "2025-03-16T00:00:00Z",
+            "lat": 17.0942,
+            "lon": 97.4788,
+            "country": "Myanmar"
+          }
+        ]
+      },
+      "country_hours_fraction": {
+        "Thailand": 0.4286,
+        "Myanmar": 0.5714,
+        "Laos": 0.0,
+        "other": 0.0
+      },
+      "foreign_hours_fraction": 0.5714,
+      "corridor_frp_by_country": {
+        "Thailand": 106.4,
+        "Myanmar": 12918.4,
+        "Laos": 0.0
+      },
+      "corridor_foreign_frp_fraction": 0.9918,
+      "trajectory_foreign_plausible": true,
+      "agrees_with_model": true
+    },
+    {
+      "date": "2025-03-13",
+      "launch_time_utc": "2025-03-13T23:00:00Z",
+      "peak_pm25_ug_m3": 32.1,
+      "model_foreign_attribution": 0.403,
+      "model_country_attribution": {
+        "Laos": 0.403,
+        "Myanmar": 0.0,
+        "Thailand": 0.597
+      },
+      "trajectory": {
+        "hours_integrated": 48,
+        "terminated_reason": "completed",
+        "points": [
+          {
+            "hour_offset": 0,
+            "time_utc": "2025-03-13T23:00:00Z",
+            "lat": 19.3045,
+            "lon": 97.9716,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 1,
+            "time_utc": "2025-03-13T22:00:00Z",
+            "lat": 19.2547,
+            "lon": 98.0013,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 2,
+            "time_utc": "2025-03-13T21:00:00Z",
+            "lat": 19.1922,
+            "lon": 98.0289,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 3,
+            "time_utc": "2025-03-13T20:00:00Z",
+            "lat": 19.1249,
+            "lon": 98.0517,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 4,
+            "time_utc": "2025-03-13T19:00:00Z",
+            "lat": 19.0484,
+            "lon": 98.0694,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 5,
+            "time_utc": "2025-03-13T18:00:00Z",
+            "lat": 18.9622,
+            "lon": 98.085,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 6,
+            "time_utc": "2025-03-13T17:00:00Z",
+            "lat": 18.8818,
+            "lon": 98.0993,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 7,
+            "time_utc": "2025-03-13T16:00:00Z",
+            "lat": 18.8112,
+            "lon": 98.1119,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 8,
+            "time_utc": "2025-03-13T15:00:00Z",
+            "lat": 18.7517,
+            "lon": 98.1198,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 9,
+            "time_utc": "2025-03-13T14:00:00Z",
+            "lat": 18.6991,
+            "lon": 98.1169,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 10,
+            "time_utc": "2025-03-13T13:00:00Z",
+            "lat": 18.6504,
+            "lon": 98.0958,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 11,
+            "time_utc": "2025-03-13T12:00:00Z",
+            "lat": 18.6064,
+            "lon": 98.0567,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 12,
+            "time_utc": "2025-03-13T11:00:00Z",
+            "lat": 18.5637,
+            "lon": 97.9966,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 13,
+            "time_utc": "2025-03-13T10:00:00Z",
+            "lat": 18.5169,
+            "lon": 97.9131,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 14,
+            "time_utc": "2025-03-13T09:00:00Z",
+            "lat": 18.4566,
+            "lon": 97.8308,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 15,
+            "time_utc": "2025-03-13T08:00:00Z",
+            "lat": 18.3873,
+            "lon": 97.7652,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 16,
+            "time_utc": "2025-03-13T07:00:00Z",
+            "lat": 18.3237,
+            "lon": 97.7072,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 17,
+            "time_utc": "2025-03-13T06:00:00Z",
+            "lat": 18.2718,
+            "lon": 97.6497,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 18,
+            "time_utc": "2025-03-13T05:00:00Z",
+            "lat": 18.2288,
+            "lon": 97.6017,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 19,
+            "time_utc": "2025-03-13T04:00:00Z",
+            "lat": 18.188,
+            "lon": 97.571,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 20,
+            "time_utc": "2025-03-13T03:00:00Z",
+            "lat": 18.1434,
+            "lon": 97.5555,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 21,
+            "time_utc": "2025-03-13T02:00:00Z",
+            "lat": 18.093,
+            "lon": 97.5518,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 22,
+            "time_utc": "2025-03-13T01:00:00Z",
+            "lat": 18.0507,
+            "lon": 97.5602,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 23,
+            "time_utc": "2025-03-13T00:00:00Z",
+            "lat": 18.0187,
+            "lon": 97.5747,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 24,
+            "time_utc": "2025-03-12T23:00:00Z",
+            "lat": 17.9843,
+            "lon": 97.5897,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 25,
+            "time_utc": "2025-03-12T22:00:00Z",
+            "lat": 17.9485,
+            "lon": 97.6062,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 26,
+            "time_utc": "2025-03-12T21:00:00Z",
+            "lat": 17.9064,
+            "lon": 97.6223,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 27,
+            "time_utc": "2025-03-12T20:00:00Z",
+            "lat": 17.8592,
+            "lon": 97.6373,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 28,
+            "time_utc": "2025-03-12T19:00:00Z",
+            "lat": 17.814,
+            "lon": 97.6503,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 29,
+            "time_utc": "2025-03-12T18:00:00Z",
+            "lat": 17.7665,
+            "lon": 97.663,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 30,
+            "time_utc": "2025-03-12T17:00:00Z",
+            "lat": 17.7167,
+            "lon": 97.6771,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 31,
+            "time_utc": "2025-03-12T16:00:00Z",
+            "lat": 17.6694,
+            "lon": 97.6918,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 32,
+            "time_utc": "2025-03-12T15:00:00Z",
+            "lat": 17.6241,
+            "lon": 97.7066,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 33,
+            "time_utc": "2025-03-12T14:00:00Z",
+            "lat": 17.5808,
+            "lon": 97.7219,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 34,
+            "time_utc": "2025-03-12T13:00:00Z",
+            "lat": 17.539,
+            "lon": 97.7377,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 35,
+            "time_utc": "2025-03-12T12:00:00Z",
+            "lat": 17.5023,
+            "lon": 97.7483,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 36,
+            "time_utc": "2025-03-12T11:00:00Z",
+            "lat": 17.4714,
+            "lon": 97.7309,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 37,
+            "time_utc": "2025-03-12T10:00:00Z",
+            "lat": 17.4419,
+            "lon": 97.6778,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 38,
+            "time_utc": "2025-03-12T09:00:00Z",
+            "lat": 17.4091,
+            "lon": 97.5979,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 39,
+            "time_utc": "2025-03-12T08:00:00Z",
+            "lat": 17.3698,
+            "lon": 97.5098,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 40,
+            "time_utc": "2025-03-12T07:00:00Z",
+            "lat": 17.3232,
+            "lon": 97.4329,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 41,
+            "time_utc": "2025-03-12T06:00:00Z",
+            "lat": 17.2799,
+            "lon": 97.3702,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 42,
+            "time_utc": "2025-03-12T05:00:00Z",
+            "lat": 17.2475,
+            "lon": 97.3236,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 43,
+            "time_utc": "2025-03-12T04:00:00Z",
+            "lat": 17.2233,
+            "lon": 97.2985,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 44,
+            "time_utc": "2025-03-12T03:00:00Z",
+            "lat": 17.202,
+            "lon": 97.2973,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 45,
+            "time_utc": "2025-03-12T02:00:00Z",
+            "lat": 17.1787,
+            "lon": 97.3148,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 46,
+            "time_utc": "2025-03-12T01:00:00Z",
+            "lat": 17.1576,
+            "lon": 97.3435,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 47,
+            "time_utc": "2025-03-12T00:00:00Z",
+            "lat": 17.1477,
+            "lon": 97.3723,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 48,
+            "time_utc": "2025-03-11T23:00:00Z",
+            "lat": 17.1411,
+            "lon": 97.4008,
+            "country": "Myanmar"
+          }
+        ]
+      },
+      "country_hours_fraction": {
+        "Thailand": 0.3673,
+        "Myanmar": 0.6327,
+        "Laos": 0.0,
+        "other": 0.0
+      },
+      "foreign_hours_fraction": 0.6327,
+      "corridor_frp_by_country": {
+        "Thailand": 36.6,
+        "Myanmar": 52.5,
+        "Laos": 0.0
+      },
+      "corridor_foreign_frp_fraction": 0.5892,
+      "trajectory_foreign_plausible": true,
+      "agrees_with_model": true
+    },
+    {
+      "date": "2025-03-30",
+      "launch_time_utc": "2025-03-30T23:00:00Z",
+      "peak_pm25_ug_m3": 305.0,
+      "model_foreign_attribution": 0.005,
+      "model_country_attribution": {
+        "Laos": 0.003,
+        "Myanmar": 0.002,
+        "Thailand": 0.995
+      },
+      "trajectory": {
+        "hours_integrated": 48,
+        "terminated_reason": "completed",
+        "points": [
+          {
+            "hour_offset": 0,
+            "time_utc": "2025-03-30T23:00:00Z",
+            "lat": 19.3045,
+            "lon": 97.9716,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 1,
+            "time_utc": "2025-03-30T22:00:00Z",
+            "lat": 19.2572,
+            "lon": 97.9825,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 2,
+            "time_utc": "2025-03-30T21:00:00Z",
+            "lat": 19.2101,
+            "lon": 97.9948,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 3,
+            "time_utc": "2025-03-30T20:00:00Z",
+            "lat": 19.1589,
+            "lon": 98.0091,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 4,
+            "time_utc": "2025-03-30T19:00:00Z",
+            "lat": 19.1014,
+            "lon": 98.0258,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 5,
+            "time_utc": "2025-03-30T18:00:00Z",
+            "lat": 19.043,
+            "lon": 98.0471,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 6,
+            "time_utc": "2025-03-30T17:00:00Z",
+            "lat": 18.9862,
+            "lon": 98.07,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 7,
+            "time_utc": "2025-03-30T16:00:00Z",
+            "lat": 18.9351,
+            "lon": 98.0892,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 8,
+            "time_utc": "2025-03-30T15:00:00Z",
+            "lat": 18.888,
+            "lon": 98.1004,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 9,
+            "time_utc": "2025-03-30T14:00:00Z",
+            "lat": 18.8439,
+            "lon": 98.0973,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 10,
+            "time_utc": "2025-03-30T13:00:00Z",
+            "lat": 18.804,
+            "lon": 98.0735,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 11,
+            "time_utc": "2025-03-30T12:00:00Z",
+            "lat": 18.7712,
+            "lon": 98.0247,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 12,
+            "time_utc": "2025-03-30T11:00:00Z",
+            "lat": 18.7415,
+            "lon": 97.9406,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 13,
+            "time_utc": "2025-03-30T10:00:00Z",
+            "lat": 18.6998,
+            "lon": 97.8439,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 14,
+            "time_utc": "2025-03-30T09:00:00Z",
+            "lat": 18.6475,
+            "lon": 97.7589,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 15,
+            "time_utc": "2025-03-30T08:00:00Z",
+            "lat": 18.5914,
+            "lon": 97.6917,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 16,
+            "time_utc": "2025-03-30T07:00:00Z",
+            "lat": 18.5326,
+            "lon": 97.6428,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 17,
+            "time_utc": "2025-03-30T06:00:00Z",
+            "lat": 18.4784,
+            "lon": 97.6085,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 18,
+            "time_utc": "2025-03-30T05:00:00Z",
+            "lat": 18.4361,
+            "lon": 97.5864,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 19,
+            "time_utc": "2025-03-30T04:00:00Z",
+            "lat": 18.4037,
+            "lon": 97.576,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 20,
+            "time_utc": "2025-03-30T03:00:00Z",
+            "lat": 18.3764,
+            "lon": 97.5752,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 21,
+            "time_utc": "2025-03-30T02:00:00Z",
+            "lat": 18.3499,
+            "lon": 97.579,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 22,
+            "time_utc": "2025-03-30T01:00:00Z",
+            "lat": 18.3259,
+            "lon": 97.5822,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 23,
+            "time_utc": "2025-03-30T00:00:00Z",
+            "lat": 18.3024,
+            "lon": 97.5826,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 24,
+            "time_utc": "2025-03-29T23:00:00Z",
+            "lat": 18.2693,
+            "lon": 97.5787,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 25,
+            "time_utc": "2025-03-29T22:00:00Z",
+            "lat": 18.2317,
+            "lon": 97.5697,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 26,
+            "time_utc": "2025-03-29T21:00:00Z",
+            "lat": 18.1993,
+            "lon": 97.5572,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 27,
+            "time_utc": "2025-03-29T20:00:00Z",
+            "lat": 18.1691,
+            "lon": 97.5404,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 28,
+            "time_utc": "2025-03-29T19:00:00Z",
+            "lat": 18.1378,
+            "lon": 97.5193,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 29,
+            "time_utc": "2025-03-29T18:00:00Z",
+            "lat": 18.1064,
+            "lon": 97.4959,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 30,
+            "time_utc": "2025-03-29T17:00:00Z",
+            "lat": 18.0798,
+            "lon": 97.4726,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 31,
+            "time_utc": "2025-03-29T16:00:00Z",
+            "lat": 18.0551,
+            "lon": 97.4485,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 32,
+            "time_utc": "2025-03-29T15:00:00Z",
+            "lat": 18.029,
+            "lon": 97.4215,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 33,
+            "time_utc": "2025-03-29T14:00:00Z",
+            "lat": 17.9969,
+            "lon": 97.3863,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 34,
+            "time_utc": "2025-03-29T13:00:00Z",
+            "lat": 17.9604,
+            "lon": 97.3397,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 35,
+            "time_utc": "2025-03-29T12:00:00Z",
+            "lat": 17.9242,
+            "lon": 97.2923,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 36,
+            "time_utc": "2025-03-29T11:00:00Z",
+            "lat": 17.8791,
+            "lon": 97.2449,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 37,
+            "time_utc": "2025-03-29T10:00:00Z",
+            "lat": 17.8188,
+            "lon": 97.1981,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 38,
+            "time_utc": "2025-03-29T09:00:00Z",
+            "lat": 17.7598,
+            "lon": 97.1525,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 39,
+            "time_utc": "2025-03-29T08:00:00Z",
+            "lat": 17.712,
+            "lon": 97.1086,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 40,
+            "time_utc": "2025-03-29T07:00:00Z",
+            "lat": 17.6727,
+            "lon": 97.0709,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 41,
+            "time_utc": "2025-03-29T06:00:00Z",
+            "lat": 17.6421,
+            "lon": 97.0423,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 42,
+            "time_utc": "2025-03-29T05:00:00Z",
+            "lat": 17.6209,
+            "lon": 97.0277,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 43,
+            "time_utc": "2025-03-29T04:00:00Z",
+            "lat": 17.6102,
+            "lon": 97.0285,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 44,
+            "time_utc": "2025-03-29T03:00:00Z",
+            "lat": 17.6087,
+            "lon": 97.0433,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 45,
+            "time_utc": "2025-03-29T02:00:00Z",
+            "lat": 17.6127,
+            "lon": 97.0723,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 46,
+            "time_utc": "2025-03-29T01:00:00Z",
+            "lat": 17.6193,
+            "lon": 97.1133,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 47,
+            "time_utc": "2025-03-29T00:00:00Z",
+            "lat": 17.6325,
+            "lon": 97.1561,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 48,
+            "time_utc": "2025-03-28T23:00:00Z",
+            "lat": 17.6504,
+            "lon": 97.193,
+            "country": "Myanmar"
+          }
+        ]
+      },
+      "country_hours_fraction": {
+        "Thailand": 0.4082,
+        "Myanmar": 0.5918,
+        "Laos": 0.0,
+        "other": 0.0
+      },
+      "foreign_hours_fraction": 0.5918,
+      "corridor_frp_by_country": {
+        "Thailand": 5.2,
+        "Myanmar": 0.0,
+        "Laos": 0.0
+      },
+      "corridor_foreign_frp_fraction": 0.0,
+      "trajectory_foreign_plausible": true,
+      "agrees_with_model": false
+    },
+    {
+      "date": "2025-03-11",
+      "launch_time_utc": "2025-03-11T23:00:00Z",
+      "peak_pm25_ug_m3": 29.2,
+      "model_foreign_attribution": 0.0,
+      "model_country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "trajectory": {
+        "hours_integrated": 48,
+        "terminated_reason": "completed",
+        "points": [
+          {
+            "hour_offset": 0,
+            "time_utc": "2025-03-11T23:00:00Z",
+            "lat": 19.3045,
+            "lon": 97.9716,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 1,
+            "time_utc": "2025-03-11T22:00:00Z",
+            "lat": 19.2874,
+            "lon": 98.0001,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 2,
+            "time_utc": "2025-03-11T21:00:00Z",
+            "lat": 19.2517,
+            "lon": 98.0313,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 3,
+            "time_utc": "2025-03-11T20:00:00Z",
+            "lat": 19.2069,
+            "lon": 98.0561,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 4,
+            "time_utc": "2025-03-11T19:00:00Z",
+            "lat": 19.1587,
+            "lon": 98.0747,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 5,
+            "time_utc": "2025-03-11T18:00:00Z",
+            "lat": 19.103,
+            "lon": 98.0902,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 6,
+            "time_utc": "2025-03-11T17:00:00Z",
+            "lat": 19.0411,
+            "lon": 98.1017,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 7,
+            "time_utc": "2025-03-11T16:00:00Z",
+            "lat": 18.9752,
+            "lon": 98.1097,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 8,
+            "time_utc": "2025-03-11T15:00:00Z",
+            "lat": 18.9156,
+            "lon": 98.115,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 9,
+            "time_utc": "2025-03-11T14:00:00Z",
+            "lat": 18.8653,
+            "lon": 98.115,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 10,
+            "time_utc": "2025-03-11T13:00:00Z",
+            "lat": 18.8277,
+            "lon": 98.1058,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 11,
+            "time_utc": "2025-03-11T12:00:00Z",
+            "lat": 18.8027,
+            "lon": 98.0787,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 12,
+            "time_utc": "2025-03-11T11:00:00Z",
+            "lat": 18.7907,
+            "lon": 98.0252,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 13,
+            "time_utc": "2025-03-11T10:00:00Z",
+            "lat": 18.7909,
+            "lon": 97.9448,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 14,
+            "time_utc": "2025-03-11T09:00:00Z",
+            "lat": 18.7864,
+            "lon": 97.8598,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 15,
+            "time_utc": "2025-03-11T08:00:00Z",
+            "lat": 18.778,
+            "lon": 97.7767,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 16,
+            "time_utc": "2025-03-11T07:00:00Z",
+            "lat": 18.7719,
+            "lon": 97.7022,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 17,
+            "time_utc": "2025-03-11T06:00:00Z",
+            "lat": 18.7721,
+            "lon": 97.6448,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 18,
+            "time_utc": "2025-03-11T05:00:00Z",
+            "lat": 18.7767,
+            "lon": 97.6051,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 19,
+            "time_utc": "2025-03-11T04:00:00Z",
+            "lat": 18.7804,
+            "lon": 97.5793,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 20,
+            "time_utc": "2025-03-11T03:00:00Z",
+            "lat": 18.7782,
+            "lon": 97.5654,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 21,
+            "time_utc": "2025-03-11T02:00:00Z",
+            "lat": 18.7707,
+            "lon": 97.5623,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 22,
+            "time_utc": "2025-03-11T01:00:00Z",
+            "lat": 18.7615,
+            "lon": 97.569,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 23,
+            "time_utc": "2025-03-11T00:00:00Z",
+            "lat": 18.7472,
+            "lon": 97.5899,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 24,
+            "time_utc": "2025-03-10T23:00:00Z",
+            "lat": 18.7228,
+            "lon": 97.6219,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 25,
+            "time_utc": "2025-03-10T22:00:00Z",
+            "lat": 18.6903,
+            "lon": 97.6568,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 26,
+            "time_utc": "2025-03-10T21:00:00Z",
+            "lat": 18.6556,
+            "lon": 97.6972,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 27,
+            "time_utc": "2025-03-10T20:00:00Z",
+            "lat": 18.6166,
+            "lon": 97.7429,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 28,
+            "time_utc": "2025-03-10T19:00:00Z",
+            "lat": 18.5694,
+            "lon": 97.7852,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 29,
+            "time_utc": "2025-03-10T18:00:00Z",
+            "lat": 18.519,
+            "lon": 97.8228,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 30,
+            "time_utc": "2025-03-10T17:00:00Z",
+            "lat": 18.4725,
+            "lon": 97.8589,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 31,
+            "time_utc": "2025-03-10T16:00:00Z",
+            "lat": 18.4357,
+            "lon": 97.8933,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 32,
+            "time_utc": "2025-03-10T15:00:00Z",
+            "lat": 18.4092,
+            "lon": 97.9281,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 33,
+            "time_utc": "2025-03-10T14:00:00Z",
+            "lat": 18.3912,
+            "lon": 97.9645,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 34,
+            "time_utc": "2025-03-10T13:00:00Z",
+            "lat": 18.3762,
+            "lon": 97.9982,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 35,
+            "time_utc": "2025-03-10T12:00:00Z",
+            "lat": 18.3653,
+            "lon": 98.0186,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 36,
+            "time_utc": "2025-03-10T11:00:00Z",
+            "lat": 18.3566,
+            "lon": 98.0158,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 37,
+            "time_utc": "2025-03-10T10:00:00Z",
+            "lat": 18.3472,
+            "lon": 97.9755,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 38,
+            "time_utc": "2025-03-10T09:00:00Z",
+            "lat": 18.3505,
+            "lon": 97.9217,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 39,
+            "time_utc": "2025-03-10T08:00:00Z",
+            "lat": 18.3623,
+            "lon": 97.8831,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 40,
+            "time_utc": "2025-03-10T07:00:00Z",
+            "lat": 18.3718,
+            "lon": 97.8539,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 41,
+            "time_utc": "2025-03-10T06:00:00Z",
+            "lat": 18.3809,
+            "lon": 97.8363,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 42,
+            "time_utc": "2025-03-10T05:00:00Z",
+            "lat": 18.3943,
+            "lon": 97.8284,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 43,
+            "time_utc": "2025-03-10T04:00:00Z",
+            "lat": 18.4153,
+            "lon": 97.8242,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 44,
+            "time_utc": "2025-03-10T03:00:00Z",
+            "lat": 18.4431,
+            "lon": 97.8211,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 45,
+            "time_utc": "2025-03-10T02:00:00Z",
+            "lat": 18.4723,
+            "lon": 97.8208,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 46,
+            "time_utc": "2025-03-10T01:00:00Z",
+            "lat": 18.5001,
+            "lon": 97.83,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 47,
+            "time_utc": "2025-03-10T00:00:00Z",
+            "lat": 18.5264,
+            "lon": 97.8499,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 48,
+            "time_utc": "2025-03-09T23:00:00Z",
+            "lat": 18.5455,
+            "lon": 97.8732,
+            "country": "Thailand"
+          }
+        ]
+      },
+      "country_hours_fraction": {
+        "Thailand": 0.7551,
+        "Myanmar": 0.2449,
+        "Laos": 0.0,
+        "other": 0.0
+      },
+      "foreign_hours_fraction": 0.2449,
+      "corridor_frp_by_country": {
+        "Thailand": 173.0,
+        "Myanmar": 1.2,
+        "Laos": 0.0
+      },
+      "corridor_foreign_frp_fraction": 0.007,
+      "trajectory_foreign_plausible": true,
+      "agrees_with_model": false
+    },
+    {
+      "date": "2025-03-17",
+      "launch_time_utc": "2025-03-17T09:00:00Z",
+      "peak_pm25_ug_m3": 76.1,
+      "model_foreign_attribution": 0.0,
+      "model_country_attribution": {
+        "Laos": 0.0,
+        "Myanmar": 0.0,
+        "Thailand": 1.0
+      },
+      "trajectory": {
+        "hours_integrated": 48,
+        "terminated_reason": "completed",
+        "points": [
+          {
+            "hour_offset": 0,
+            "time_utc": "2025-03-17T09:00:00Z",
+            "lat": 19.3045,
+            "lon": 97.9716,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 1,
+            "time_utc": "2025-03-17T08:00:00Z",
+            "lat": 19.2501,
+            "lon": 97.8858,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 2,
+            "time_utc": "2025-03-17T07:00:00Z",
+            "lat": 19.1979,
+            "lon": 97.8074,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 3,
+            "time_utc": "2025-03-17T06:00:00Z",
+            "lat": 19.1494,
+            "lon": 97.7398,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 4,
+            "time_utc": "2025-03-17T05:00:00Z",
+            "lat": 19.1073,
+            "lon": 97.6874,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 5,
+            "time_utc": "2025-03-17T04:00:00Z",
+            "lat": 19.07,
+            "lon": 97.6543,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 6,
+            "time_utc": "2025-03-17T03:00:00Z",
+            "lat": 19.0298,
+            "lon": 97.6403,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 7,
+            "time_utc": "2025-03-17T02:00:00Z",
+            "lat": 18.99,
+            "lon": 97.644,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 8,
+            "time_utc": "2025-03-17T01:00:00Z",
+            "lat": 18.9585,
+            "lon": 97.663,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 9,
+            "time_utc": "2025-03-17T00:00:00Z",
+            "lat": 18.9283,
+            "lon": 97.7012,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 10,
+            "time_utc": "2025-03-16T23:00:00Z",
+            "lat": 18.8905,
+            "lon": 97.757,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 11,
+            "time_utc": "2025-03-16T22:00:00Z",
+            "lat": 18.8431,
+            "lon": 97.8146,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 12,
+            "time_utc": "2025-03-16T21:00:00Z",
+            "lat": 18.7888,
+            "lon": 97.8702,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 13,
+            "time_utc": "2025-03-16T20:00:00Z",
+            "lat": 18.73,
+            "lon": 97.9259,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 14,
+            "time_utc": "2025-03-16T19:00:00Z",
+            "lat": 18.6706,
+            "lon": 97.9739,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 15,
+            "time_utc": "2025-03-16T18:00:00Z",
+            "lat": 18.6128,
+            "lon": 98.015,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 16,
+            "time_utc": "2025-03-16T17:00:00Z",
+            "lat": 18.557,
+            "lon": 98.0461,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 17,
+            "time_utc": "2025-03-16T16:00:00Z",
+            "lat": 18.502,
+            "lon": 98.0697,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 18,
+            "time_utc": "2025-03-16T15:00:00Z",
+            "lat": 18.4459,
+            "lon": 98.0816,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 19,
+            "time_utc": "2025-03-16T14:00:00Z",
+            "lat": 18.3912,
+            "lon": 98.0718,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 20,
+            "time_utc": "2025-03-16T13:00:00Z",
+            "lat": 18.3435,
+            "lon": 98.0455,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 21,
+            "time_utc": "2025-03-16T12:00:00Z",
+            "lat": 18.3004,
+            "lon": 98.0,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 22,
+            "time_utc": "2025-03-16T11:00:00Z",
+            "lat": 18.2634,
+            "lon": 97.9315,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 23,
+            "time_utc": "2025-03-16T10:00:00Z",
+            "lat": 18.2326,
+            "lon": 97.8544,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 24,
+            "time_utc": "2025-03-16T09:00:00Z",
+            "lat": 18.2015,
+            "lon": 97.7814,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 25,
+            "time_utc": "2025-03-16T08:00:00Z",
+            "lat": 18.1748,
+            "lon": 97.7195,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 26,
+            "time_utc": "2025-03-16T07:00:00Z",
+            "lat": 18.1523,
+            "lon": 97.6658,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 27,
+            "time_utc": "2025-03-16T06:00:00Z",
+            "lat": 18.1368,
+            "lon": 97.6242,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 28,
+            "time_utc": "2025-03-16T05:00:00Z",
+            "lat": 18.127,
+            "lon": 97.5986,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 29,
+            "time_utc": "2025-03-16T04:00:00Z",
+            "lat": 18.1195,
+            "lon": 97.5883,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 30,
+            "time_utc": "2025-03-16T03:00:00Z",
+            "lat": 18.1108,
+            "lon": 97.5897,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 31,
+            "time_utc": "2025-03-16T02:00:00Z",
+            "lat": 18.0957,
+            "lon": 97.6021,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 32,
+            "time_utc": "2025-03-16T01:00:00Z",
+            "lat": 18.0827,
+            "lon": 97.6206,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 33,
+            "time_utc": "2025-03-16T00:00:00Z",
+            "lat": 18.0738,
+            "lon": 97.6406,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 34,
+            "time_utc": "2025-03-15T23:00:00Z",
+            "lat": 18.0571,
+            "lon": 97.6657,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 35,
+            "time_utc": "2025-03-15T22:00:00Z",
+            "lat": 18.0277,
+            "lon": 97.6964,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 36,
+            "time_utc": "2025-03-15T21:00:00Z",
+            "lat": 17.9868,
+            "lon": 97.7305,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 37,
+            "time_utc": "2025-03-15T20:00:00Z",
+            "lat": 17.9375,
+            "lon": 97.7642,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 38,
+            "time_utc": "2025-03-15T19:00:00Z",
+            "lat": 17.8831,
+            "lon": 97.7876,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 39,
+            "time_utc": "2025-03-15T18:00:00Z",
+            "lat": 17.8273,
+            "lon": 97.8018,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 40,
+            "time_utc": "2025-03-15T17:00:00Z",
+            "lat": 17.773,
+            "lon": 97.8078,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 41,
+            "time_utc": "2025-03-15T16:00:00Z",
+            "lat": 17.7232,
+            "lon": 97.8138,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 42,
+            "time_utc": "2025-03-15T15:00:00Z",
+            "lat": 17.6791,
+            "lon": 97.828,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 43,
+            "time_utc": "2025-03-15T14:00:00Z",
+            "lat": 17.6398,
+            "lon": 97.8411,
+            "country": "Thailand"
+          },
+          {
+            "hour_offset": 44,
+            "time_utc": "2025-03-15T13:00:00Z",
+            "lat": 17.5994,
+            "lon": 97.8338,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 45,
+            "time_utc": "2025-03-15T12:00:00Z",
+            "lat": 17.5611,
+            "lon": 97.7997,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 46,
+            "time_utc": "2025-03-15T11:00:00Z",
+            "lat": 17.5224,
+            "lon": 97.7444,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 47,
+            "time_utc": "2025-03-15T10:00:00Z",
+            "lat": 17.4809,
+            "lon": 97.6793,
+            "country": "Myanmar"
+          },
+          {
+            "hour_offset": 48,
+            "time_utc": "2025-03-15T09:00:00Z",
+            "lat": 17.4435,
+            "lon": 97.6134,
+            "country": "Myanmar"
+          }
+        ]
+      },
+      "country_hours_fraction": {
+        "Thailand": 0.5306,
+        "Myanmar": 0.4694,
+        "Laos": 0.0,
+        "other": 0.0
+      },
+      "foreign_hours_fraction": 0.4694,
+      "corridor_frp_by_country": {
+        "Thailand": 25.7,
+        "Myanmar": 8.8,
+        "Laos": 0.0
+      },
+      "corridor_foreign_frp_fraction": 0.2546,
+      "trajectory_foreign_plausible": true,
+      "agrees_with_model": false
+    }
+  ],
+  "agreement_summary": {
+    "n_events": 5,
+    "n_model_foreign": 2,
+    "n_trajectory_foreign_plausible": 5,
+    "n_agree": 2,
+    "n_events_with_model": 5,
+    "agreement_fraction": 0.4
+  },
+  "caveats": [
+    "วิถีลมนี้ใช้ลม 10 เมตร (u10/v10) ของ ERA5 เท่านั้น — เป็นการเคลื่อนที่ในแนวราบ ไม่รวมการยกตัว/จมตัวในแนวดิ่งและชั้นบรรยากาศบน จึงเป็นหลักฐานสนับสนุนเชิงบ่งชี้ ไม่เทียบเท่า HYSPLIT เต็มรูปแบบ",
+    "โดเมน ERA5 ครอบคลุมแค่ lon 97.0–101.5, lat 16.0–21.0 — วิถีที่ย้อนออกนอกกรอบจะถูกหยุดและบันทึกเหตุผล (terminated_reason) สัดส่วนประเทศคำนวณเฉพาะช่วงที่อยู่ในโดเมน",
+    "การจับคู่วิถีลมกับจุดความร้อน FIRMS ใช้รัศมีคงที่และวันที่ (UTC) ของแต่ละชั่วโมงวิถี — เป็นการชี้ 'ผ่านใกล้ไฟที่ยังคุอยู่' ไม่ใช่การพิสูจน์การขนส่งมวลฝุ่นเชิงปริมาณ",
+    "เวลาปล่อยวิถีคือชั่วโมงที่ PM2.5 สูงสุดของวันนั้นที่สถานี (anchor เดียวกับที่โมเดลใช้ระบุแหล่ง) — วิถีเดียวต่อเหตุการณ์ ไม่ใช่ ensemble หลายเวลาหรือหลายระดับความสูง",
+    "การ 'เห็นตรงกัน' (agrees_with_model) เป็นการยืนยันทิศทางแบบไบนารี (ต่างชาติ/ในประเทศ) ระหว่างพยานอิสระกับโมเดล ไม่ได้ยืนยันขนาดของ attribution"
+  ]
+}
