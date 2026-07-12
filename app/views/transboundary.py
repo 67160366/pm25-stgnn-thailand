@@ -210,7 +210,9 @@ def _matrix_section(data: dict) -> None:
     )
     st.plotly_chart(fig, width="stretch")
 
-    st.caption("ระยะทางสถานีถึงพรมแดนต่างชาติที่ใกล้ที่สุด (เกณฑ์การคัดเลือก ไม่ใช่การเลือกเฉพาะที่สวย):")
+    st.caption(
+        "ระยะทางสถานีถึงพรมแดนต่างชาติที่ใกล้ที่สุด (เกณฑ์การคัดเลือก ไม่ใช่การเลือกเฉพาะที่สวย):"
+    )
     station_rows = [
         {
             "สถานี": s["name"],
@@ -313,6 +315,152 @@ def _uncertainty_section(data: dict) -> None:
         st.caption(f"⚠️ {caveat}")
 
 
+_TRAJ_COLORS: list[str] = ["#E91E63", "#3F51B5", "#009688", "#FF9800", "#795548"]
+
+
+def _trajectory_map(events: list[dict], station_lat: float, station_lon: float) -> go.Figure:
+    """One coloured backward-trajectory line per event, plus the launch station + borders."""
+    fig = go.Figure()
+    for i, e in enumerate(events):
+        points = e.get("trajectory", {}).get("points", [])
+        if not points:
+            continue
+        colour = _TRAJ_COLORS[i % len(_TRAJ_COLORS)]
+        fig.add_trace(
+            go.Scattermapbox(
+                lat=[p["lat"] for p in points],
+                lon=[p["lon"] for p in points],
+                mode="lines+markers",
+                line=dict(width=2, color=colour),
+                marker=dict(size=4, color=colour),
+                name=e.get("date", f"event {i}"),
+                text=[
+                    f"{e.get('date', '-')}<br>ย้อนหลัง {p['hour_offset']} ชม.<br>"
+                    f"{p['time_utc']}<br>ประเทศ: {_COUNTRY_TH.get(p['country'], p['country'])}"
+                    for p in points
+                ],
+                hoverinfo="text",
+            )
+        )
+    fig.add_trace(
+        go.Scattermapbox(
+            lat=[station_lat],
+            lon=[station_lon],
+            mode="markers",
+            marker=go.scattermapbox.Marker(size=14, color="black"),
+            name="สถานีแม่ฮ่องสอน (จุดปล่อยวิถี)",
+            hoverinfo="name",
+        )
+    )
+    fig.update_layout(
+        mapbox=dict(
+            style="carto-positron",
+            center=dict(lat=station_lat, lon=station_lon),
+            zoom=5.5,
+            layers=[
+                dict(
+                    sourcetype="geojson",
+                    source=geo.border_geojson(),
+                    type="line",
+                    color="rgba(80,80,80,0.55)",
+                    line=dict(width=1.5),
+                )
+            ],
+        ),
+        margin=dict(l=0, r=0, t=10, b=0),
+        height=520,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=0.01,
+            xanchor="left",
+            x=0.01,
+            bgcolor="rgba(255,255,255,0.75)",
+        ),
+    )
+    return fig
+
+
+def _backtrajectory_section(data: dict) -> None:
+    """Item-11 section: ERA5 kinematic back-trajectory as an independent witness.
+
+    Reads ``outputs/backtrajectory_test2025.json`` (Package A artifact, read-only).
+    Degrades to ``st.info`` when the file is absent so the page never crashes. Presents the
+    binary direction-agreement result honestly (2/5 under the pre-registered metric as
+    measured) with the corridor-FRP explanation for the 3 disagreements -- never spins the
+    number and never re-derives or discusses tuning the underlying thresholds.
+    """
+    st.divider()
+    st.markdown("#### วิถีลมย้อนหลัง (ERA5) — พยานอิสระของทิศทางการระบุแหล่งข้ามแดน")
+    events = data.get("events", []) if data else []
+    if not events:
+        st.info(
+            "ℹ️ ยังไม่มีผลลัพธ์ backtrajectory_test2025.json (ยังไม่ได้รัน "
+            "scripts/22_backtrajectory.py) — ข้ามส่วนนี้ไปก่อน"
+        )
+        return
+
+    hours_back = data.get("trajectory_params", {}).get("hours_back", 48)
+    st.caption(
+        f"สถานี: {data.get('station', '-')} · วิถีย้อนหลัง {hours_back} ชม. จากลมผิวพื้น ERA5 "
+        "(u10/v10) เท่านั้น เริ่มที่ชั่วโมง PM2.5 สูงสุดของแต่ละเหตุการณ์ (anchor เดียวกับที่โมเดลใช้ระบุแหล่ง) "
+        "— เป็นหลักฐานสนับสนุนเชิงบ่งชี้ ไม่ใช่ HYSPLIT เต็มรูปแบบ"
+    )
+
+    meta = da.load_stations_meta()
+    st_row = meta[meta["station_id"] == data.get("station_id", 225648)]
+    s_lat = float(st_row.iloc[0]["lat"]) if len(st_row) else 19.30455
+    s_lon = float(st_row.iloc[0]["lon"]) if len(st_row) else 97.97165
+
+    st.plotly_chart(_trajectory_map(events, s_lat, s_lon), width="stretch")
+    st.caption(
+        "🗺️ เส้นสี = วิถีลมย้อนหลังแต่ละเหตุการณ์ (จุดดำ = สถานีแม่ฮ่องสอน จุดปล่อยวิถี) · "
+        "เส้นเทา = พรมแดนประเทศจริง — ดูว่าวิถีผ่านประเทศใดก่อนย้อนไปถึงสถานี"
+    )
+
+    rows = [
+        {
+            "วันที่": e["date"],
+            "PM2.5 สูงสุด (µg/m³)": round(e.get("peak_pm25_ug_m3", 0.0), 1),
+            "โมเดลชี้ต่างชาติ (%)": (
+                round(e["model_foreign_attribution"] * 100, 1)
+                if e.get("model_foreign_attribution") is not None
+                else None
+            ),
+            "% ชม.วิถีอยู่ต่างชาติ": round(e.get("foreign_hours_fraction", 0.0) * 100, 1),
+            "FRP ทางเดินวิถี เมียนมา": round(
+                e.get("corridor_frp_by_country", {}).get("Myanmar", 0.0), 1
+            ),
+            "FRP ทางเดินวิถี ไทย": round(
+                e.get("corridor_frp_by_country", {}).get("Thailand", 0.0), 1
+            ),
+            "FRP ทางเดินวิถี ลาว": round(e.get("corridor_frp_by_country", {}).get("Laos", 0.0), 1),
+            "เห็นตรงกันกับโมเดล": (
+                "✅"
+                if e.get("agrees_with_model") is True
+                else ("❌" if e.get("agrees_with_model") is False else "—")
+            ),
+        }
+        for e in events
+    ]
+    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+
+    summary = data.get("agreement_summary", {})
+    n_agree = summary.get("n_agree", 0)
+    n_with_model = summary.get("n_events_with_model", len(events))
+    st.markdown(
+        f"**สรุปแบบตรงไปตรงมา:** พยานอิสระ (วิถีลมย้อนหลังจาก ERA5) เห็นตรงกับทิศทางที่โมเดลระบุ "
+        f"**{n_agree}/{n_with_model}** เหตุการณ์ (ตัวชี้วัดไบนารี ต่างชาติ/ในประเทศ ที่กำหนดไว้ก่อนดูผล) — "
+        "ทั้ง 2 เหตุการณ์ที่โมเดลชี้ต่างชาติจริง (2025-03-18, 2025-03-13) มีวิถีลมยืนยัน คือผ่านเมียนมาและอยู่ใกล้"
+        "ไฟต่างชาติจริงตามทางเดินวิถี ส่วนอีก 3 เหตุการณ์ วิถีลมยังคงผ่านเมียนมาเช่นเดียวกัน (ปกติของสถานีชายแดน"
+        "แม่ฮ่องสอน) แต่ไม่พบไฟต่างชาติที่มีนัยสำคัญตามทางเดินวิถีในวันเหล่านั้น — สอดคล้องกับที่โมเดลรายงาน "
+        "attribution ต่างชาติใกล้ศูนย์ ไม่ใช่ข้อขัดแย้งที่อธิบายไม่ได้"
+    )
+
+    for caveat in data.get("caveats", []):
+        st.caption(f"⚠️ {caveat}")
+
+
 def render() -> None:
     """Render the transboundary attribution page."""
     ui.page_title(
@@ -400,3 +548,4 @@ def render() -> None:
 
     _matrix_section(da.load_transboundary_matrix())
     _uncertainty_section(da.load_transboundary_uncertainty())
+    _backtrajectory_section(da.load_backtrajectory())

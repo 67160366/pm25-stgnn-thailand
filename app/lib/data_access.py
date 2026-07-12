@@ -149,3 +149,15 @@ def load_transboundary_uncertainty() -> dict:
     and ``summary`` (aggregate spread stats).
     """
     return load_output_json("transboundary_uncertainty.json")
+
+
+@st.cache_data(show_spinner=False)
+def load_backtrajectory() -> dict:
+    """ERA5 kinematic back-trajectory independent witness for the flagship station; {} if absent.
+
+    Produced by ``scripts/22_backtrajectory.py``. Schema documented there: ``events`` (per-
+    event ``trajectory.points`` lat/lon/country path, ``country_hours_fraction``,
+    ``corridor_frp_by_country``, ``model_foreign_attribution`` and ``agrees_with_model``) and
+    ``agreement_summary`` (binary direction agreement vs. the frozen model attribution).
+    """
+    return load_output_json("backtrajectory_test2025.json")
