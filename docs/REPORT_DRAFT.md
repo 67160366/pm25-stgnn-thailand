@@ -32,13 +32,13 @@
 
 โครงงานนี้ให้ความสำคัญกับ **การประเมินผลอย่างเข้มงวดและซื่อสัตย์** เป็นพิเศษ: ใช้การแบ่งข้อมูลแบบ held-out (เทรน 2565–2566, validation 2567 สำหรับเลือกโมเดล, ทดสอบ held-out 2568), ช่วงความเชื่อมั่นแบบ block-bootstrap, และการทดสอบ ablation แบบหลาย seed ผลพบว่า **ความได้เปรียบเชิงพยากรณ์เหนือ baseline persistence มีจำกัด** — เด่นเฉพาะที่ 48 ชั่วโมง (RMSE 12.66 เทียบ 12.99 µg/m³ บนชุด held-out test ปี 2568; ราว 2%) และ **ยังไม่มีนัยสำคัญทางสถิติในข้อมูลปีเดียว** (95% CI คร่อม 0) อีกทั้ง ablation แบบหลาย seed บ่งชี้ว่า **กลไกกราฟไม่ได้ยกระดับความแม่นยำเหนือความผันผวนจากการสุ่ม seed** อย่างมีนัย
 
-**คุณค่าที่พิสูจน์ได้ของระบบคือความสามารถระบุแหล่งกำเนิดที่อธิบายได้** ซึ่ง persistence และโมเดลที่ไม่ใช้กราฟทำไม่ได้: บนข้อมูล **held-out ปี 2568** ที่สถานีชายแดนแม่ฮ่องสอน (18 มี.ค. 2568) ระบบระบุว่าฝุ่นมาจากต่างชาติ (เมียนมา+ลาว) ประมาณ 63% สอดคล้องกับสัดส่วนไฟข้ามแดนที่เชื่อมถึงสถานีจริง (72.1%) และสัดส่วนที่ระบุไล่ตามสัดส่วนไฟจริงทั้ง 5 เหตุการณ์ทดสอบ (ทั้งนี้ขนาดของสัดส่วนขึ้นกับโมเดล ดูรายละเอียดในผลการทดสอบ) ขณะที่เหตุการณ์หมอกควันกลางเมืองเชียงใหม่ มีนาคม 2567 (141–144 µg/m³) ระบบระบุว่าเป็นการเผาในไทยเป็นหลัก (~100%; ค่า FRP ของไฟในไทยสูงกว่าไฟต่างชาติราว 59 เท่า) แสดงให้เห็นว่าระบบจับการลำเลียงข้ามแดนได้จริง "เมื่อและที่ใด" มันเกิดขึ้น นอกจากนี้คณะผู้พัฒนายังตรวจพบและแก้ไขข้อผิดพลาดการ denormalize ในขั้นตอนรายงานผลด้วยตนเอง และเปิดเผยผลตามจริงทั้งหมด ซึ่งสะท้อนความเข้มงวดทางวิศวกรรมและธรรมาภิบาล AI ระบบทั้งหมดแสดงผลผ่าน dashboard (Streamlit) เพื่อสนับสนุนการตัดสินใจเชิงนโยบายสาธารณสุขและสิ่งแวดล้อม
+**คุณค่าที่พิสูจน์ได้ของระบบคือความสามารถระบุแหล่งกำเนิดที่อธิบายได้** ซึ่ง persistence และโมเดลที่ไม่ใช้กราฟทำไม่ได้: บนข้อมูล **held-out ปี 2568** ที่สถานีชายแดนแม่ฮ่องสอน (18 มี.ค. 2568) ระบบระบุว่าฝุ่นมาจากต่างชาติ (เมียนมา+ลาว) ประมาณ 63% สอดคล้องกับสัดส่วนไฟข้ามแดนที่เชื่อมถึงสถานีจริง (72.1%) และสัดส่วนที่ระบุไล่ตามสัดส่วนไฟจริงทั้ง 5 เหตุการณ์ทดสอบ (ทั้งนี้ขนาดของสัดส่วนขึ้นกับโมเดล ดูรายละเอียดในผลการทดสอบ) ขณะที่เหตุการณ์หมอกควันกลางเมืองเชียงใหม่ มีนาคม 2567 (141–144 µg/m³) ระบบระบุว่าเป็นการเผาในไทยเป็นหลัก (~100%; ค่า FRP ของไฟในไทยสูงกว่าไฟต่างชาติราว 59 เท่า) แสดงให้เห็นว่าระบบจับการลำเลียงข้ามแดนได้จริง "เมื่อและที่ใด" มันเกิดขึ้น นอกจากนี้คณะผู้พัฒนายังตรวจพบและแก้ไขข้อผิดพลาดการ denormalize ในขั้นตอนรายงานผลด้วยตนเอง และเปิดเผยผลตามจริงทั้งหมด ซึ่งสะท้อนความเข้มงวดทางวิศวกรรมและธรรมาภิบาล AI ระบบทั้งหมดแสดงผลผ่าน dashboard (Streamlit) เพื่อสนับสนุนการตัดสินใจเชิงนโยบายสาธารณสุขและสิ่งแวดล้อม ยิ่งกว่านั้น เมื่อนำโมเดลที่แช่แข็งไปประเมินบนข้อมูลฤดูเผา มกราคม–เมษายน 2569 ที่ไม่เคยมีอยู่ตอนออกแบบ (out-of-sample 100%) พบรูปแบบเดิมทุกประการ — เอาชนะ persistence ที่ขอบฟ้า 24/48 ชั่วโมง (+4.4% / +9.1%) และแพ้ขอบฟ้าสั้น — ยืนยันว่าผลไม่ได้เกิดจากการรั่วไหลของข้อมูล
 
 ## Abstract
 
 Northern Thailand suffers a recurring PM2.5 haze crisis each dry season, driven by biomass burning and transboundary transport from Myanmar and Laos; in March 2024 hourly PM2.5 in Chiang Mai reached 141–144 µg/m³. Existing tools are reactive — they neither forecast ahead nor attribute sources. We present an **Explainable Spatio-Temporal Graph Neural Network (STGNN)** that jointly forecasts PM2.5 at 18 Air4Thai stations (6/12/24/48 h) and **quantifies source attribution** via Graph-based Integrated Gradients and occlusion, integrating ERA5 wind/meteorology and NASA FIRMS fire hotspots as source nodes in a heterogeneous graph.
 
-We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23, val 2024 for model selection, test 2025), paired block-bootstrap confidence intervals, and a multi-seed ablation. We find the **forecast advantage over a persistence baseline is marginal** — present only at 48 h (RMSE 12.66 vs 12.99 µg/m³ on the held-out 2025 test, ~2%) and **not statistically significant** in a single year (95% CI spans 0); the multi-seed ablation shows the **graph machinery does not robustly improve accuracy beyond training-seed variance**. The system's **demonstrated contribution is explainable source attribution**, which persistence and a non-graph baseline cannot provide: on **held-out 2025** data at the Mae Hong Son border station (2025-03-18) the model attributes ~63% of pollution to foreign (Myanmar+Laos) burning, tracking the ~72% foreign share of connected fire activity — and the attributed share tracks the true foreign share across all five test events — whereas the interior Chiang Mai March-2024 episode is attributed to predominantly Thai burning (~100%; Thai FRP ~59× the foreign total). We additionally caught and fixed a denormalisation reporting bug ourselves and report all results transparently — reflecting engineering rigour and AI governance. Results are served through a Streamlit dashboard for public-health and environmental decision support.
+We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23, val 2024 for model selection, test 2025), paired block-bootstrap confidence intervals, and a multi-seed ablation. We find the **forecast advantage over a persistence baseline is marginal** — present only at 48 h (RMSE 12.66 vs 12.99 µg/m³ on the held-out 2025 test, ~2%) and **not statistically significant** in a single year (95% CI spans 0); the multi-seed ablation shows the **graph machinery does not robustly improve accuracy beyond training-seed variance**. The system's **demonstrated contribution is explainable source attribution**, which persistence and a non-graph baseline cannot provide: on **held-out 2025** data at the Mae Hong Son border station (2025-03-18) the model attributes ~63% of pollution to foreign (Myanmar+Laos) burning, tracking the ~72% foreign share of connected fire activity — and the attributed share tracks the true foreign share across all five test events — whereas the interior Chiang Mai March-2024 episode is attributed to predominantly Thai burning (~100%; Thai FRP ~59× the foreign total). We additionally caught and fixed a denormalisation reporting bug ourselves and report all results transparently — reflecting engineering rigour and AI governance. Results are served through a Streamlit dashboard for public-health and environmental decision support. Moreover, evaluating the frozen model on the Jan–Apr 2026 burning season — data that did not exist at design time (fully out-of-sample) — reproduces the same pattern (beating persistence at 24/48 h by +4.4%/+9.1%, losing at short horizons), confirming the result is not an artefact of leakage.
 
 **คำสำคัญ:** PM2.5, โครงข่ายกราฟประสาทเทียมเชิงปริภูมิ-เวลา, การวิเคราะห์แหล่งกำเนิด, Integrated Gradients, AI ที่อธิบายได้, ภาคเหนือประเทศไทย, FIRMS, ERA5
 
@@ -98,6 +98,8 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 4. การระบุแหล่งกำเนิดเป็น **การประมาณจากโมเดล** ที่ตรวจสอบเทียบกับข้อมูลไฟจริง FIRMS ไม่ใช่การวัดโดยตรงในอากาศ และอยู่ในระดับประเทศ ไม่ใช่ระดับพื้นที่ย่อย จึงไม่ควรใช้กล่าวโทษเชิงการทูต
 5. ระบบจำกัดเฉพาะพื้นที่ 9 จังหวัดภาคเหนือ และยังไม่รองรับการลำเลียงฝุ่นจากจีนและอินเดีย
 6. ความถูกต้องของ attribution ขึ้นกับคุณภาพและความครอบคลุมของการตรวจจับไฟของดาวเทียม (เมฆ/เซ็นเซอร์อาจมี bias)
+7. **ช่วงพยากรณ์แบบ conformal อิงสมมติฐาน exchangeability** — ช่วง 90% ที่รายงาน (§6.7) คาลิเบรตบนข้อมูล validation 2567 การพยากรณ์ด้วย NWP สดจริงทำให้การกระจายของ input ต่างไป (exchangeability ไม่เป็นจริง) ความครอบคลุมจริงอาจต่ำกว่า 90% โดยเฉพาะบางสถานี (เช่น 225585 เหลือ ~70% ที่ 48 ชม.)
+8. **ตัวชี้วัดการเกินค่ามาตรฐานขึ้นกับ base rate ของปี** — ผลการพยากรณ์โอกาสเกินค่ามาตรฐาน (§6.8) คิดบนปี 2568 ซึ่งมีอัตราการเกิดเหตุการณ์ (base rate) ที่เกณฑ์ 75 µg/m³ = 5.5% สูงกว่า climatology ปี 2565–2567 (4.4%) จึงต้องอ่านคะแนน Brier Skill Score เทียบ climatology ของช่วงฝึกเสมอ ไม่เทียบข้ามปีที่ base rate ต่างกัน
 
 ## 4. รายละเอียดของการพัฒนา
 
@@ -172,6 +174,16 @@ We emphasise **rigorous, honest evaluation**: a held-out split (train 2022–23,
 **ส่วนที่พัฒนาเอง vs. นำมาใช้ (Built vs. Reused):**
 - *พัฒนาเอง:* `src/data/graph_builder.py` (กราฟ 3 ชนิดเส้นเชื่อม + wind-aware), `src/explain/gb_ig.py` และ `attribution.py` (GB-IG + occlusion), `src/training/evaluation.py` (denorm/persistence/มาสก์/RMSE ที่ใช้ร่วมกันทุกสคริปต์เพื่อกันความคลาดเคลื่อน), สคริปต์ประเมินผลและทดสอบความเข้มงวด `scripts/04`–`12`, และ dashboard ทั้งหมด
 - *นำมาใช้ (อ้างอิงชัดเจน):* สถาปัตยกรรม MTGNN (Wu et al., 2020), HistGradientBoostingRegressor (scikit-learn), ไลบรารี PyTorch/PyG; ข้อมูลสาธารณะจาก Air4Thai, NASA FIRMS, ERA5
+
+### 4.5 ความสามารถของระบบที่พัฒนาเพิ่มเติม (System Capabilities)
+
+นอกเหนือจากแกนพยากรณ์และการระบุแหล่งกำเนิด ระบบได้พัฒนาความสามารถเชิงวิศวกรรมเพิ่มเติมต่อไปนี้ (เป็นการพัฒนาระบบ ไม่ใช่การอ้างความแม่นยำเพิ่ม — ตัวเลขความแม่นยำทั้งหมดคงเดิมตาม §6):
+
+1. **โหมดพยากรณ์สดจากเวลาปัจจุบัน (Live NWP forecast)** — dashboard เพิ่มโหมด "พยากรณ์วันนี้" ที่ดึงค่าฝุ่นล่าสุดจาก Air4Thai realtime ร่วมกับพยากรณ์อากาศ (NWP) จาก Open-Meteo เพื่อพยากรณ์ล่วงหน้า 48 ชั่วโมงของวันจริง โดย **ระบุชัดเจนว่า input เป็น NWP ไม่ใช่ ERA5** และแนบลิงก์หลักฐานความทนต่อ noise ของ NWP (§6.4) โหมดนี้ปิดจุดอ่อน "hindcast" โดยไม่กล่าวเกินจริง
+2. **การวิเคราะห์แบบโต้ตอบ "ถ้าดับไฟกลุ่มนี้" (interactive counterfactual/occlusion)** — ผู้ใช้เลือกประเทศ/กลุ่มไฟ แล้วระบบแสดงค่าพยากรณ์ก่อน/หลังปิดโหนดไฟ (µg/m³) ต่อสถานี ใช้กลไก occlusion เดียวกับ §6.5 ทำให้ "คันโยกนโยบาย" จับต้องได้
+3. **การแจ้งเตือนล่วงหน้า 48 ชั่วโมงผ่าน Telegram** — แปลงค่าพยากรณ์เป็นระดับ AQI ไทยพร้อมคำแนะนำกลุ่มเสี่ยง แล้วส่งผ่าน Telegram Bot API
+4. **ช่วงความเชื่อมั่นแบบ conformal ใน dashboard** — แสดงช่วงพยากรณ์ 90% (§6.7) ควบคู่ค่าจุด พร้อม caveat เรื่อง exchangeability
+5. **ธรรมาภิบาลทางวิศวกรรม** — เพิ่ม Continuous Integration (GitHub Actions: pytest + ruff + black ทุก push โดยไม่มี network call ในการทดสอบ) และจัดทำ Model Card + Data Card หนึ่งหน้า (`docs/MODEL_CARD.md`, `docs/DATA_CARD.md`) ตามแนวทาง AI governance
 
 ---
 
@@ -289,6 +301,76 @@ ERA5 เป็น reanalysis ที่มีความล่าช้า ร�
 
 ระหว่างการพัฒนา คณะผู้พัฒนา **ตรวจพบข้อผิดพลาดในขั้นตอน denormalization** ของการรายงานผล (ใช้ scale ผิด) ซึ่งทำให้ค่า RMSE ที่รายงานในข้อเสนอโครงการฉบับส่ง (พฤษภาคม 2568) **ต่ำกว่าจริงและเปอร์เซ็นต์การเอาชนะ persistence สูงเกินจริง** ทีมได้แก้ไขด้วยตนเอง รวมศูนย์การคำนวณไว้ที่ `src/training/evaluation.py` และเขียนสคริปต์ที่ reproduce ผลได้ ทั้งนี้ **โมเดลและการเทรนถูกต้องอยู่แล้ว** (normalized metric และลำดับของโมเดลไม่เปลี่ยน) ค่าที่ถูกต้องคือชุดในตารางข้างต้นทั้งหมด การตรวจพบและเปิดเผยข้อผิดพลาดด้วยตนเองสะท้อนความเข้มงวดทางวิศวกรรมและธรรมาภิบาล AI ซึ่งเป็นหลักการสำคัญของโครงงานนี้
 
+### 6.7 ช่วงพยากรณ์แบบ Conformal (90% coverage)
+
+เพื่อสื่อสารความไม่แน่นอนของค่าพยากรณ์อย่างมีการรับประกันเชิงสถิติ ระบบใช้ **split-conformal prediction** (Lei et al., 2018) คาลิเบรตค่าครึ่งความกว้าง (half-width) จากส่วนที่เหลือสัมบูรณ์ (absolute residual) ต่อสถานี บนข้อมูล validation ปี 2567 (α = 0.1, เป้าหมายความครอบคลุม 90%, n = 8,713) แล้ว **ทดสอบความครอบคลุมจริงบนชุด held-out test 2568** ที่ไม่เห็นตอนคาลิเบรต — แหล่ง `outputs/conformal/conformal_intervals.json`, `outputs/conformal/holdout_coverage_test2025.json`:
+
+| ขอบฟ้า | ครึ่งความกว้าง ±µg/m³ | ความครอบคลุมจริง (เป้า 0.90) |
+|---|---|---|
+| 6h | ±5.9 | 0.885 |
+| 12h | ±7.8 | 0.882 |
+| 24h | ±11.5 | 0.882 |
+| 48h | ±15.5 | 0.870 |
+
+**การอ่านผลอย่างซื่อสัตย์:** ความครอบคลุมจริงบน held-out ต่ำกว่าเป้า 90% เล็กน้อยและลดลงตามขอบฟ้า (88.5% → 87.0%) ซึ่งเป็นพฤติกรรมที่คาดได้เมื่อการกระจายของข้อมูลทดสอบต่างจากช่วงคาลิเบรต ในระดับสถานี ความครอบคลุมมีความแปรปรวน โดยสถานีที่แย่สุดคือ 225585 เหลือ 81.8% ที่ 6 ชม. และ 69.8% ที่ 48 ชม. จึงต้องรายงานช่วงเป็น "โดยประมาณ" และเตือนว่าเมื่อใช้ NWP สด (ไม่ใช่ ERA5) สมมติฐาน exchangeability จะไม่เป็นจริงและความครอบคลุมอาจคลาดเคลื่อนได้ (ดู §3.2 ข้อ 7)
+
+### 6.8 การพยากรณ์โอกาสเกินค่ามาตรฐาน (Exceedance Forecasting)
+
+นอกจากค่าตัวเลข RMSE ระบบยัง re-score ค่าพยากรณ์เดิมเป็นปัญหา **จำแนกโอกาสเกินเกณฑ์** (37.5 และ 75 µg/m³) ซึ่งตรงกับการใช้งานเตือนภัยจริงมากกว่า — แหล่ง `outputs/exceedance_test2025.json` (test 2568, n = 3,637) วัดด้วย Brier Skill Score (BSS) เทียบ climatology ของช่วงฝึก 2565–2567 (ไม่รั่วข้อมูล):
+
+| เกณฑ์ / ขอบฟ้า | BSS โมเดล | BSS persistence |
+|---|---|---|
+| 37.5 µg/m³ @ 48h | 0.306 | 0.282 |
+| 75 µg/m³ @ 48h | 0.190 | 0.170 |
+
+**การอ่านผลอย่างตรงไปตรงมา:** โมเดล **เอาชนะ persistence เฉพาะที่ขอบฟ้า 48 ชั่วโมง** (ทั้งสองเกณฑ์ ด้วยระยะห่างเล็กน้อย) ซึ่งสอดคล้องกับผล RMSE (§6.1) ที่โมเดลเด่นเฉพาะขอบฟ้ายาว ส่วนขอบฟ้าสั้น persistence เหนือกว่าและโมเดลมี **อัตราเตือนพลาด (False Alarm Rate) สูงกว่า** (เช่น 6 ชม. ที่เกณฑ์ 37.5: FAR โมเดล 0.088 เทียบ persistence 0.051) ทั้งนี้ตัวเลขทั้งหมดคิดบนปี 2568 ซึ่งมี base rate ที่เกณฑ์ 75 µg/m³ = 5.5% สูงกว่า climatology 2565–2567 (4.4%) จึงต้องอ่าน BSS เทียบ climatology ของช่วงฝึกเสมอ (ดู §3.2 ข้อ 8) ผลนี้ยืนยันแนวทางการใช้งานแบบ hybrid: พึ่งโมเดลที่ขอบฟ้ายาวเพื่อการเตือนภัยล่วงหน้า 48 ชั่วโมง
+
+### 6.9 การประเมินนอกกลุ่มตัวอย่างจริง — ฤดูเผา 2569
+
+เพื่อตัดข้อครหาเรื่องการรั่วไหลของข้อมูล (leakage) ทุกทาง คณะผู้พัฒนานำ **โมเดลรายงานที่แช่แข็งไว้** (ไม่เทรนใหม่ ไม่ปรับ scaler) มาประเมินบนข้อมูลฤดูเผา **มกราคม–เมษายน 2569** ซึ่งเป็นข้อมูลที่ **ไม่มีอยู่เลยตอนออกแบบและเทรนโมเดล** (out-of-sample 100%) — แหล่ง `outputs/evaluation_2026burn.json` (n = 2,809, ครบทั้ง 18 สถานี, ความครอบคลุม 80.6–100%):
+
+| วิธี | 6h | 12h | 24h | 48h |
+|---|---|---|---|---|
+| Persistence | 4.08 | 7.22 | 11.99 | 17.52 |
+| **MTGNN (โมเดลรายงาน)** | 5.47 | 7.67 | **11.46** | **15.92** |
+| ดีขึ้นเทียบ persistence | −34.1% | −6.2% | **+4.4%** | **+9.1%** |
+
+**การอ่านผลอย่างซื่อสัตย์:** บนข้อมูลจริงที่ไม่เคยเห็นมาก่อน โมเดลเอาชนะ persistence ที่ 24 และ 48 ชั่วโมง (+4.4% และ +9.1%) และแพ้ที่ขอบฟ้าสั้น — รูปแบบเดียวกับผล held-out 2568 ทุกประการ ซึ่งเป็นหลักฐานที่หนักแน่นว่าความได้เปรียบขอบฟ้ายาวไม่ได้มาจากการจดจำข้อมูล **ข้อควรระวังสำคัญ:** ค่า RMSE สัมบูรณ์ในตารางนี้ **สูงกว่า** ชุด full-year 2568 (เช่น persistence 48h 17.52 เทียบ 12.99 µg/m³) เพราะเป็นช่วง **ฤดูเผาโดยเฉพาะ** ที่ค่าฝุ่นสูงและผันผวนกว่า จึง **เทียบขนาดสัมบูรณ์ข้ามตารางไม่ได้** — เทียบได้เฉพาะ *เปอร์เซ็นต์การเอาชนะ* เท่านั้น (โปรโตคอลการวัดเหมือนกับ `evaluation_test2025.json` ทุกประการ: โมเดลแช่แข็ง ไม่เทรนใหม่ ไม่ refit scaler)
+
+### 6.10 เมทริกซ์การระบุข้ามแดนหลายสถานี และความไม่แน่นอนหลาย seed (ขยายผล §6.5)
+
+**(ก) เมทริกซ์ สถานีชายแดน × checkpoint** — เพื่อยกระดับหลักฐานจากกรณีเดียวเป็นเชิงระบบ คณะผู้พัฒนารัน occlusion country attribution ที่ **สถานีชายแดน 5 แห่ง** (ระยะ ≤ 50 กม. จากพรมแดนเมียนมา/ลาว) บน **2 checkpoint** (demo และ report/split2) สำหรับเหตุการณ์เรือธง 18 มี.ค. 2568 — แหล่ง `outputs/transboundary_matrix.json`:
+
+| สถานี (ระยะพรมแดน) | สัดส่วนไฟต่างชาติเชื่อมถึง | attribution (demo) | attribution (report) |
+|---|---|---|---|
+| แม่สาย 225567 (2.1 กม.) | 0.811 | 0.0 | 0.943 |
+| แม่สอด 225626 (6.5 กม.) | 0.820 | 0.957 | 0.994 |
+| แม่ฮ่องสอน 225648 (13.5 กม.) | 0.721 | 0.0 | 0.627 |
+| เชียงราย 2328 (40.7 กม.) | 0.753 | 0.156 | 0.507 |
+| น่าน 225674 (45.5 กม.) | 0.738 | 0.0 | 0.655 |
+
+สถานีชายแดนแท้ (แม่สาย แม่สอด) แสดงสัดส่วนต่างชาติสูงเมื่อไฟต่างชาติเชื่อมถึงจริง อย่างไรก็ตาม **ขนาดของสัดส่วนขึ้นกับ checkpoint**: มีเพียง **แม่สอด** ที่สัดส่วนต่างชาติของเหตุการณ์เรือธงสูงภายใต้ **ทั้งสอง checkpoint** (0.957 และ 0.994) ขณะที่แม่สายและแม่ฮ่องสอน "พลิก" จาก 0 (demo) เป็นสูง (report) — เราแสดงทั้งสอง checkpoint โดยไม่เลือกเฉพาะอันที่สวย ตามหลักการรายงานผลตามจริง
+
+**(ข) ความไม่แน่นอนของ attribution จากหลาย seed** — เพื่อเปลี่ยน caveat "ขนาดขึ้นกับโมเดล" จากคำเตือนลอย ๆ เป็นตัวเลขที่วัดจริง คณะผู้พัฒนารัน attribution ซ้ำด้วยโมเดล full variant **3 seed** ที่แม่ฮ่องสอน — แหล่ง `outputs/transboundary_uncertainty.json`: เหตุการณ์เรือธง 18 มี.ค. 2568 ให้สัดส่วนต่างชาติราย seed = **0.627 / 0.0 / 1.0** (ค่าเฉลี่ย **0.542**, ส่วนเบี่ยงเบนมาตรฐาน 0.505, ช่วง min–max **0.0–1.0**) โดย **ทิศทาง (ต่างชาติ > 0) คงอยู่ 2 ใน 3 seed** ส่วน **ขนาดแกว่งเต็มช่วง** ค่าเฉลี่ยของช่วง min–max ต่อเหตุการณ์ทั้ง 5 = 0.397 ดังนั้นเมื่ออ้างตัวเลข 62.7% ต้องรายงานช่วง 0.0–1.0 (เฉลี่ย 54.2%) ควบคู่เสมอ ข้อสรุปเชิงคุณภาพ (ระบบไล่ตามไฟข้ามแดนที่สถานีชายแดน) มั่นคงกว่าตัวเลขขนาดเชิงปริมาณ ซึ่งเรารายงานพร้อมความไม่แน่นอนนี้อย่างเปิดเผย
+
+### 6.11 พยานอิสระเชิงทิศทาง: วิถีลมย้อนหลัง (Back-trajectory) ที่แม่ฮ่องสอน (ขยายผล §6.5)
+
+เพื่อตรวจสอบผลระบุแหล่งกำเนิดของโมเดล (§6.5, §6.10) ด้วยพยานที่ **ไม่ขึ้นกับโมเดล** คณะผู้พัฒนาคำนวณ **วิถีลมย้อนหลังเชิงจลนศาสตร์ (kinematic backward trajectory)** จากลมผิว 10 เมตร (u10, v10) ของ ERA5 ด้วยวิธี RK2 ย้อนหลัง 48 ชั่วโมงจากชั่วโมงที่ PM2.5 สูงสุดของแต่ละเหตุการณ์ที่สถานีแม่ฮ่องสอน (จุดปล่อยเดียวกับที่ใช้ทำ attribution) แล้วติดป้ายประเทศทุกจุดตามวิถีด้วย point-in-polygon กับขอบเขตประเทศจริง และจับคู่กับจุดความร้อน FIRMS ในรัศมี 50 กม. รอบแต่ละจุด ("corridor FRP") เป็น **พยานอิสระเชิงทิศทางแบบไบนารี** (ต่างชาติ/ในประเทศ) — metric และเกณฑ์ทั้งหมดกำหนดไว้ **ก่อนเห็นผล** ไม่ปรับจูนย้อนหลัง — แหล่ง `outputs/backtrajectory_test2025.json` (สร้างโดย `scripts/22_backtrajectory.py`)
+
+ทั้ง 5 เหตุการณ์ วิถีลม integrate ครบ 48/48 ชั่วโมงโดยไม่หลุดออกนอกโดเมน ERA5:
+
+| เหตุการณ์ | attribution ต่างชาติ (โมเดล) | สัดส่วนชั่วโมงอยู่เหนือต่างชาติ (วิถีลม) | corridor FRP ต่างชาติ : ไทย | เห็นตรงกับโมเดล |
+|---|---|---|---|---|
+| 2025-03-18 (เรือธง) | 0.627 | 57.1% | เมียนมา 12,918.4 : ไทย 106.4 | ตรงกัน |
+| 2025-03-13 | 0.403 | 63.3% | เมียนมา 52.5 : ไทย 36.6 | ตรงกัน |
+| 2025-03-30 | 0.005 | 59.2% | เมียนมา 0.0 : ไทย 5.2 | ไม่ตรง |
+| 2025-03-11 | 0.0 | 24.5% | เมียนมา 1.2 : ไทย 173.0 | ไม่ตรง |
+| 2025-03-17 | 0.0 | 46.9% | เมียนมา 8.8 : ไทย 25.7 | ไม่ตรง |
+
+รวม agreement ระหว่างพยานอิสระกับโมเดล = **2/5 (0.4)**
+
+**การอ่านผลอย่างซื่อสัตย์:** (1) ทั้ง 2 เหตุการณ์ที่โมเดลชี้ต่างชาติ (18 และ 13 มี.ค.) ได้พยานอิสระยืนยันครบทั้งทิศทางวิถีลมและ corridor FRP (2) อีก 3 เหตุการณ์ที่ "ไม่ตรง" ชี้ข้อจำกัดของการใช้ "ทิศลมอย่างเดียว" เป็นพยาน: วิถีลมผ่านเมียนมาในทุกเหตุการณ์เช่นเดียวกัน (24–59% ของชั่วโมงย้อนหลังสำหรับ 3 เหตุการณ์นี้; แม่ฮ่องสอนติดชายแดน อากาศย่อมพัดผ่านเมียนมาแทบทุกวันไม่ว่าจะมีไฟหรือไม่) แต่ corridor FRP ต่างชาติตามวิถีนั้นแทบเป็นศูนย์ (03-30: เมียนมา 0.0; 03-11: เมียนมา 1.2 เทียบไทย 173.0; 03-17: เมียนมา 8.8 เทียบไทย 25.7) กล่าวคือ โมเดลซึ่งใช้ข้อมูลไฟจริงให้ค่าต่างชาติ ~0 ในวันที่ไม่มีไฟ active ตามวิถี ซึ่ง corridor FRP สนับสนุนการตัดสินของโมเดลมากกว่าจะขัดแย้ง (3) ข้อจำกัดของวิธีนี้: ใช้เฉพาะลมผิว 10 เมตร ไม่มีการเคลื่อนที่แนวดิ่งหรือชั้นบรรยากาศบน และเป็นวิถีเดียวต่อเหตุการณ์ ไม่ใช่ ensemble — จึงเป็นหลักฐานเชิงบ่งชี้ ไม่เทียบเท่าแบบจำลอง HYSPLIT เต็มรูปแบบ และ "เห็นตรงกัน" ในที่นี้วัดเฉพาะทิศทางแบบไบนารี ไม่ยืนยันขนาดของ attribution
+
 ## 7. ปัญหาและอุปสรรค
 
 1. **ข้อผิดพลาดการ denormalization ในการรายงานผล** — พบหลังส่งข้อเสนอโครงการ ทำให้ตัวเลข µg/m³ คลาดเคลื่อน ทีมแก้ไขโดยรวมศูนย์การคำนวณไว้ที่ `src/training/evaluation.py` และตรวจสอบซ้ำได้ (ดู §6.6)
@@ -322,6 +404,8 @@ ERA5 เป็น reanalysis ที่มีความล่าช้า ร�
 6. Hersbach, H., et al. (2020). The ERA5 global reanalysis. *Quarterly Journal of the Royal Meteorological Society*, 146(730), 1999–2049. https://doi.org/10.24381/cds.adbb2d47
 7. Graph-based Integrated Gradients for source attribution (2025). https://arxiv.org/abs/2509.07648
 8. Runfola, D. et al. (2020). geoBoundaries: A global database of political administrative boundaries. *PLoS ONE* 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866 — ข้อมูลเส้นพรมแดนประเทศ (ไทย/เมียนมา/ลาว) จาก geoBoundaries (gbOpen, ADM0 simplified); ข้อมูลต้นทาง © ผู้ร่วมพัฒนา OpenStreetMap (ODbL 1.0 / CC BY-SA 2.0)
+9. Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R. J., & Wasserman, L. (2018). Distribution-Free Predictive Inference for Regression. *Journal of the American Statistical Association*, 113(523), 1094–1111. https://doi.org/10.1080/01621459.2017.1307116
+10. Wilks, D. S. (2011). *Statistical Methods in the Atmospheric Sciences* (3rd ed.), sec. 8.4. Academic Press. — เกณฑ์ Brier score / Brier Skill Score สำหรับการพยากรณ์โอกาสเกินค่ามาตรฐาน (Brier, 1950)
 
 ## 11. สถานที่ติดต่อของผู้พัฒนาและอาจารย์ที่ปรึกษา
 
