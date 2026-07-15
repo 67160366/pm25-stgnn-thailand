@@ -650,7 +650,7 @@ figure(
     ROOT / "architecture_diagram.png",
     "รูปที่ 1 สถาปัตยกรรมระบบ: input 18 สถานี + โหนด hotspot → กราฟ 3 ชนิดเส้นเชื่อม "
     "(พื้นที่/ลม/ไฟ) → MTGNN → พยากรณ์ 6/12/24/48 ชม. + โมดูล GB-IG",
-    width_cm=12.0,
+    width_cm=15.0,
 )
 body(
     doc,

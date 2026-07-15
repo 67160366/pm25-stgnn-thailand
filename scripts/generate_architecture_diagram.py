@@ -1,249 +1,313 @@
-"""Generate system architecture diagram for NSC 2026 proposal."""
+# NSC 2026 หมวด 14 - ระบบพยากรณ์และวิเคราะห์แหล่งกำเนิด PM2.5 (Explainable STGNN)
+# พัฒนาโดย นายรณชัย ขาวสะอาด ม.บูรพา; สนับสนุนโดย สวทช.
+# เผยแพร่ตามต้นฉบับ ไม่รับประกันความเสียหาย; ข้อตกลงฉบับเต็ม (ไทย/อังกฤษ) ดู README.md
+"""Generate the system-architecture figure (รูปที่ 1) for the NSC 2026 report.
+
+Design notes (v2, regional-round revision):
+- Light tinted fills + dark text (soft, print-friendly) instead of saturated
+  fills + white text; fewer/larger boxes so the figure stays legible when
+  embedded at ~15 cm width in the Word report.
+- NO performance numbers in this figure — results live in report §6 only
+  (the v1 figure carried superseded pre-Session-8 numbers by accident).
+- Edge-type parameters mirror src/data/graph_builder.py _DEFAULT_CONFIG
+  (type_a ≤100 km exp(-d/50); type_b ≤200 km align>0.3 hourly;
+  type_c ≤500 km align>0.4 downwind), DBSCAN eps 25 km from
+  src/data/hotspot_clustering.py, ERA5 hourly + bilinear from scrapers/era5.py.
+"""
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
-# Use Leelawadee UI — Thai-capable font available on this Windows system
+# Thai-capable font available on Windows
 plt.rcParams["font.family"] = "Leelawadee UI"
 plt.rcParams["axes.unicode_minus"] = False
 
-fig, ax = plt.subplots(figsize=(16, 20))
-ax.set_xlim(0, 16)
-ax.set_ylim(0, 20)
+INK = "#1a1a19"  # primary text
+INK2 = "#52514e"  # secondary text
+ARROW = "#8a8880"  # subdued connectors
+BG = "#ffffff"
+
+# fill / border per band (light tint + mid-tone border, dark text everywhere)
+BLUE = ("#e3eefc", "#2a78d6")  # [1] data sources
+PURPLE = ("#eceafb", "#4a3aa7")  # [2] preprocessing
+AMBER = ("#fdf3dc", "#c98500")  # [3] graph builder container
+ORANGE = ("#fce7da", "#d95926")  # hotspot nodes
+RED = ("#fbe3e3", "#c73e3d")  # [4] MTGNN
+GREEN = ("#dcf3ea", "#199e70")  # [5] forecast output
+PINK = ("#f9e3ec", "#c2416f")  # [5] XAI output
+GRAY = ("#efedea", "#52514e")  # [6] dashboard
+
+EDGE_A = "#52514e"
+EDGE_B = "#d95926"
+EDGE_C = "#199e70"
+
+FS_TITLE = 13.0
+FS_CHIP = 8.6
+FS_BOX = 10.0
+FS_SUB = 8.2
+FS_NOTE = 7.8
+
+fig, ax = plt.subplots(figsize=(7.0, 8.5))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 12.15)
 ax.axis("off")
-fig.patch.set_facecolor("#FAFAFA")
-
-# ── Color palette ─────────────────────────────────────────────────────────────
-C_DATA    = "#2196F3"   # blue  — data sources
-C_PROC    = "#9C27B0"   # purple — processing
-C_GRAPH   = "#FF9800"   # orange — graph builder
-C_MODEL   = "#F44336"   # red   — MTGNN model
-C_OUTPUT  = "#4CAF50"   # green — outputs
-C_XAI     = "#00BCD4"   # cyan  — XAI
-C_DASH    = "#795548"   # brown — dashboard
-C_EDGE_A  = "#607D8B"
-C_EDGE_B  = "#FF5722"
-C_EDGE_C  = "#8BC34A"
-WHITE     = "#FFFFFF"
-DARK      = "#212121"
-LIGHT_BG  = "#F5F5F5"
+fig.patch.set_facecolor(BG)
 
 
-def box(ax, x, y, w, h, color, text, fontsize=11, text_color=WHITE,
-        bold=False, radius=0.3, alpha=1.0, sub_text=None, sub_size=9):
-    fancy = FancyBboxPatch(
-        (x, y), w, h,
-        boxstyle=f"round,pad=0.05,rounding_size={radius}",
-        facecolor=color, edgecolor=WHITE, linewidth=2, alpha=alpha, zorder=3
+def box(x, y, w, h, colors, title, sub=None, title_fs=FS_BOX, sub_fs=FS_SUB, dashed=False):
+    fill, border = colors
+    ax.add_patch(
+        FancyBboxPatch(
+            (x, y),
+            w,
+            h,
+            boxstyle="round,pad=0.02,rounding_size=0.10",
+            facecolor=fill,
+            edgecolor=border,
+            linewidth=1.1,
+            linestyle=(0, (4, 2)) if dashed else "solid",
+            zorder=3,
+        )
     )
-    ax.add_patch(fancy)
-    weight = "bold" if bold else "normal"
-    cy = y + h / 2 + (0.15 if sub_text else 0)
-    ax.text(x + w / 2, cy, text, ha="center", va="center",
-            fontsize=fontsize, color=text_color, fontweight=weight,
-            zorder=4, wrap=True)
-    if sub_text:
-        ax.text(x + w / 2, y + h / 2 - 0.28, sub_text, ha="center", va="center",
-                fontsize=sub_size, color=text_color, alpha=0.85, zorder=4)
+    if title:
+        cy = y + h / 2 + (0.155 if sub else 0)
+        ax.text(
+            x + w / 2,
+            cy,
+            title,
+            ha="center",
+            va="center",
+            fontsize=title_fs,
+            color=INK,
+            fontweight="bold",
+            zorder=4,
+        )
+    if sub:
+        ax.text(
+            x + w / 2,
+            y + h / 2 - 0.175,
+            sub,
+            ha="center",
+            va="center",
+            fontsize=sub_fs,
+            color=INK2,
+            zorder=4,
+        )
 
 
-def arrow(ax, x1, y1, x2, y2, color="#546E7A", lw=2.5, style="->"):
-    ax.annotate(
-        "", xy=(x2, y2), xytext=(x1, y1),
-        arrowprops=dict(
-            arrowstyle=style, color=color, lw=lw,
-            connectionstyle="arc3,rad=0.0"
-        ),
-        zorder=2,
+def chip(x, y, text, border):
+    ax.text(
+        x,
+        y,
+        text,
+        fontsize=FS_CHIP,
+        color=border,
+        fontweight="bold",
+        ha="left",
+        va="center",
+        zorder=5,
     )
 
 
-def section_label(ax, x, y, text, color):
-    ax.text(x, y, text, fontsize=10, color=color, fontweight="bold",
-            va="center", ha="left", zorder=5,
-            bbox=dict(boxstyle="round,pad=0.3", facecolor=color, alpha=0.15,
-                      edgecolor=color, linewidth=1.2))
+def arrow(x1, y1, x2, y2):
+    ax.add_patch(
+        FancyArrowPatch(
+            (x1, y1),
+            (x2, y2),
+            arrowstyle="-|>",
+            mutation_scale=9,
+            color=ARROW,
+            lw=1.3,
+            zorder=2,
+            shrinkA=0,
+            shrinkB=1,
+        )
+    )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 1 — DATA SOURCES  (y: 18.2 – 19.6)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 19.3, "[1] DATA SOURCES", C_DATA)
+# ── Title ────────────────────────────────────────────────────────────────────
+ax.text(
+    5.0,
+    11.93,
+    "สถาปัตยกรรมระบบ Explainable STGNN",
+    ha="center",
+    va="center",
+    fontsize=FS_TITLE,
+    fontweight="bold",
+    color=INK,
+)
+ax.text(
+    5.0,
+    11.60,
+    "พยากรณ์ PM2.5 และวิเคราะห์แหล่งกำเนิด · 9 จังหวัดภาคเหนือ",
+    ha="center",
+    va="center",
+    fontsize=9.0,
+    color=INK2,
+)
 
-box(ax, 0.3,  18.0, 4.5, 1.1, C_DATA,
-    "Air4Thai API", fontsize=11, bold=True,
-    sub_text="PM2.5 · 18 สถานี · รายชั่วโมง")
+COLS = [(0.25, 3.05), (3.48, 3.05), (6.71, 3.05)]  # (x, w) — 3 aligned columns
 
-box(ax, 5.55, 18.0, 4.9, 1.1, C_DATA,
-    "NASA FIRMS", fontsize=11, bold=True,
-    sub_text="VIIRS/MODIS Fire FRP · รายวัน")
+# ── [1] Data sources ─────────────────────────────────────────────────────────
+chip(0.25, 11.18, "[1] แหล่งข้อมูล (DATA SOURCES)", BLUE[1])
+box(COLS[0][0], 10.28, COLS[0][1], 0.72, BLUE, "Air4Thai", "PM2.5 · 18 สถานี · รายชั่วโมง")
+box(COLS[1][0], 10.28, COLS[1][1], 0.72, BLUE, "NASA FIRMS", "จุดความร้อน VIIRS/MODIS · FRP")
+box(COLS[2][0], 10.28, COLS[2][1], 0.72, BLUE, "ERA5 (CDS API)", "u10 v10 t2m d2m blh · รายชั่วโมง")
 
-box(ax, 11.0, 18.0, 4.7, 1.1, C_DATA,
-    "ERA5 (CDS API)", fontsize=11, bold=True,
-    sub_text="u10, v10, t2m, d2m, blh · ทุก 6h")
+for cx, cw in COLS:
+    arrow(cx + cw / 2, 10.28, cx + cw / 2, 9.92)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 2 — PREPROCESSING  (y: 15.8 – 17.1)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 17.5, "[2] PREPROCESSING", C_PROC)
+# ── [2] Preprocessing ────────────────────────────────────────────────────────
+chip(0.25, 9.72, "[2] การเตรียมข้อมูล (PREPROCESSING)", PURPLE[1])
+box(
+    COLS[0][0],
+    8.82,
+    COLS[0][1],
+    0.72,
+    PURPLE,
+    "เตรียมข้อมูลสถานี",
+    "RobustScaler ต่อสถานี · เติมช่องว่าง",
+)
+box(
+    COLS[1][0],
+    8.82,
+    COLS[1][1],
+    0.72,
+    PURPLE,
+    "จัดกลุ่มจุดความร้อน",
+    "DBSCAN (eps 25 กม.) · รวม FRP",
+)
+box(
+    COLS[2][0],
+    8.82,
+    COLS[2][1],
+    0.72,
+    PURPLE,
+    "ประมาณค่า ERA5",
+    "bilinear สู่พิกัดสถานี · รายชั่วโมง",
+)
 
-box(ax, 0.3,  15.8, 4.5, 1.1, C_PROC,
-    "Station Preprocessing", fontsize=10, bold=True,
-    sub_text="RobustScaler per station · gap fill")
+for cx, cw in COLS:
+    arrow(cx + cw / 2, 8.82, cx + cw / 2, 8.46)
 
-box(ax, 5.55, 15.8, 4.9, 1.1, C_PROC,
-    "Hotspot Clustering", fontsize=10, bold=True,
-    sub_text="DBSCAN spatial cluster · FRP aggregate")
+# ── [3] Dynamic graph builder ────────────────────────────────────────────────
+chip(0.25, 8.26, "[3] ตัวสร้างกราฟพลวัต (DYNAMIC GRAPH BUILDER) — G(V, E, t)", AMBER[1])
+box(0.25, 5.62, 9.51, 2.42, AMBER, None, dashed=True)
 
-box(ax, 11.0, 15.8, 4.7, 1.1, C_PROC,
-    "ERA5 Interpolation", fontsize=10, bold=True,
-    sub_text="Bilinear interp to station coords")
+box(0.55, 7.06, 4.45, 0.74, AMBER, "โหนดสถานี 18 โหนด", "PM2.5 + ERA5 + เวลา (10 features)")
+box(
+    5.31,
+    7.06,
+    4.15,
+    0.74,
+    ORANGE,
+    "โหนดจุดความร้อน M โหนด",
+    "FRP · พิกัดศูนย์กลาง · ประเทศ TH/MM/LA",
+)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 3 — GRAPH BUILDER  (y: 12.8 – 15.0)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 15.2, "[3] DYNAMIC GRAPH BUILDER", C_GRAPH)
-
-# Main graph box
-box(ax, 0.3, 12.8, 15.4, 2.0, C_GRAPH,
-    "", fontsize=10, alpha=0.12, text_color=DARK, radius=0.4)
-
-# Nodes
-box(ax, 0.7,  13.55, 4.5, 1.0, C_GRAPH,
-    "18 Station Nodes", fontsize=10, bold=True,
-    sub_text="PM2.5 (scaled) + ERA5 + time encoding")
-
-box(ax, 5.8,  13.55, 4.5, 1.0, "#FF6F00",
-    "M Hotspot Nodes", fontsize=10, bold=True,
-    sub_text="FRP, lat/lon, country (TH/MM/LA)")
-
-# Edge type boxes
-box(ax, 0.7,  12.9, 3.2, 0.55, C_EDGE_A,
-    "type_a: k-NN Geographic  (k=5, fixed)", fontsize=8.5, bold=False)
-box(ax, 4.2,  12.9, 3.8, 0.55, C_EDGE_B,
-    "type_b: Wind-aligned  (cosine sim, hourly)", fontsize=8.5, bold=False)
-box(ax, 8.3,  12.9, 4.5, 0.55, C_EDGE_C,
-    "type_c: Hotspot-to-Station bipartite  (<300 km, downwind)", fontsize=8.5, bold=False)
-
-# Arrow label
-ax.text(13.1, 14.05, "Dynamic\nGraph\nG(V,E,t)", fontsize=9,
-        color=C_GRAPH, fontweight="bold", ha="center", va="center",
-        bbox=dict(boxstyle="round,pad=0.3", facecolor=WHITE,
-                  edgecolor=C_GRAPH, linewidth=1.5))
-
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 4 — MTGNN MODEL  (y: 10.0 – 12.3)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 12.2, "[4] MTGNN MODEL  (Wu et al., KDD 2020)", C_MODEL)
-
-box(ax, 0.3, 10.0, 15.4, 1.9, C_MODEL, "", alpha=0.08, radius=0.4)
-
-box(ax, 0.7, 10.55, 3.3, 1.1, C_MODEL,
-    "Graph Learning", fontsize=10, bold=True,
-    sub_text="Adaptive adjacency\nfrom node embeddings")
-
-box(ax, 4.3, 10.55, 3.3, 1.1, C_MODEL,
-    "TCN × 3", fontsize=10, bold=True,
-    sub_text="Dilated causal conv\ntemporal patterns")
-
-box(ax, 7.9, 10.55, 3.3, 1.1, C_MODEL,
-    "GCN × 3", fontsize=10, bold=True,
-    sub_text="Spatial propagation\nhidden_dim=64")
-
-box(ax, 11.5, 10.55, 3.9, 1.1, C_MODEL,
-    "Skip Connections", fontsize=10, bold=True,
-    sub_text="252,588 params\nBest epoch: 15")
-
-# inner arrows
-arrow(ax, 4.0, 11.1, 4.3, 11.1, color=WHITE, lw=2)
-arrow(ax, 7.6, 11.1, 7.9, 11.1, color=WHITE, lw=2)
-arrow(ax, 11.2, 11.1, 11.5, 11.1, color=WHITE, lw=2)
-
-# Input label
-ax.text(8.0, 10.1, "Input: X in R^(N x T x F)   N=18+M nodes, T=24h, F=10 features",
-        fontsize=9, color=C_MODEL, ha="center", va="center", fontweight="bold")
-
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 5 — OUTPUTS  (y: 7.0 – 9.5)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 9.4, "[5] OUTPUTS", C_OUTPUT)
-
-# Forecast output
-box(ax, 0.3, 7.1, 7.2, 2.0, C_OUTPUT,
-    "PM2.5 FORECAST", fontsize=12, bold=True,
-    sub_text="18 สถานี × 4 ขอบฟ้า\n6h · 12h · 24h · 48h")
-
-# XAI output
-box(ax, 8.5, 7.1, 7.2, 2.0, C_XAI,
-    "XAI: GB-IG Attribution", fontsize=12, bold=True,
-    sub_text="Source % (TH / MM / LA)\nFeature importance ranking")
-
-# Performance note
-ax.text(3.9, 7.55, "RMSE 24h: 10.21 µg/m³ (+5.1% vs persistence)\nRMSE 48h: 14.32 µg/m³ (+10.6% vs persistence)",
-        fontsize=8.5, color=WHITE, ha="center", va="center",
-        bbox=dict(boxstyle="round,pad=0.25", facecolor="#2E7D32", alpha=0.85))
-
-ax.text(12.1, 7.55, "Mar 2024 Chiang Mai peak:\nTH=100%, MM=0% (FRP ratio 128:1)\nHotspot adds ~4.46 µg/m³ at 24h",
-        fontsize=8.5, color=WHITE, ha="center", va="center",
-        bbox=dict(boxstyle="round,pad=0.25", facecolor="#00838F", alpha=0.85))
-
-# ══════════════════════════════════════════════════════════════════════════════
-# LAYER 6 — DASHBOARD  (y: 4.8 – 6.6)
-# ══════════════════════════════════════════════════════════════════════════════
-section_label(ax, 0.3, 6.5, "[6] STREAMLIT DASHBOARD", C_DASH)
-
-box(ax, 0.3, 4.9, 15.4, 1.4, C_DASH,
-    "Streamlit Dashboard (Web Browser)", fontsize=13, bold=True,
-    sub_text="Interactive forecast map · Source attribution chart · Feature importance · Time series viewer")
-
-# ══════════════════════════════════════════════════════════════════════════════
-# VERTICAL ARROWS BETWEEN LAYERS
-# ══════════════════════════════════════════════════════════════════════════════
-# Layer 1 → 2
-for cx in [2.55, 8.0, 13.35]:
-    arrow(ax, cx, 18.0, cx, 17.0, color=C_DATA, lw=2.5)
-
-# Layer 2 → 3 (converge)
-arrow(ax, 2.55, 15.8, 5.0, 14.85, color=C_PROC, lw=2.5)
-arrow(ax, 8.0,  15.8, 8.0, 14.85, color=C_PROC, lw=2.5)
-arrow(ax, 13.35,15.8, 11.0,14.85, color=C_PROC, lw=2.5)
-
-# Layer 3 → 4
-arrow(ax, 8.0, 12.8, 8.0, 11.95, color=C_GRAPH, lw=3)
-
-# Layer 4 → 5 (split)
-arrow(ax, 4.5, 10.0, 3.9, 9.15,  color=C_MODEL, lw=3)
-arrow(ax, 11.5,10.0, 12.1, 9.15, color=C_MODEL, lw=3)
-
-# Layer 5 → 6
-arrow(ax, 3.9, 7.1, 5.5, 6.35,  color=C_OUTPUT, lw=2.5)
-arrow(ax, 12.1,7.1, 10.5, 6.35, color=C_XAI,    lw=2.5)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TITLE & LEGEND
-# ══════════════════════════════════════════════════════════════════════════════
-ax.text(8.0, 19.7,
-        "System Architecture: Explainable STGNN for PM2.5 Forecasting & Source Attribution",
-        ha="center", va="center", fontsize=14, fontweight="bold", color=DARK,
-        bbox=dict(boxstyle="round,pad=0.4", facecolor=WHITE,
-                  edgecolor="#90A4AE", linewidth=1.5))
-
-# Legend for edge types
-legend_x, legend_y = 0.3, 4.3
-ax.text(legend_x, legend_y, "Edge types:", fontsize=9, fontweight="bold", color=DARK)
-patches = [
-    mpatches.Patch(color=C_EDGE_A, label="type_a: Geographic k-NN (k=5, fixed)"),
-    mpatches.Patch(color=C_EDGE_B, label="type_b: Wind-aligned (cosine sim, hourly update)"),
-    mpatches.Patch(color=C_EDGE_C, label="type_c: Hotspot-to-Station bipartite (downwind <=300 km)"),
+edge_rows = [
+    (EDGE_A, "type_a — เชิงพื้นที่ (คงที่):", "ระยะ ≤ 100 กม. · น้ำหนัก exp(−d/50)"),
+    (EDGE_B, "type_b — ตามทิศลม (มีทิศทาง, รายชั่วโมง):", "ระยะ ≤ 200 กม. · alignment > 0.3"),
+    (EDGE_C, "type_c — จุดความร้อนสู่สถานี (ปลายลม):", "ระยะ ≤ 500 กม. · alignment > 0.4"),
 ]
-ax.legend(handles=patches, loc="lower left", bbox_to_anchor=(0.0, 0.0),
-          fontsize=8.5, framealpha=0.9, edgecolor="#B0BEC5")
+for i, (col, head, tail) in enumerate(edge_rows):
+    ry = 6.60 - i * 0.42
+    ax.add_patch(
+        FancyBboxPatch(
+            (0.55, ry - 0.14),
+            0.34,
+            0.28,
+            boxstyle="round,pad=0.01,rounding_size=0.05",
+            facecolor=col,
+            edgecolor="none",
+            zorder=4,
+        )
+    )
+    ax.text(
+        1.05,
+        ry,
+        head,
+        ha="left",
+        va="center",
+        fontsize=FS_SUB,
+        color=INK,
+        fontweight="bold",
+        zorder=4,
+    )
+    ax.text(4.75, ry, tail, ha="left", va="center", fontsize=FS_SUB, color=INK2, zorder=4)
 
-plt.tight_layout()
+arrow(5.0, 5.62, 5.0, 5.26)
+
+# ── [4] MTGNN ────────────────────────────────────────────────────────────────
+chip(0.25, 5.06, "[4] โมเดล MTGNN (Wu et al., KDD 2020)", RED[1])
+box(0.25, 3.42, 9.51, 1.42, RED, None, dashed=True)
+
+mt = [
+    ("Graph Learning", "adaptive adjacency"),
+    ("TCN", "dilated causal conv"),
+    ("GCN", "hidden 64 · 3 ชั้น"),
+    ("Output heads", "6 / 12 / 24 / 48 ชม."),
+]
+mx, mw, gap = 0.55, 2.13, 0.23
+for i, (t, s) in enumerate(mt):
+    x = mx + i * (mw + gap)
+    box(x, 4.02, mw, 0.72, RED, t, s, title_fs=9.2, sub_fs=7.6)
+    if i:
+        arrow(x - gap + 0.02, 4.38, x - 0.02, 4.38)
+ax.text(
+    5.0,
+    3.68,
+    "อินพุต X ขนาด N × 24 ชม. × 10 features · N = 18+M โหนด · รวมน้ำหนักเส้นเชื่อม 3 ชนิด + adaptive",
+    ha="center",
+    va="center",
+    fontsize=FS_NOTE,
+    color=INK2,
+)
+
+arrow(2.60, 3.42, 2.60, 3.06)
+arrow(7.40, 3.42, 7.40, 3.06)
+
+# ── [5] Outputs ──────────────────────────────────────────────────────────────
+chip(0.25, 2.86, "[5] ผลลัพธ์ (OUTPUTS)", GREEN[1])
+box(
+    0.25,
+    1.72,
+    4.63,
+    0.94,
+    GREEN,
+    "พยากรณ์ PM2.5",
+    "18 สถานี × 4 ขอบฟ้า · hybrid กับ persistence\nพร้อมช่วงความเชื่อมั่น conformal 90%",
+)
+box(
+    5.13,
+    1.72,
+    4.63,
+    0.94,
+    PINK,
+    "XAI: GB-IG + Occlusion",
+    "สัดส่วนแหล่งกำเนิดรายประเทศ (ไทย/เมียนมา/ลาว)\nและความสำคัญของปัจจัย (IG)",
+)
+
+arrow(2.60, 1.72, 3.80, 1.28)
+arrow(7.40, 1.72, 6.20, 1.28)
+
+# ── [6] Dashboard ────────────────────────────────────────────────────────────
+chip(0.25, 1.46, "[6] แดชบอร์ด (STREAMLIT DASHBOARD)", GRAY[1])
+box(
+    0.25,
+    0.30,
+    9.51,
+    0.98,
+    GRAY,
+    "Streamlit Dashboard",
+    "แผนที่พยากรณ์ · แหล่งกำเนิด · ข้ามแดน + back-trajectory · counterfactual "
+    "“ถ้าดับไฟกลุ่มนี้” · Live NWP · แจ้งเตือน Telegram",
+)
+
+fig.subplots_adjust(left=0.01, right=0.99, top=0.995, bottom=0.005)
 out = r"D:\งาน\NSC\pm25-stgnn-thailand\architecture_diagram.png"
-plt.savefig(out, dpi=180, bbox_inches="tight", facecolor="#FAFAFA")
+plt.savefig(out, dpi=300, facecolor=BG)
 print(f"Saved: {out}")
