@@ -126,6 +126,6 @@ uv run python scripts/16_telegram_alert.py --station 225579 --force
 
 ```bash
 UV_NO_SYNC=1 uv run streamlit run app/streamlit_app.py   # เปิด dashboard
-uv run pytest tests/ -q                                  # รันชุดทดสอบ (213 tests)
+uv run pytest tests/ -q                                  # รันชุดทดสอบ (397 tests)
 uv run ruff check src/ && uv run black --check src/      # ตรวจคุณภาพโค้ด
 ```

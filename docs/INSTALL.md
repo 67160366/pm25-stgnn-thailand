@@ -112,7 +112,7 @@ https://cds.climate.copernicus.eu/how-to-api
 ## 3. ตรวจสอบการติดตั้ง (Verify)
 
 ```bash
-uv run pytest tests/ -q          # ควรผ่านครบ 213 tests
+uv run pytest tests/ -q          # ควรผ่านครบ 397 tests
 ```
 
 หรือเปิด dashboard (ดูรายละเอียดใน `docs/USER_GUIDE.md`):
