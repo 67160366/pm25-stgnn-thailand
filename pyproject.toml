@@ -120,11 +120,12 @@ ignore = []
 "tests/**/*.py" = ["S101", "ANN"]
 "notebooks/**/*.py" = ["ANN", "E402"]
 "scripts/**/*.py" = ["S101"]
-# One-off Thai-content document generators (proposal/report/deck/manuals): long Thai
-# display strings (E501), intentional ambiguous glyphs in Thai text/comments (x as U+00D7,
-# en/em dashes), relaxed annotations (ANN), and the linear Markdown-dispatch loop in
-# generate_manuals.py (C901) on these throwaway build scripts.
-"scripts/generate_*.py" = ["E501", "RUF001", "RUF002", "RUF003", "ANN", "C901"]
+# One-off Thai-content document generators (proposal/report/deck/manuals/poster): long
+# Thai display strings (E501), intentional ambiguous glyphs in Thai text/comments (x as
+# U+00D7, en/em dashes), relaxed annotations (ANN), the linear Markdown-dispatch loop in
+# generate_manuals.py (C901), and fixed-argv subprocess renders in generate_poster.py
+# (S603: pdftoppm/Chrome with constant argument lists) on these throwaway build scripts.
+"scripts/generate_*.py" = ["E501", "RUF001", "RUF002", "RUF003", "ANN", "C901", "S603"]
 # Streamlit dashboard: Thai UI strings (long lines + ambiguous glyphs by design).
 "app/**/*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
 
