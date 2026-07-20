@@ -101,10 +101,34 @@ ex/
 Thumbs.db
 desktop.ini
 
-# --- Claude Code session data (keep agents, ignore session state) ---
-.claude/state/
-.claude/cache/
-.claude/sessions/
+# --- Claude Code / AI assistant config (internal — not for judges) ---
+.claude/
+CLAUDE.md
+
+# --- Internal working logs & strategy docs (not for judges / GitHub) ---
+# Session notes, kickoffs, handoffs (root + docs/)
+SESSION*.md
+docs/SESSION*.md
+docs/explain/PART_H_session_summary.md
+# Self-critique, pitch decks, internal planning, presenter prep
+docs/CRITICAL_REVIEW.md
+docs/AICAMP_pitch_*.md
+docs/PROPOSAL_MEMO.md
+docs/DEMO_ROADMAP.md
+docs/REGIONAL_ROUND_25JUL.md
+outputs/pitch/presenter_script_th.md
+outputs/pitch/qa_defense.md
+
+# --- Loose scratch & competition reference material (keep local, never commit) ---
+review_prompt.md
+proposal_text.txt
+/*.pdf
+/*.zip
+docs/*.pdf
+docs/user_journeys.html
+*.docx
+outputs/*.pdf
+outputs/poster/
 
 # --- Reports — keep figures, ignore build artifacts ---
 reports/*.pdf
