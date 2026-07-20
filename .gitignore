@@ -118,6 +118,8 @@ docs/DEMO_ROADMAP.md
 docs/REGIONAL_ROUND_25JUL.md
 outputs/pitch/presenter_script_th.md
 outputs/pitch/qa_defense.md
+outputs/pitch/*.pptx
+*.pptx
 
 # --- Loose scratch & competition reference material (keep local, never commit) ---
 review_prompt.md
