@@ -17,39 +17,41 @@ import streamlit as st
 
 from app.lib import inference as inf
 from app.lib import ui
-from app.views import about, attribution, forecast, overview, performance, transboundary
+from app.views import about, attribution, cases, forecast, overview, performance, transboundary
 
 st.set_page_config(page_title="PM2.5 ภาคเหนือ — STGNN", page_icon="🌫️", layout="wide")
 
 
 def _scenario_controls() -> None:
-    """Sidebar controls that set the shared scenario (split + anchor) in session_state."""
-    with st.sidebar:
-        st.title("🌫️ PM2.5 ภาคเหนือ")
-        st.caption("Explainable STGNN · NSC 2026 หมวด 14")
-        st.divider()
-        st.markdown("**เลือกสถานการณ์**")
-        periods = list(inf.PERIOD_TO_SPLIT.keys())
-        period = st.selectbox("ช่วงข้อมูล", periods, index=periods.index(inf.DEFAULT_PERIOD))
-        split = inf.PERIOD_TO_SPLIT[period]
-        lo, hi = inf.date_bounds(split)
-        default_day = pd.Timestamp(inf.default_anchor_iso(split)).date()
-        day = st.date_input(
-            "วันที่ (จุดเริ่มพยากรณ์)",
-            value=default_day,
-            min_value=lo,
-            max_value=hi,
-            key=f"day_{split}",
-        )
-        st.session_state["split"] = split
-        st.session_state["anchor_iso"] = inf.resolve_anchor(split, day)
-        st.caption("ค่าเริ่มต้น = วันที่ค่าฝุ่นเฉลี่ยสูงสุดในช่วงที่เลือก")
+    """Scenario widgets (split + anchor) shared by the deep-dive pages via session_state.
+
+    Rendered inside the collapsed "deep dive" expander so the main landing page stays
+    clean; the widgets still run each rerun, so ``session_state`` is always populated.
+    """
+    st.markdown("**เลือกสถานการณ์** (สำหรับหน้าพยากรณ์/แหล่งกำเนิด)")
+    periods = list(inf.PERIOD_TO_SPLIT.keys())
+    period = st.selectbox("ช่วงข้อมูล", periods, index=periods.index(inf.DEFAULT_PERIOD))
+    split = inf.PERIOD_TO_SPLIT[period]
+    lo, hi = inf.date_bounds(split)
+    default_day = pd.Timestamp(inf.default_anchor_iso(split)).date()
+    day = st.date_input(
+        "วันที่ (จุดเริ่มพยากรณ์)",
+        value=default_day,
+        min_value=lo,
+        max_value=hi,
+        key=f"day_{split}",
+    )
+    st.session_state["split"] = split
+    st.session_state["anchor_iso"] = inf.resolve_anchor(split, day)
 
 
 def main() -> None:
-    """Build navigation, render the selected page, and append the shared footer."""
-    pages = [
-        st.Page(overview.render, title="ภาพรวม", icon="🏠", url_path="overview", default=True),
+    """Show the single landing page; tuck the deep-dive pages into a sidebar dropdown."""
+    landing = st.Page(
+        cases.render, title="ฝุ่นวันนั้นมาจากไหน", icon="🔎", url_path="cases", default=True
+    )
+    deep = [
+        st.Page(overview.render, title="ภาพรวม", icon="🏠", url_path="overview"),
         st.Page(forecast.render, title="พยากรณ์รายสถานี", icon="📈", url_path="forecast"),
         st.Page(attribution.render, title="แหล่งกำเนิด (XAI)", icon="🧭", url_path="attribution"),
         st.Page(transboundary.render, title="หมอกควันข้ามแดน", icon="🌏", url_path="transboundary"),
@@ -58,8 +60,20 @@ def main() -> None:
         ),
         st.Page(about.render, title="เกี่ยวกับ", icon="ℹ️", url_path="about"),
     ]
-    pg = st.navigation(pages)
-    _scenario_controls()
+    # position="hidden" suppresses the auto page list; we build a compact sidebar instead.
+    pg = st.navigation([landing, *deep], position="hidden")
+
+    with st.sidebar:
+        st.title("🌫️ PM2.5 ภาคเหนือ")
+        st.caption("Explainable STGNN · NSC 2026 หมวด 14")
+        st.divider()
+        st.page_link(landing)
+        with st.expander("🔬 หน้าวิเคราะห์เชิงลึก"):
+            for p in deep:
+                st.page_link(p)
+            st.divider()
+            _scenario_controls()
+
     pg.run()
     ui.footer()
 
