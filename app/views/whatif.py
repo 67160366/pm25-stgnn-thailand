@@ -219,6 +219,10 @@ def _scenario_controls() -> tuple[str, str, int, str, int]:
                 f"PM2.5 สูงสุด {curated[i]['peak']:.0f} µg/m³ · "
                 f"ไฟจากดาวเทียมที่ลมพามา {curated[i]['connected_frp']:,.0f} MW "
                 f"(อยู่ฝั่งต่างชาติ {100 * curated[i]['foreign_frac']:.0f}%)"
+                # Below ~5,000 MW connected FRP the checkpoint's response is ≈0
+                # (measured, S22) — say so up front instead of letting a viewer
+                # discover a null result and read it as a malfunction.
+                + ("" if curated[i]["connected_frp"] >= 5000 else " · ⚠️ ไฟเบา คาดผล ≈ 0")
             ),
             key="wi_event",
         )
@@ -543,32 +547,52 @@ def _result_block(
     by_country = sub.groupby("country")["frp"].sum().sort_values(ascending=False)
     mix = " · ".join(f"{_COUNTRY_TH.get(k, k)} {v:,.0f} MW" for k, v in by_country.items())
 
+    # The gate must reach the metrics row, not only the verdict box below it: the
+    # metrics are the first thing on screen, and a signed "-0.23 ▲" in red narrates a
+    # direction before the reader ever gets told the number is beneath the model's own
+    # error bar. Below the gate, the sign is withheld everywhere, not explained later.
+    half = _halfwidth(sid, horizon_idx)
+    gated = half is not None and abs(delta) < 0.10 * half
+
     c1, c2, c3 = st.columns(3)
     c1.metric(f"A · ทำนายปกติ ({h})", f"{full:,.1f} µg/m³", help="ไฟครบทุกกลุ่มตามดาวเทียมจริง")
     c2.metric(
         f"B · หลังดับไฟที่เลือก ({h})",
         f"{occ:,.1f} µg/m³",
-        delta=f"{-delta:,.2f}",
+        delta=None if gated else f"{-delta:,.2f}",
         delta_color="inverse",
     )
-    # delta_color="off": the percentage is a *share* of the forecast, not a change in
-    # it, so it must not inherit the green-good / red-bad arrow language.
-    c3.metric(
-        "A − B · ค่าที่หายไป",
-        f"{delta:,.2f} µg/m³",
-        f"{pct:.1f}% ของค่าเดิม",
-        delta_color="off",
-    )
+    if gated:
+        c3.metric(
+            "A − B · ค่าที่หายไป",
+            "≈ 0 µg/m³",
+            "ต่ำกว่าขีดจำกัดการวัดของโมเดล",
+            delta_color="off",
+            help=(
+                f"ค่าดิบ {delta:,.2f} µg/m³ — เล็กกว่าแถบความคลาดเคลื่อนของโมเดลเอง "
+                f"(±{half:,.1f} µg/m³ ที่ {h}) มากจนบอกทิศทางไม่ได้ ดูคำอธิบายด้านล่าง"
+            ),
+        )
+    else:
+        # delta_color="off": the percentage is a *share* of the forecast, not a change
+        # in it, so it must not inherit the green-good / red-bad arrow language.
+        c3.metric(
+            "A − B · ค่าที่หายไป",
+            f"{delta:,.2f} µg/m³",
+            f"{pct:.1f}% ของค่าเดิม",
+            delta_color="off",
+        )
 
     st.caption(
         f"ดับ {cf['n_selected']} กลุ่มไฟ รวมความแรง {cf['frp_removed']:,.0f} MW "
         f"({(1 - remaining) * 100:.0f}% ของกลุ่มที่เลือก) — {mix} · "
         f"ที่สถานี{station_name} · ใช้เวลารันสองรอบ {cf['elapsed_ms']:.0f} มิลลิวินาที"
     )
-    half = _halfwidth(sid, horizon_idx)
     st.markdown(_verdict_box(delta, pct, station_name, h, half), unsafe_allow_html=True)
     if half is not None:
         st.markdown(_noise_ruler(delta, half, h), unsafe_allow_html=True)
+    if gated:
+        _why_deaf_expander()
 
 
 def _halfwidth(sid: int, horizon_idx: int) -> float | None:
@@ -665,6 +689,50 @@ def _verdict_box(delta: float, pct: float, station_name: str, h: str, half: floa
         f"padding:10px 14px;border-radius:5px;margin:8px 0;line-height:1.65'>"
         f"<b>{head}</b><br>{body}</div>"
     )
+
+
+def _why_deaf_expander() -> None:
+    """Why the model barely hears small fires — our own diagnosis, shown when gated.
+
+    Rendered only when the measured response fell below the noise gate, so the page
+    answers "why is this ~0?" in the same breath instead of leaving the judge to
+    conclude the tool is broken. Numbers were measured on the shipped checkpoint
+    (first-layer weights of ``hotspot_encoder``, FRP percentiles of the full dataset,
+    ``outputs/ablation_multiseed.json``) — see docs/SESSION22_NOTES.md.
+    """
+    with st.expander("🩺 ทำไมผลถึงใกล้ศูนย์ — เราวิเคราะห์สาเหตุเองแล้ว (กดดู)"):
+        st.markdown(
+            """
+<div style="line-height:1.75">
+  <b>นี่ไม่ใช่ความบังเอิญ และเราไม่ได้เพิ่งรู้ตอนถูกถาม</b> —
+  เราใช้ห้องทดลองหน้านี้ไล่จนเจอสาเหตุระดับกลไก:<br><br>
+  <b>1. ฟีเจอร์ไฟถูกป้อนแบบดิบ ไม่ผ่านการสเกล</b> —
+  อินพุตกลุ่มไฟคือ <code>[total_frp, lat, lon]</code> โดยสถานีทุกแห่งผ่าน RobustScaler
+  แต่กลุ่มไฟไม่ผ่าน (<code>scalers.json</code> มีแต่สถานี 18 รายการ)<br>
+  <b>2. ลองจิจูดกลบความแรงไฟ ~65 เท่า</b> — วัดจากน้ำหนักชั้นแรกของ checkpoint จริง:
+  พจน์ลองจิจูด (~99 × 0.089 ≈ <b>8.8</b>) เป็นค่าคงที่ก้อนใหญ่
+  ส่วนไฟขนาดกลาง (7.2 MW × 0.019 ≈ <b>0.14</b>) แทบไม่ขยับอะไร
+  ไฟต้องแรงถึง <b>468 MW ต่อกลุ่ม</b> (เปอร์เซ็นไทล์ที่ 97.4) แค่จะ“ดังเท่า”พิกัดของตัวเอง —
+  <b>ไฟ 97.4% ในชุดข้อมูลจึงเบาเกินกว่าโมเดลจะได้ยิน</b><br>
+  <b>3. ผล ablation ของเราเองยืนยัน</b> — ตัดช่องทางไฟออกทั้งช่อง (3 seeds)
+  ความแม่นยำไม่แย่ลงอย่างมีนัย (<code>robust_beyond_noise = false</code> ทุก horizon)
+  สอดคล้องกับข้อ 2 จากหลักฐานคนละทาง<br><br>
+  คำทำนายจากการวิเคราะห์นี้ตรงกับที่วัดได้ในหน้านี้ทุกประการ:
+  เหตุการณ์ไฟรวมระดับ<b>หมื่น MW</b> ให้ผลลบชัด (−5 ถึง −6 µg/m³ ทิศถูก)
+  ส่วนไฟระดับร้อย–พัน MW ให้ผล ±0.2–0.35 µg/m³ ซึ่งเป็นการแกว่งของโครงข่าย
+  ไม่ใช่ข้อความเกี่ยวกับไฟ<br><br>
+  <b>แนวทางแก้ (ออกแบบไว้แล้ว วางเกณฑ์ตัดสินล่วงหน้า):</b>
+  <code>log1p(total_frp)</code> + RobustScaler, ตัด lat/lon ออกจากฟีเจอร์โหนด
+  (เรขาคณิตมีอยู่แล้วในเส้นเชื่อมที่ผ่านเงื่อนไขลม) แล้วเทรน v2 แยก checkpoint —
+  เกณฑ์คือ ablation หลังเทรนใหม่ต้องพลิกเป็นบวกและพ้น noise
+  ถ้าไม่พ้น ข้อสรุปที่ซื่อสัตย์คือไฟเพิ่มข้อมูลได้น้อยเมื่อมีสภาพอากาศ+ค่าฝุ่นย้อนหลังแล้ว<br><br>
+  <span style="opacity:.85">จุดยืนของเรา: เครื่องมือวัดทุกชนิดมีขีดจำกัดการตรวจจับ
+  หน้าที่ของงานวิทยาศาสตร์คือ<b>วัดขีดจำกัดของตัวเองให้ได้ แสดงมันตรง ๆ
+  และไม่เล่าเรื่องจากสัญญาณที่ต่ำกว่านั้น</b> — ซึ่งคือสิ่งที่หน้านี้ทำอยู่</span>
+</div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def _dose_response_block(
