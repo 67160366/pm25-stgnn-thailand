@@ -23,8 +23,10 @@ are computed at render time from the frozen result JSONs.
 
 from __future__ import annotations
 
+import datetime as dt
 import math
 
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -39,6 +41,19 @@ _STATION_LABEL = "แม่ฮ่องสอน"
 _THAI = "#2a78d6"
 _FOREIGN = "#eb6834"
 _MIXED = "#6b7280"
+
+# Map ink. The event map draws on a white background (no tiles, so it works
+# offline at the venue), so it must not inherit Streamlit's dark-theme font
+# colour — every text colour on the figure is pinned explicitly.
+_MAP_INK = "#1f2937"
+_MAP_BG = "#ffffff"
+_WIND = "#1f5fbf"  # wind arrows: same family as _THAI but darker, reads on white
+_AWAY = "#9aa3af"  # fires the wind carries away from the station — visually muted
+
+# A fire counts as "carried to the station" when the local wind blows within
+# +/- 60 deg of the fire -> station bearing (cos >= 0.5). First-order check on
+# daily-mean ERA5 wind, not a dispersion model — the caption says so.
+_INFLOW_COS = 0.5
 
 # verdict -> (accent, banner label)
 _VERDICT = {
@@ -269,41 +284,225 @@ def _render_case(case: dict) -> None:
 
         _ai_row(case)
         if case.get("date_iso"):
-            st.plotly_chart(_event_map(case), width="stretch", key=f"map_{case['key']}")
+            # theme=None: this map draws on white, so it must not pick up the
+            # app theme's (light-on-dark) font colours for its legend.
+            st.plotly_chart(_event_map(case), width="stretch", key=f"map_{case['key']}", theme=None)
+            _map_legend_note()
         _provenance(case)
 
 
-def _event_map(case: dict) -> go.Figure:
-    """Offline map: fire hotspots (blue TH / orange foreign) + wind path + station.
+def _map_legend_note() -> None:
+    """How-to-read note under the event map — full-contrast, not a muted caption.
 
-    Uses ``style="white-bg"`` (no map tiles, so it works without internet at the
-    venue) with national borders drawn from the committed geojson. Marker area
-    grows with FRP so the eye lands on the strongest fires.
+    It carries the map's key ("faded fire = the wind takes its smoke elsewhere"),
+    so it must stay readable; ``st.caption`` renders too dim against the dark theme.
     """
+    st.markdown(
+        f"""
+<div style="border-left:3px solid {_WIND};background:rgba(130,130,130,.10);
+     padding:9px 13px;border-radius:5px;margin:2px 0 4px;font-size:.86rem;line-height:1.55">
+  <b>🧭 วิธีอ่านแผนที่</b> &nbsp;
+  <b style="color:{_WIND}">ลูกศรน้ำเงิน</b> = ทิศที่ลมพัดไป (ERA5 เฉลี่ย 48 ชม.)
+  วาดไว้ที่ทุกสถานีในโครงข่ายและที่จุดไฟที่แรงที่สุด ·
+  <b>เส้นเทา</b> = เส้นทางที่มวลอากาศเดินทางมา 48 ชม. ก่อนถึงสถานี (ลูกศรบอกทิศการไหล) ·
+  <b style="color:{_AWAY}">จุดไฟสีเทาจาง</b> = ลมพัดควันออกห่างสถานี
+  จึงไม่ใช่ต้นเหตุของฝุ่นวันนั้น <u>แม้จะอยู่ใกล้ก็ตาม</u><br>
+  <span style="opacity:.75">เป็นการตรวจทิศเบื้องต้นจากลมเฉลี่ย 48 ชม.
+  ไม่ใช่แบบจำลองการฟุ้งกระจายเต็มรูปแบบ — ตัวเลขที่ใช้ตัดสินจริงคือไฟที่กราฟของโมเดลเชื่อมถึงสถานี
+  ในหัวข้อ “หลักฐาน” ด้านบน</span>
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _wind_48h(date_iso: str) -> pd.DataFrame:
+    """Station-node wind averaged over the event day and the day before.
+
+    The same 48 h window as the back-trajectory drawn on the map: smoke needs
+    about a day to travel, so a single-day mean is too twitchy. Averaged this
+    way the "carried to the station" split below reproduces the model graph's
+    connected foreign-FRP fraction to within ~0.1 on four of the five 2025
+    events (the exception is the borderline one, where the wind turns).
+    """
+    prev = (dt.date.fromisoformat(date_iso) - dt.timedelta(days=1)).isoformat()
+    frames = [f for f in (da.wind_for_date(prev), da.wind_for_date(date_iso)) if len(f) > 0]
+    if not frames:
+        return pd.DataFrame(columns=["station_id", "lat", "lon", "u10", "v10"])
+    both = pd.concat(frames, ignore_index=True)
+    return both.groupby(["station_id", "lat", "lon"], as_index=False)[["u10", "v10"]].mean()
+
+
+def _nearest_wind(lat: float, lon: float, wind: pd.DataFrame) -> tuple[float, float] | None:
+    """Mean ``(u10, v10)`` from the nearest station node, or ``None``."""
+    if wind is None or len(wind) == 0:
+        return None
+    coslat = math.cos(math.radians(lat)) or 1.0
+    d2 = (wind["lat"] - lat) ** 2 + ((wind["lon"] - lon) * coslat) ** 2
+    row = wind.loc[d2.idxmin()]
+    return float(row["u10"]), float(row["v10"])
+
+
+def _carried_to_station(
+    lat: float, lon: float, lat0: float, lon0: float, uv: tuple[float, float] | None
+) -> bool | None:
+    """Whether the wind at a fire blows toward the station (``None`` = wind unknown)."""
+    if uv is None:
+        return None
+    u, v = uv
+    coslat = math.cos(math.radians(lat)) or 1.0
+    dx, dy = (lon0 - lon) * coslat, lat0 - lat  # fire -> station
+    to_station, speed = math.hypot(dx, dy), math.hypot(u, v)
+    if to_station < 1e-9 or speed < 1e-9:
+        return None
+    return (u * dx + v * dy) / (to_station * speed) >= _INFLOW_COS
+
+
+def _fires_with_wind(case: dict, wind: pd.DataFrame) -> list[dict]:
+    """Hotspots of the day, each tagged with its local wind vector and inflow flag."""
     hs = da.hotspots_for_date(case["date_iso"])
     lat0, lon0 = case["station_lat"], case["station_lon"]
+    fires = []
+    for _, r in hs.iterrows():
+        lat, lon = float(r["latitude"]), float(r["longitude"])
+        uv = _nearest_wind(lat, lon, wind)
+        fires.append(
+            {
+                "lat": lat,
+                "lon": lon,
+                "frp": float(r["frp"]),
+                "country": str(r["country"]),
+                "uv": uv,
+                "toward": _carried_to_station(lat, lon, lat0, lon0, uv),
+            }
+        )
+    return fires
+
+
+def _fire_trace(fires: list[dict], name: str, colour: str, opacity: float) -> go.Scattermapbox:
+    """One hotspot trace; marker area grows with FRP so strong fires draw the eye."""
+    label = {"Thailand": "ไทย", "Myanmar": "เมียนมา", "Laos": "ลาว"}
+    flow = {True: "ลมพาเข้าหาสถานี", False: "ลมพัดออกห่างสถานี", None: "ไม่มีข้อมูลลม"}
+    return go.Scattermapbox(
+        lat=[f["lat"] for f in fires],
+        lon=[f["lon"] for f in fires],
+        mode="markers",
+        marker=go.scattermapbox.Marker(
+            size=[max(5, min(26, 4 + math.sqrt(max(f["frp"], 0)) * 1.1)) for f in fires],
+            color=colour,
+            opacity=opacity,
+        ),
+        name=name,
+        text=[
+            f"ไฟใน{label.get(f['country'], f['country'])} · FRP {f['frp']:.0f} MW<br>"
+            f"{flow[f['toward']]}"
+            for f in fires
+        ],
+        hoverinfo="text",
+    )
+
+
+def _arrow_trace(
+    items: list[tuple[float, float, tuple[float, float], float]],
+    name: str,
+    colour: str,
+    width: float = 2.0,
+    showlegend: bool = True,
+) -> go.Scattermapbox | None:
+    """Fixed-length direction arrows for ``(lat, lon, (u, v), shaft_deg)`` items."""
+    lats: list[float | None] = []
+    lons: list[float | None] = []
+    for lat, lon, (u, v), shaft in items:
+        a_lat, a_lon = geo.arrow_lines(lat, lon, u, v, shaft_deg=shaft)
+        lats += a_lat
+        lons += a_lon
+    if not lats:
+        return None
+    return go.Scattermapbox(
+        lat=lats,
+        lon=lons,
+        mode="lines",
+        line=dict(width=width, color=colour),
+        name=name,
+        showlegend=showlegend,
+        hoverinfo="skip",
+    )
+
+
+def _traj_chevrons(traj: list[tuple[float, float]]) -> go.Scattermapbox | None:
+    """Arrowheads along the back-trajectory pointing the way the air actually moved.
+
+    ``traj`` runs backwards in time from the station, so the air travelled from
+    ``traj[i + 1]`` toward ``traj[i]`` — the chevrons flip it back to flow order.
+    """
+    if len(traj) < 3:
+        return None
+    step = max(1, len(traj) // 5)
+    items = []
+    for i in range(0, len(traj) - step, step):
+        (lat_to, lon_to), (lat_fr, lon_fr) = traj[i], traj[i + step]
+        coslat = math.cos(math.radians(lat_fr)) or 1.0
+        items.append((lat_fr, lon_fr, ((lon_to - lon_fr) * coslat, lat_to - lat_fr), 0.16))
+    return _arrow_trace(items, "flow", "#4b5563", width=2.5, showlegend=False)
+
+
+def _fit_view(points: list[tuple[float, float]], height: int) -> tuple[dict, float]:
+    """Map centre + zoom that frames ``points`` (lat, lon) inside a ``height``-px canvas."""
+    lats = [p[0] for p in points]
+    lons = [p[1] for p in points]
+    lat_c, lon_c = (min(lats) + max(lats)) / 2, (min(lons) + max(lons)) / 2
+    lat_span = max(max(lats) - min(lats), 0.5) + 0.7
+    lon_span = max(max(lons) - min(lons), 0.5) + 0.7
+    # Web-mercator: a zoom level shows 360 / 2**z degrees per 512 px of canvas.
+    z_lat = math.log2(360 * (height / 512) / lat_span)
+    z_lon = math.log2(360 * (1000 / 512) / lon_span)  # assumed container width
+    return dict(lat=lat_c, lon=lon_c), min(max(min(z_lat, z_lon), 5.0), 7.2)
+
+
+def _event_map(case: dict) -> go.Figure:
+    """Offline map: fires (carried-in vs blown-away) + wind arrows + path + station.
+
+    Uses ``style="white-bg"`` (no map tiles, so it works without internet at the
+    venue) with national borders drawn from the committed geojson. Two additions
+    make the physics visible instead of implied: an ERA5 wind arrow at every
+    station node and at the strongest fires, and a grey "blown away" class for
+    fires whose local wind carries their smoke *away* from the station — the
+    nearby-looking fires that are not, in fact, the cause.
+    """
+    height = 430
+    lat0, lon0 = case["station_lat"], case["station_lon"]
+    wind = _wind_48h(case["date_iso"])
+    fires = _fires_with_wind(case, wind)
     fig = go.Figure()
 
-    groups = [("ไฟในไทย", {"Thailand"}, _THAI), ("ไฟต่างชาติ", {"Myanmar", "Laos"}, _FOREIGN)]
+    away = [f for f in fires if f["toward"] is False]
+    reaching = [f for f in fires if f["toward"] is not False]
+    if away:
+        fig.add_trace(_fire_trace(away, "ไฟที่ลมพัดออก — ไม่ถึงสถานี", _AWAY, 0.55))
+        arrows = [(f["lat"], f["lon"], f["uv"], 0.16) for f in _top_frp(away) if f["uv"]]
+        trace = _arrow_trace(arrows, "away", _AWAY, width=2.0, showlegend=False)
+        if trace is not None:
+            fig.add_trace(trace)
+
+    groups = [
+        ("ไฟในไทย", {"Thailand"}, _THAI),
+        ("ไฟต่างชาติ (เมียนมา/ลาว)", {"Myanmar", "Laos"}, _FOREIGN),
+    ]
     for name, countries, colour in groups:
-        sub = hs[hs["country"].isin(countries)]
-        if len(sub) == 0:
-            continue
-        fig.add_trace(
-            go.Scattermapbox(
-                lat=sub["latitude"].tolist(),
-                lon=sub["longitude"].tolist(),
-                mode="markers",
-                marker=go.scattermapbox.Marker(
-                    size=[max(5, min(26, 4 + math.sqrt(max(f, 0)) * 1.1)) for f in sub["frp"]],
-                    color=colour,
-                    opacity=0.8,
-                ),
-                name=name,
-                text=[f"FRP {f:.0f} MW" for f in sub["frp"]],
-                hoverinfo="text",
-            )
-        )
+        sub = [f for f in reaching if f["country"] in countries]
+        if sub:
+            fig.add_trace(_fire_trace(sub, name, colour, 0.85))
+
+    # Wind arrows: every station node (the graph's other nodes) plus the strongest
+    # fires that the wind does carry toward the station.
+    items = [
+        (float(r["lat"]), float(r["lon"]), (float(r["u10"]), float(r["v10"])), 0.13)
+        for _, r in wind.iterrows()
+    ]
+    items += [(f["lat"], f["lon"], f["uv"], 0.16) for f in _top_frp(reaching) if f["uv"]]
+    trace = _arrow_trace(items, "ทิศลม 48 ชม. (ERA5) → ทางที่ลมพัดไป", _WIND, width=2.0)
+    if trace is not None:
+        fig.add_trace(trace)
 
     if case["traj"]:
         fig.add_trace(
@@ -311,49 +510,76 @@ def _event_map(case: dict) -> go.Figure:
                 lat=[p[0] for p in case["traj"]],
                 lon=[p[1] for p in case["traj"]],
                 mode="lines",
-                line=dict(width=2.5, color="#555"),
-                name="เส้นทางลม 48 ชม. (ฝุ่นลอยมาตามนี้)",
+                line=dict(width=2.5, color="#4b5563"),
+                name="เส้นทางลม 48 ชม. → เข้าสถานี",
                 hoverinfo="skip",
             )
         )
+        chevrons = _traj_chevrons(case["traj"])
+        if chevrons is not None:
+            fig.add_trace(chevrons)
+
     fig.add_trace(
         go.Scattermapbox(
             lat=[lat0],
             lon=[lon0],
             mode="markers",
-            marker=go.scattermapbox.Marker(size=15, color="#111"),
+            marker=go.scattermapbox.Marker(size=16, color="#111"),
             name=f"สถานี {case['station']}",
             hoverinfo="name",
         )
     )
+
+    # Frame the station, its air path, and every fire inside the study bbox; far
+    # southern hotspots do not get to zoom the whole map out.
+    pts = [(lat0, lon0), *case["traj"]]
+    pts += [
+        (f["lat"], f["lon"])
+        for f in fires
+        if 16.0 <= f["lat"] <= 21.0 and 97.0 <= f["lon"] <= 101.5
+    ]
+    center, zoom = _fit_view(pts, height)
+
     fig.update_layout(
         mapbox=dict(
             style="white-bg",
-            center=dict(lat=lat0, lon=lon0 - 0.3),
-            zoom=5.6,
+            center=center,
+            zoom=zoom,
             layers=[
                 dict(
                     sourcetype="geojson",
                     source=geo.border_geojson(),
                     type="line",
-                    color="rgba(90,90,90,.6)",
+                    color="rgba(70,70,70,.75)",
                     line=dict(width=1.4),
                 )
             ],
         ),
         margin=dict(l=0, r=0, t=6, b=0),
-        height=360,
+        height=height,
+        paper_bgcolor=_MAP_BG,
+        plot_bgcolor=_MAP_BG,
+        font=dict(color=_MAP_INK, size=12),
+        hoverlabel=dict(font=dict(color=_MAP_INK, size=12), bgcolor="#ffffff"),
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=0.01,
             xanchor="left",
             x=0.01,
-            bgcolor="rgba(255,255,255,.8)",
-            font=dict(size=11),
+            bgcolor="rgba(255,255,255,.94)",
+            bordercolor="rgba(31,41,55,.35)",
+            borderwidth=1,
+            font=dict(size=12.5, color=_MAP_INK),
+            itemsizing="constant",
         ),
     )
     return fig
+
+
+def _top_frp(fires: list[dict], n: int = 8) -> list[dict]:
+    """The ``n`` strongest fires — only these get a wind arrow, to keep the map legible."""
+    return sorted(fires, key=lambda f: f["frp"], reverse=True)[:n]
 
 
 def _fire_block(case: dict) -> str:

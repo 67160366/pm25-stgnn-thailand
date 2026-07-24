@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-import math
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -29,23 +27,13 @@ def _wind_arrow_trace(wind: pd.DataFrame) -> go.Scattermapbox | None:
         return None
     lats: list[float | None] = []
     lons: list[float | None] = []
-    shaft = 0.10  # degrees — fixed length so direction (not speed) is the message
     for _, r in wind.iterrows():
-        u, v = float(r["u10"]), float(r["v10"])
-        sp = math.hypot(u, v)
-        if sp < 1e-6:
-            continue
-        lat0, lon0 = float(r["lat"]), float(r["lon"])
-        coslat = math.cos(math.radians(lat0)) or 1.0
-        dlon = (u / sp) * shaft / coslat  # u = eastward, v = northward
-        dlat = (v / sp) * shaft
-        lat1, lon1 = lat0 + dlat, lon0 + dlon
-        bx, by = -dlon * 0.4, -dlat * 0.4  # arrowhead barbs point back from the tip
-        a = math.radians(28)
-        b1x, b1y = bx * math.cos(a) - by * math.sin(a), bx * math.sin(a) + by * math.cos(a)
-        b2x, b2y = bx * math.cos(-a) - by * math.sin(-a), bx * math.sin(-a) + by * math.cos(-a)
-        lats += [lat0, lat1, None, lat1, lat1 + b1y, None, lat1, lat1 + b2y, None]
-        lons += [lon0, lon1, None, lon1, lon1 + b1x, None, lon1, lon1 + b2x, None]
+        # fixed shaft length so direction (not speed) is the message
+        a_lat, a_lon = geo.arrow_lines(
+            float(r["lat"]), float(r["lon"]), float(r["u10"]), float(r["v10"]), shaft_deg=0.10
+        )
+        lats += a_lat
+        lons += a_lon
     if not lats:
         return None
     return go.Scattermapbox(
