@@ -32,6 +32,7 @@ from app.lib import nwp as nwp_lib
 from src.data.graph_builder import build_graph
 from src.data.loader import EMPTY_HOTSPOT_DF, PM25GraphDataset
 from src.explain import gb_ig as explain_gb_ig
+from src.explain import transboundary_events
 from src.training import evaluation
 
 HORIZONS: list[int] = [6, 12, 24, 48]
@@ -285,6 +286,30 @@ def event_hotspots(split: str, anchor_iso: str, station_id: int) -> pd.DataFrame
             "connected": [i in connected for i in range(arr.shape[0])],
         }
     )
+
+
+@st.cache_data(show_spinner=False)
+def peak_anchor_iso(split: str, date_iso: str, station_id: int) -> str | None:
+    """Forecast origin at that day's **peak observed PM2.5** for one station.
+
+    The anchor convention used by every frozen transboundary result
+    (``scripts/10_transboundary_attr.py::_peak_anchor_for_date``, reused here by file
+    path rather than reimplemented). Curated events must resolve through this, not
+    through ``resolve_anchor`` (which lands on noon): a haze day has 24 candidate
+    origins, and picking a different hour loads a different set of connected fires,
+    so the page would quietly show numbers that cannot be reconciled with the report.
+
+    Returns:
+        ISO timestamp, or ``None`` when the split has no anchor on that date.
+    """
+    ds = get_dataset(split)
+    sidx = int(np.where(ds._station_ids == station_id)[0][0])
+    mod = transboundary_events.load_script10()
+    found = mod._peak_anchor_for_date(ds, date.fromisoformat(date_iso), sidx)
+    if found is None:
+        return None
+    pos, _peak = found
+    return pd.Timestamp(ds._timestamps[ds._anchor_indices[pos]]).isoformat()
 
 
 def _denorm_grids(ds: PM25GraphDataset, *grids: np.ndarray) -> list[np.ndarray]:

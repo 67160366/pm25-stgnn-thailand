@@ -217,15 +217,20 @@ def _scenario_controls() -> tuple[str, str, int, str, int]:
             format_func=lambda i: (
                 f"{_thai_date(curated[i]['date'])} · {curated[i]['station_name']} · "
                 f"PM2.5 สูงสุด {curated[i]['peak']:.0f} µg/m³ · "
-                f"ไฟที่ลมพามา {curated[i]['connected_frp']:,.0f} MW "
-                f"(ต่างชาติ {100 * curated[i]['foreign_frac']:.0f}%)"
+                f"ไฟจากดาวเทียมที่ลมพามา {curated[i]['connected_frp']:,.0f} MW "
+                f"(อยู่ฝั่งต่างชาติ {100 * curated[i]['foreign_frac']:.0f}%)"
             ),
             key="wi_event",
         )
         ev = curated[i]
         split = "test"
         sid = ev["station_id"]
-        anchor_iso = inf.resolve_anchor(split, dt.date.fromisoformat(ev["date"]))
+        # Peak-PM2.5 anchor, matching the frozen JSON these events came from. Using the
+        # noon anchor instead loads a different hour's fires and produces numbers that
+        # cannot be reconciled with the report — see inference.peak_anchor_iso.
+        anchor_iso = inf.peak_anchor_iso(split, ev["date"], sid) or inf.resolve_anchor(
+            split, dt.date.fromisoformat(ev["date"])
+        )
     else:
         c1, c2 = st.columns([1, 1])
         periods = list(inf.PERIOD_TO_SPLIT.keys())
@@ -253,9 +258,15 @@ def _scenario_controls() -> tuple[str, str, int, str, int]:
 
     _split_badge(split)
     ts = pd.Timestamp(anchor_iso).tz_convert("Asia/Bangkok")
+    origin_note = (
+        "ชั่วโมงที่ฝุ่นสูงสุดของวันนั้น (ตรงกับที่รายงานใช้)"
+        if mode.startswith("เหตุการณ์คัดสรร")
+        else "ชั่วโมงใกล้เที่ยงของวันที่เลือก"
+    )
     st.caption(
-        f"จุดเริ่มพยากรณ์ {ts:%d/%m/%Y %H:%M} น. (เวลาไทย) · "
-        f"พยากรณ์ล่วงหน้า {h_label} · โมเดล MTGNN checkpoint เดียวกับหน้าอื่นทั้งเว็บ"
+        f"จุดเริ่มพยากรณ์ {ts:%d/%m/%Y %H:%M} น. (เวลาไทย) — {origin_note} · "
+        f"พยากรณ์ล่วงหน้า {h_label} · โมเดล MTGNN checkpoint เดียวกับหน้าอื่นทั้งเว็บ · "
+        "หนึ่งวันมี 24 จุดเริ่มให้เลือก คนละชั่วโมงก็เจอไฟที่ลมพามาไม่เหมือนกัน"
     )
     return split, anchor_iso, sid, sel_name, _H_LABELS.index(h_label)
 
@@ -554,11 +565,74 @@ def _result_block(
         f"({(1 - remaining) * 100:.0f}% ของกลุ่มที่เลือก) — {mix} · "
         f"ที่สถานี{station_name} · ใช้เวลารันสองรอบ {cf['elapsed_ms']:.0f} มิลลิวินาที"
     )
-    st.markdown(_verdict_box(delta, pct, station_name, h), unsafe_allow_html=True)
+    half = _halfwidth(sid, horizon_idx)
+    st.markdown(_verdict_box(delta, pct, station_name, h, half), unsafe_allow_html=True)
+    if half is not None:
+        st.markdown(_noise_ruler(delta, half, h), unsafe_allow_html=True)
 
 
-def _verdict_box(delta: float, pct: float, station_name: str, h: str) -> str:
-    """One honest sentence about the measured response, including the awkward cases."""
+def _halfwidth(sid: int, horizon_idx: int) -> float | None:
+    """The model's own 90% prediction-interval half-width (µg/m³) for this station/horizon.
+
+    The yardstick every counterfactual on this page has to be read against: a response
+    far smaller than the model's own calibrated error bar is not a finding, however
+    confidently a percentage could be printed from it.
+    """
+    conf = da.load_conformal()
+    hw = inf.conformal_halfwidths(conf, sid, list(inf.HORIZONS))
+    return None if hw is None else float(hw[horizon_idx])
+
+
+def _noise_ruler(delta: float, half: float, h: str) -> str:
+    """Put the measured effect next to the model's own error bar, to scale."""
+    ratio = abs(delta) / half if half > 0 else 0.0
+    frac = min(100.0, 100 * ratio)
+    return (
+        f"<div style='background:rgba(130,130,130,.10);border-radius:5px;"
+        f"padding:10px 14px;margin:6px 0;font-size:.88rem;line-height:1.6'>"
+        f"<b>เทียบกับความคลาดเคลื่อนของโมเดลเอง</b> &nbsp;"
+        f"ที่ {h} โมเดลนี้มีช่วงความเชื่อมั่น 90% กว้าง <b>±{half:,.1f} µg/m³</b> "
+        f"(split-conformal จากปี 2567)<br>"
+        f"<div style='display:flex;align-items:center;gap:8px;margin:7px 0 4px'>"
+        f"<div style='flex:1;height:12px;background:rgba(120,120,120,.30);border-radius:6px;"
+        f"position:relative;overflow:hidden'>"
+        f"<div style='width:{frac:.1f}%;height:100%;background:{_FOREIGN};"
+        f"border-radius:6px'></div></div>"
+        f"<span style='white-space:nowrap;font-weight:700'>{100 * ratio:.0f}%</span></div>"
+        f"<span style='opacity:.8'>ผลของการดับไฟครั้งนี้ (|{delta:,.2f}|) คิดเป็น "
+        f"<b>{100 * ratio:.0f}%</b> ของแถบความคลาดเคลื่อน — "
+        + (
+            "เล็กกว่าความไม่แน่นอนของโมเดลเองมาก จึงต้องอ่านว่า “โมเดลไม่ได้แสดงผลของไฟกลุ่มนี้”"
+            "ไม่ใช่ “ไฟกลุ่มนี้ไม่มีผลในความจริง”"
+            if ratio < 0.10
+            else "จึงพออ่านเป็นสัญญาณได้ แต่ยังต้องรายงานคู่กับแถบความคลาดเคลื่อนนี้เสมอ"
+        )
+        + "</span></div>"
+    )
+
+
+def _verdict_box(delta: float, pct: float, station_name: str, h: str, half: float | None) -> str:
+    """One honest sentence about the measured response, including the awkward cases.
+
+    ``half`` (the model's own 90% PI half-width) gates the wording: below 10% of it,
+    the response is reported as indistinguishable from the model's own error rather
+    than narrated as a direction. Without this gate the page would happily describe a
+    0.35 µg/m³ wiggle as "fires slightly increase the dust", which is not a claim the
+    number can support in either direction.
+    """
+    if half is not None and abs(delta) < 0.10 * half:
+        return (
+            f"<div style='border-left:3px solid #6b7280;background:rgba(130,130,130,.10);"
+            f"padding:10px 14px;border-radius:5px;margin:8px 0;line-height:1.65'>"
+            f"<b>ผลออกมาเล็กเกินกว่าจะสรุปทิศทางได้</b><br>"
+            f"ค่าเปลี่ยนไป <b>{delta:,.2f} µg/m³</b> ซึ่งเล็กกว่าความคลาดเคลื่อนของโมเดลเอง "
+            f"(±{half:,.1f} µg/m³ ที่ {h}) หลายสิบเท่า — จะบอกว่า “ลด” หรือ “เพิ่ม” "
+            f"ก็ไม่ได้ทั้งคู่ อ่านได้อย่างเดียวว่า <u>โมเดลตัวนี้ไม่ได้เชื่อมฝุ่นที่{station_name} "
+            f"เข้ากับไฟกลุ่มที่เลือก</u> ที่ช่วงเวลานี้<br>"
+            f"<span style='opacity:.85'>ถ้าหลังบ้านเป็นกฎ if-else ที่ “เห็นไฟต่างชาติแล้วลบค่าออก” "
+            f"ผลจะไม่มีทางออกมาเป็นศูนย์หรือติดลบแบบนี้ — ผลลบเชิงซื่อสัตย์คือหลักฐานว่าไม่มีกฎนั้นอยู่ "
+            f"แต่ก็เป็นหลักฐานว่าโมเดลยังจับ transboundary ที่จุดนี้ไม่ได้ด้วย</span></div>"
+        )
     if delta >= 3.0:
         colour, head = _FOREIGN, "ไฟกลุ่มนี้มีผลชัดเจน"
         body = (
