@@ -26,8 +26,12 @@ from src.explain.attribution import (
     station_source_report,
 )
 from src.explain.gb_ig import (
+    connected_hotspot_indices,
     counterfactual_occlusion,
+    dose_response,
     integrated_gradients,
+    matched_placebo_indices,
+    occlude_hotspot_nodes,
     occlusion_country_attribution,
 )
 from src.explain.gnn_explainer import gradient_x_input
@@ -861,3 +865,198 @@ class TestIntegration:
             "country_attribution",
         ]
         assert all(k in report for k in required_keys)
+
+
+# ---------------------------------------------------------------------------
+# Tests for node-level counterfactuals ("switch off *these* fires")
+# ---------------------------------------------------------------------------
+
+
+def _make_data_type_c(
+    frp: list[float],
+    edges: list[tuple[int, int]],
+    n_stations: int = 3,
+) -> HeteroData:
+    """HeteroData with explicit hotspot FRP and Type-C (hotspot -> station) edges.
+
+    Args:
+        frp: total_frp per hotspot node; lat/lon are filled with distinct non-zero
+            values so a test can prove they survive occlusion.
+        edges: ``(hotspot_idx, station_idx)`` pairs to wire as Type-C edges.
+        n_stations: Number of station nodes.
+
+    Returns:
+        HeteroData suitable for the node-level counterfactual helpers.
+    """
+    n_h = len(frp)
+    data = HeteroData()
+    data["station"].x = torch.randn(n_stations, 6, 5)
+    hx = torch.zeros(n_h, 3)
+    for i, f in enumerate(frp):
+        hx[i] = torch.tensor([f, 18.0 + i, 98.0 + i])
+    data["hotspot"].x = hx
+    data["hotspot"].country = ["Thailand"] * n_h
+    ei = (
+        torch.tensor(edges, dtype=torch.long).t().contiguous()
+        if edges
+        else torch.zeros(2, 0, dtype=torch.long)
+    )
+    data["hotspot", "type_c", "station"].edge_index = ei
+    data["station", "spatial", "station"].edge_index = torch.zeros(2, 0, dtype=torch.long)
+    return data
+
+
+class TestConnectedHotspotIndices:
+    """Test suite for src.explain.gb_ig.connected_hotspot_indices."""
+
+    def test_reads_edges_for_the_requested_station(self) -> None:
+        """Only hotspots with an edge into that station are returned, sorted+unique."""
+        data = _make_data_type_c([1.0, 2.0, 3.0], [(2, 0), (0, 0), (0, 0), (1, 1)])
+        assert connected_hotspot_indices(data, 0) == [0, 2]
+        assert connected_hotspot_indices(data, 1) == [1]
+        assert connected_hotspot_indices(data, 2) == []
+
+    def test_no_edges_returns_empty(self) -> None:
+        """A day with no Type-C edges connects nothing."""
+        data = _make_data_type_c([1.0, 2.0], [])
+        assert connected_hotspot_indices(data, 0) == []
+
+
+class TestOccludeHotspotNodes:
+    """Test suite for src.explain.gb_ig.occlude_hotspot_nodes."""
+
+    @pytest.fixture
+    def frp_model(self) -> _HotspotSensitiveModel:
+        """FRP-sensitive stub: output = station mean + sum of hotspot column 0."""
+        m = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        m.eval()
+        return m
+
+    def test_delta_equals_removed_frp(self, frp_model: _HotspotSensitiveModel) -> None:
+        """Full suppression drops the output by exactly the selected FRP."""
+        data = _make_data_type_c([10.0, 5.0, 2.0], [(0, 0), (1, 0)])
+        cf = occlude_hotspot_nodes(frp_model, data, [0, 1])
+        assert cf["n_selected"] == 2
+        assert cf["frp_removed"] == pytest.approx(15.0)
+        assert torch.allclose(cf["delta"], torch.full_like(cf["delta"], 15.0), atol=1e-5)
+        assert torch.allclose(cf["delta"], cf["pred_full"] - cf["pred_occluded"], atol=1e-6)
+
+    def test_partial_suppression_is_proportional(self, frp_model: _HotspotSensitiveModel) -> None:
+        """remaining_fraction=0.5 removes exactly half the selected FRP."""
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        cf = occlude_hotspot_nodes(frp_model, data, [0, 1], remaining_fraction=0.5)
+        assert cf["frp_removed"] == pytest.approx(8.0)
+        assert torch.allclose(cf["delta"], torch.full_like(cf["delta"], 8.0), atol=1e-5)
+
+    def test_lat_lon_are_not_touched(self, frp_model: _HotspotSensitiveModel) -> None:
+        """Only column 0 (total_frp) changes; the fire keeps its coordinates.
+
+        This is the documented difference from ``counterfactual_occlusion``, which
+        zeroes the whole row — a suppressed fire is a zero-intensity fire *where it
+        was*, not a phantom node teleported to (0, 0).
+        """
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        cf = occlude_hotspot_nodes(frp_model, data, [0, 1])
+        assert torch.allclose(cf["x_after"][:, 0], torch.zeros(2))
+        assert torch.allclose(cf["x_after"][:, 1:], cf["x_before"][:, 1:])
+
+    def test_country_label_cannot_change_the_result(
+        self, frp_model: _HotspotSensitiveModel
+    ) -> None:
+        """Relabelling every hotspot's country leaves every number identical.
+
+        The load-bearing claim of the demo page: ``hotspot.x`` is
+        ``[total_frp, lat, lon]`` with no country column, so the network cannot be
+        branching on nationality. If this test ever fails, that claim is false.
+        """
+        data = _make_data_type_c([10.0, 6.0, 3.0], [(0, 0), (1, 0)])
+        before = occlude_hotspot_nodes(frp_model, data, [0, 1])
+        data["hotspot"].country = ["Myanmar", "Laos", "Myanmar"]
+        after = occlude_hotspot_nodes(frp_model, data, [0, 1])
+        assert torch.equal(before["pred_occluded"], after["pred_occluded"])
+        assert torch.equal(before["delta"], after["delta"])
+
+    def test_empty_selection_is_noop(self, frp_model: _HotspotSensitiveModel) -> None:
+        """No nodes selected -> zero delta and empty before/after tensors."""
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        cf = occlude_hotspot_nodes(frp_model, data, [])
+        assert cf["n_selected"] == 0
+        assert cf["frp_removed"] == 0.0
+        assert cf["x_before"].shape == (0, 3)
+        assert torch.allclose(cf["delta"], torch.zeros_like(cf["delta"]))
+
+    def test_out_of_range_and_duplicate_indices_are_cleaned(
+        self, frp_model: _HotspotSensitiveModel
+    ) -> None:
+        """Bad indices from a stale map selection are dropped, not crashed on."""
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        cf = occlude_hotspot_nodes(frp_model, data, [1, 1, 7, -3])
+        assert cf["node_indices"] == [1]
+        assert cf["frp_removed"] == pytest.approx(6.0)
+
+    def test_no_hotspots_is_noop(self, frp_model: _HotspotSensitiveModel) -> None:
+        """An off-season day with zero fire nodes returns a safe no-op."""
+        data = _make_data_type_c([], [])
+        cf = occlude_hotspot_nodes(frp_model, data, [0, 1])
+        assert cf["n_selected"] == 0
+        assert torch.allclose(cf["delta"], torch.zeros_like(cf["delta"]))
+
+    def test_state_restored_after_call(self, frp_model: _HotspotSensitiveModel) -> None:
+        """hotspot.x is unchanged after the counterfactual runs."""
+        data = _make_data_type_c([10.0, 6.0, 3.0], [(0, 0)])
+        before = data["hotspot"].x.clone()
+        occlude_hotspot_nodes(frp_model, data, [0, 2])
+        assert torch.allclose(data["hotspot"].x, before)
+
+
+class TestDoseResponse:
+    """Test suite for src.explain.gb_ig.dose_response."""
+
+    def test_curve_shape_and_monotonicity(self) -> None:
+        """One grid per level, decreasing monotonically as suppression increases."""
+        model = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        model.eval()
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        fractions = (1.0, 0.75, 0.5, 0.25, 0.0)
+        dr = dose_response(model, data, [0, 1], fractions=fractions)
+        assert dr["fractions"] == list(fractions)
+        assert dr["pred"].shape == (len(fractions), 3, 2)
+        curve = dr["pred"][:, 0, 0]
+        assert torch.all(curve[1:] <= curve[:-1] + 1e-6)
+
+    def test_endpoints_match_direct_occlusion(self) -> None:
+        """fraction=1.0 is the untouched forecast; fraction=0.0 is full suppression."""
+        model = _HotspotSensitiveModel(n_stations=3, horizons=[6, 24])
+        model.eval()
+        data = _make_data_type_c([10.0, 6.0], [(0, 0)])
+        cf = occlude_hotspot_nodes(model, data, [0, 1])
+        dr = dose_response(model, data, [0, 1], fractions=(1.0, 0.0))
+        assert torch.allclose(dr["pred"][0], cf["pred_full"], atol=1e-6)
+        assert torch.allclose(dr["pred"][1], cf["pred_occluded"], atol=1e-6)
+
+
+class TestMatchedPlaceboIndices:
+    """Test suite for src.explain.gb_ig.matched_placebo_indices."""
+
+    def test_excludes_connected_and_already_selected(self) -> None:
+        """The control set is drawn only from unconnected, unselected clusters."""
+        data = _make_data_type_c([10.0, 8.0, 6.0, 4.0], [(0, 0), (1, 0)])
+        control = matched_placebo_indices(data, [0], station_idx=0)
+        assert 0 not in control and 1 not in control
+        assert set(control) <= {2, 3}
+
+    def test_matches_frp_greedily(self) -> None:
+        """Takes the strongest unconnected fires until the removed FRP is matched."""
+        data = _make_data_type_c([10.0, 1.0, 7.0, 5.0], [(0, 0)])
+        # Target 10 MW; the pool sorts to [2]=7, [3]=5, [1]=1 by descending FRP.
+        assert matched_placebo_indices(data, [0], station_idx=0) == [2, 3]
+
+    def test_max_nodes_caps_the_control_set(self) -> None:
+        """The cap is honoured even when the FRP target is not yet reached."""
+        data = _make_data_type_c([100.0, 7.0, 5.0, 1.0], [(0, 0)])
+        assert matched_placebo_indices(data, [0], station_idx=0, max_nodes=2) == [1, 2]
+
+    def test_no_pool_returns_empty(self) -> None:
+        """Every fire connected -> no honest control set available."""
+        data = _make_data_type_c([10.0, 6.0], [(0, 0), (1, 0)])
+        assert matched_placebo_indices(data, [0, 1], station_idx=0) == []

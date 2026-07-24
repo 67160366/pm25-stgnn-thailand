@@ -18,7 +18,7 @@ from functools import lru_cache
 
 from src.data.geocode import DEFAULT_BORDERS_PATH, country_of
 
-__all__ = ["arrow_lines", "border_geojson", "country_of"]
+__all__ = ["arrow_lines", "border_geojson", "country_of", "fit_view"]
 
 
 @lru_cache(maxsize=1)
@@ -26,6 +26,41 @@ def border_geojson() -> dict:
     """Raw GeoJSON FeatureCollection of the three country outlines (for map layers)."""
     with DEFAULT_BORDERS_PATH.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def fit_view(
+    points: list[tuple[float, float]],
+    height: int,
+    width: int = 1000,
+    pad_deg: float = 0.7,
+    zoom_range: tuple[float, float] = (5.0, 7.2),
+) -> tuple[dict, float]:
+    """Map centre + zoom that frames ``points`` inside a ``height`` x ``width`` canvas.
+
+    Web Mercator shows ``360 / 2**z`` degrees of longitude per 512 px, so the zoom
+    that fits a span is ``log2(360 * px / 512 / span)``; the tighter of the two
+    axes wins. Callers pass the event's own points (station, fires, air path) and
+    get a view that never depends on a hand-tuned constant per event.
+
+    Args:
+        points: ``(lat, lon)`` pairs that must all be visible.
+        height: Canvas height in pixels.
+        width: Assumed container width in pixels (Streamlit does not report it).
+        pad_deg: Degrees of breathing room added to each span.
+        zoom_range: Clamp applied to the computed zoom.
+
+    Returns:
+        Tuple ``(center, zoom)`` ready for ``fig.update_layout(mapbox=...)``.
+    """
+    lats = [p[0] for p in points]
+    lons = [p[1] for p in points]
+    lat_c, lon_c = (min(lats) + max(lats)) / 2, (min(lons) + max(lons)) / 2
+    lat_span = max(max(lats) - min(lats), 0.5) + pad_deg
+    lon_span = max(max(lons) - min(lons), 0.5) + pad_deg
+    z_lat = math.log2(360 * (height / 512) / lat_span)
+    z_lon = math.log2(360 * (width / 512) / lon_span)
+    lo, hi = zoom_range
+    return dict(lat=lat_c, lon=lon_c), min(max(min(z_lat, z_lon), lo), hi)
 
 
 def arrow_lines(

@@ -67,6 +67,23 @@ _TH_MONTHS = [
     "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
 ]  # fmt: skip
 
+# Which dataset split each case is drawn from, per loader._SPLIT_BOUNDS (2022-23 train,
+# 2024 val, 2025 test). Shown on every card because "was the model shown this event
+# during training?" is the first thing a judge should be able to check, and the honest
+# answer here is the strong one: the five flagship 2025 events are all held-out test.
+_SPLIT_BADGE: dict[str, tuple[str, str, str]] = {
+    "test": ("ชุดทดสอบ", "#137a4d", "โมเดลไม่เคยเห็นข้อมูลปีนี้ตอนฝึกเลย"),
+    "val": ("ชุดปรับจูน", "#b45309", "ใช้เลือกจุดหยุดฝึก ไม่ได้ฝึกทับ"),
+    "train": ("ชุดฝึก", "#6b7280", "โมเดลเคยเห็นช่วงนี้ตอนฝึก"),
+}
+
+
+def _split_for_year(year: int) -> str:
+    """Dataset split a calendar year falls in (mirrors ``loader._SPLIT_BOUNDS``)."""
+    if year >= 2025:
+        return "test"
+    return "val" if year == 2024 else "train"
+
 
 def _thai_date(iso: str) -> str:
     """Format an ISO ``YYYY-MM-DD`` date as ``D <thai-month> <B.E. year>``."""
@@ -87,7 +104,7 @@ def render() -> None:
     cases = _build_cases()
     for case in cases:
         _render_case(case)
-    _policy_simulator(cases)
+    _lab_teaser(cases)
     _closing_honesty()
 
 
@@ -109,7 +126,8 @@ def _intro() -> None:
     st.caption(
         "ตัวเลขทุกตัวคำนวณจากข้อมูลสาธารณะจริง ตรวจย้อนได้ — ไฟจากดาวเทียม NASA FIRMS · "
         "ลม/อากาศจาก ERA5 (ECMWF/Copernicus) · ค่าฝุ่นจาก Air4Thai (กรมควบคุมมลพิษ). "
-        "กด “ตัวเลขนี้มาจากไหน” ใต้แต่ละเหตุการณ์เพื่อดูค่าดิบ"
+        "กด “ตัวเลขนี้มาจากไหน” ใต้แต่ละเหตุการณ์เพื่อดูค่าดิบ · "
+        "ป้ายสีเขียว “ชุดทดสอบ” บนแต่ละการ์ด = เหตุการณ์ปี 2568 ที่โมเดลไม่เคยเห็นตอนฝึกเลย"
     )
 
 
@@ -171,6 +189,7 @@ def _case_2025(unc_event: dict, bt_event: dict | None) -> dict:
 
     return {
         "key": unc_event["date"],
+        "split": _split_for_year(int(unc_event["date"][:4])),
         "date_iso": unc_event["date"],
         "date_th": _thai_date(unc_event["date"]),
         "station": _STATION_LABEL,
@@ -211,6 +230,7 @@ def _case_chiangmai_2024() -> dict:
 
     return {
         "key": "2024-03",
+        "split": "val",
         "date_iso": None,  # month aggregate — no single-day map
         "date_th": "มี.ค. 2567",
         "station": "เชียงใหม่",
@@ -236,6 +256,16 @@ def _case_chiangmai_2024() -> dict:
 # ---------------------------------------------------------------- cards ----
 
 
+def _split_chip(split: str) -> str:
+    """Small provenance chip stating whether the model was trained on this period."""
+    label, colour, meaning = _SPLIT_BADGE.get(split, ("?", _MIXED, ""))
+    return (
+        f"<span style='border:1.5px solid {colour};color:{colour};padding:2px 10px;"
+        f"border-radius:999px;font-size:.8rem;font-weight:700;white-space:nowrap' "
+        f"title='{meaning}'>{label} · {meaning}</span>"
+    )
+
+
 def _render_case(case: dict) -> None:
     """Render one case card: header, verdict pill, evidence, AI, provenance."""
     accent, verdict_label = _VERDICT[case["verdict"]]
@@ -255,9 +285,10 @@ def _render_case(case: dict) -> None:
             f"<span style='font-size:.9rem;opacity:.7'> µg/m³</span> &nbsp;"
             f"<span style='background:{pm_color};color:#111;padding:1px 8px;border-radius:6px;"
             f"font-size:.8rem;font-weight:700;white-space:nowrap'>{cat}</span></div></div>"
-            f"<div style='margin-top:10px'><span style='background:{accent};color:#fff;"
+            f"<div style='margin-top:10px;display:flex;align-items:center;gap:10px;"
+            f"flex-wrap:wrap'><span style='background:{accent};color:#fff;"
             f"padding:5px 16px;border-radius:999px;font-size:1.1rem;font-weight:700'>"
-            f"ที่มา: {verdict_label}</span></div>",
+            f"ที่มา: {verdict_label}</span>{_split_chip(case['split'])}</div>",
             unsafe_allow_html=True,
         )
 
@@ -446,19 +477,6 @@ def _traj_chevrons(traj: list[tuple[float, float]]) -> go.Scattermapbox | None:
     return _arrow_trace(items, "flow", "#4b5563", width=2.5, showlegend=False)
 
 
-def _fit_view(points: list[tuple[float, float]], height: int) -> tuple[dict, float]:
-    """Map centre + zoom that frames ``points`` (lat, lon) inside a ``height``-px canvas."""
-    lats = [p[0] for p in points]
-    lons = [p[1] for p in points]
-    lat_c, lon_c = (min(lats) + max(lats)) / 2, (min(lons) + max(lons)) / 2
-    lat_span = max(max(lats) - min(lats), 0.5) + 0.7
-    lon_span = max(max(lons) - min(lons), 0.5) + 0.7
-    # Web-mercator: a zoom level shows 360 / 2**z degrees per 512 px of canvas.
-    z_lat = math.log2(360 * (height / 512) / lat_span)
-    z_lon = math.log2(360 * (1000 / 512) / lon_span)  # assumed container width
-    return dict(lat=lat_c, lon=lon_c), min(max(min(z_lat, z_lon), 5.0), 7.2)
-
-
 def _event_map(case: dict) -> go.Figure:
     """Offline map: fires (carried-in vs blown-away) + wind arrows + path + station.
 
@@ -538,7 +556,7 @@ def _event_map(case: dict) -> go.Figure:
         for f in fires
         if 16.0 <= f["lat"] <= 21.0 and 97.0 <= f["lon"] <= 101.5
     ]
-    center, zoom = _fit_view(pts, height)
+    center, zoom = geo.fit_view(pts, height)
 
     fig.update_layout(
         mapbox=dict(
@@ -684,52 +702,35 @@ def _provenance(case: dict) -> None:
         st.caption(f"ไฟล์ผลลัพธ์: {case['src_file']}")
 
 
-def _policy_simulator(cases: list[dict]) -> None:
-    """Interactive 'which lever helps' panel — transparent arithmetic on fire load.
+def _lab_teaser(cases: list[dict]) -> None:
+    """Hand the "what if we put them out" question over to the model-driven lab page.
 
-    Not a dispersion model: it scales the *connected fire load* (FRP that the
-    wind links to the station) by a hypothetical suppression rate, to show which
-    source a policy should target. Framed honestly as a first-order estimate.
+    This used to be a slider that scaled connected FRP arithmetically. It read like
+    a forecast but never touched the model — exactly the confusion the lab page
+    exists to remove — so the arithmetic is gone and the question is routed to the
+    page that answers it by re-running the network. What survives here is the part
+    that really is pure observation: which side of the border the fire load sits on.
     """
-    st.markdown("### 🧪 จำลองนโยบาย: ถ้าลดไฟที่ต้นตอ จะช่วยได้แค่ไหน?")
-    st.caption(
-        "เลื่อนดูว่า “ถ้าดับไฟฝั่งใดฝั่งหนึ่งได้” จะตัดต้นตอฝุ่นที่ลอยมาถึงสถานีลงเท่าไร — "
-        "ช่วยให้เห็นว่ามาตรการควรมุ่งไปที่ไหน"
+    foreign_led = sum(1 for c in cases if c["foreign_frp"] > c["thai_frp"])
+    st.markdown("### 🔥 แล้วถ้า “ดับไฟจุดนั้น” จริง ๆ ฝุ่นจะลดไหม?")
+    st.markdown(
+        f"""
+<div style="border-left:3px solid {_FOREIGN};background:rgba(235,104,52,.09);
+     padding:12px 16px;border-radius:6px;line-height:1.7">
+  หลักฐานด้านบนบอกได้ว่า<b>ไฟอยู่ที่ไหน</b>และ<b>ลมพัดมาทางไหน</b>
+  (จาก {len(cases)} เหตุการณ์นี้ มี {foreign_led} ครั้งที่ไฟฝั่งต่างประเทศแรงกว่าฝั่งไทย)
+  แต่ยัง<u>ไม่ได้</u>ตอบว่า <b>“ถ้าไฟกลุ่มนั้นไม่เกิด ค่าฝุ่นจะต่างไปกี่ µg/m³”</b><br>
+  คำถามนั้นตอบด้วยการคูณ-หารปริมาณไฟไม่ได้ ต้อง<b>รันโมเดลใหม่จริง ๆ</b>
+  โดยตั้งความแรงไฟกลุ่มนั้นเป็นศูนย์ แล้วอ่านส่วนต่าง —
+  เปิดหน้า <b>“ปิดสวิตช์ไฟ”</b> เพื่อคลิกเลือกกลุ่มไฟบนแผนที่ ดูผลทันที
+  พร้อมเปิดดูโค้ดจริงที่รันอยู่เบื้องหลัง
+</div>
+        """,
+        unsafe_allow_html=True,
     )
-
-    labels = {c["key"]: f"{c['date_th']} · {c['station']}" for c in cases}
-    by_key = {c["key"]: c for c in cases}
-    pick = st.selectbox(
-        "เลือกเหตุการณ์", list(labels), format_func=lambda k: labels[k], key="policy_event"
-    )
-    case = by_key[pick]
-    thai, foreign = case["thai_frp"], case["foreign_frp"]
-    total = thai + foreign
-
-    col1, col2 = st.columns([1, 1])
-    lever = col1.radio(
-        "มาตรการ",
-        ["ควบคุมไฟในประเทศ (ไทย)", "เจรจา/ควบคุมไฟข้ามแดน (เมียนมา/ลาว)"],
-        key="policy_lever",
-    )
-    rate = col2.slider("สมมติดับไฟฝั่งนี้ได้ (%)", 0, 100, 70, step=5, key="policy_rate")
-
-    removed = (thai if "ในประเทศ" in lever else foreign) * rate / 100
-    reduction = 100 * removed / total if total > 0 else 0.0
-    col2.metric("ต้นตอฝุ่นที่เชื่อมโยง (FRP) ลดลง", f"{reduction:.0f}%")
-
-    best = "ต่างประเทศ" if foreign > thai else "ในประเทศ"
-    st.info(
-        f"สำหรับเหตุการณ์นี้ ต้นตอไฟส่วนใหญ่อยู่ฝั่ง **{best}** — "
-        f"มาตรการที่ได้ผลมากที่สุดคือการลดไฟฝั่งนั้น "
-        f"(ดับไฟฝั่ง{best}หมด = ตัดต้นตอ ~{100 * (foreign if best == 'ต่างประเทศ' else thai) / total:.0f}%). "
-        "นี่คือคุณค่าของการรู้แหล่งที่มา: ทุ่มทรัพยากรให้ตรงจุด",
-        icon="🎯",
-    )
-    st.caption(
-        "⚠️ ประมาณการเบื้องต้นจากปริมาณไฟ (FRP) ที่ลมเชื่อมมาถึงสถานี — "
-        "ไม่ใช่การจำลองการฟุ้งกระจาย/เคมีบรรยากาศเต็มรูปแบบ"
-    )
+    lab_page = st.session_state.get("_pages", {}).get("lab")
+    if lab_page is not None:
+        st.page_link(lab_page, label="เปิดห้องทดลอง: ปิดสวิตช์ไฟ แล้วดูว่าอะไรหาย", icon="🔥")
 
 
 def _closing_honesty() -> None:

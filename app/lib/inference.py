@@ -12,6 +12,7 @@ over stored windows, not operational real-time forecasting — the UI must say s
 
 from __future__ import annotations
 
+import time
 from datetime import date, timedelta
 
 import numpy as np
@@ -234,6 +235,199 @@ def counterfactual_at(split: str, anchor_iso: str, country: str) -> dict:
         "country": country,
         "n_occluded": int(cf["n_occluded"]),
         "available_countries": list(cf["available_countries"]),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Node-level counterfactual ("click a fire on the map and put it out")
+# ---------------------------------------------------------------------------
+
+
+def station_index(split: str, station_id: int) -> int:
+    """Row index of ``station_id`` inside the split's dataset ordering."""
+    ds = get_dataset(split)
+    return int(np.where(ds._station_ids == station_id)[0][0])
+
+
+@st.cache_data(show_spinner=False)
+def event_hotspots(split: str, anchor_iso: str, station_id: int) -> pd.DataFrame:
+    """Fire clusters in the graph at this forecast origin, as the model holds them.
+
+    Every column is read straight off the sample the model is about to consume —
+    ``hotspot.x`` for position and power, the Type-C edge index for connectivity —
+    so the map cannot drift away from what is actually fed to the network.
+
+    Returns:
+        DataFrame with ``node_idx``, ``lat``, ``lon``, ``frp`` (MW), ``country``
+        and ``connected`` (bool: wind-linked to this station today). Empty on
+        fire-free days.
+    """
+    ds = get_dataset(split)
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+    hx = sample["hotspot"].x
+    if hx.numel() == 0:
+        return pd.DataFrame(
+            columns=["node_idx", "lat", "lon", "frp", "country", "connected"]
+        ).astype({"node_idx": int, "connected": bool})
+
+    countries = list(getattr(sample["hotspot"], "country", []))
+    sidx = int(np.where(ds._station_ids == station_id)[0][0])
+    connected = set(explain_gb_ig.connected_hotspot_indices(sample, sidx))
+    arr = hx.numpy()
+    return pd.DataFrame(
+        {
+            "node_idx": np.arange(arr.shape[0], dtype=int),
+            "lat": arr[:, 1].astype(float),
+            "lon": arr[:, 2].astype(float),
+            "frp": arr[:, 0].astype(float),
+            "country": countries or ["?"] * arr.shape[0],
+            "connected": [i in connected for i in range(arr.shape[0])],
+        }
+    )
+
+
+def _denorm_grids(ds: PM25GraphDataset, *grids: np.ndarray) -> list[np.ndarray]:
+    """Denormalise one or more ``(N, H)`` prediction grids to µg/m³."""
+    centers, scales = evaluation.station_scalers(ds)
+    return [evaluation.denorm_pred(g, centers, scales, ds.n_stations) for g in grids]
+
+
+@st.cache_data(show_spinner="กำลังรันโมเดลซ้ำแบบไม่มีไฟที่เลือก…")
+def counterfactual_nodes_at(
+    split: str, anchor_iso: str, node_indices: tuple[int, ...], remaining: float = 0.0
+) -> dict:
+    """Suppress the chosen fire clusters and return before/after µg/m³ plus the raw edit.
+
+    Two forward passes of the same checkpoint on the same stored window; the only
+    difference between them is the FRP column of the selected hotspot rows.
+    ``x_before``/``x_after`` are returned verbatim so the UI can show the tensor
+    that changed rather than asking the viewer to trust a description of it.
+
+    Args:
+        split: Dataset split.
+        anchor_iso: Forecast origin.
+        node_indices: Hotspot node indices to put out (hashable for caching).
+        remaining: Fraction of FRP left burning (0.0 = fully extinguished).
+
+    Returns:
+        Dict with ``station_ids``, ``horizons``, ``pred_full_ug`` (N,H),
+        ``pred_occluded_ug`` (N,H), ``delta_ug`` (N,H), ``x_before`` (k,3),
+        ``x_after`` (k,3), ``node_indices``, ``n_selected``, ``frp_removed``,
+        ``elapsed_ms`` (wall time of the two passes).
+    """
+    ds = get_dataset(split)
+    model = load_model()
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+
+    t0 = time.perf_counter()
+    cf = explain_gb_ig.occlude_hotspot_nodes(
+        model, sample, list(node_indices), remaining_fraction=remaining, device=_DEVICE
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000.0
+
+    full_ug, occ_ug = _denorm_grids(ds, cf["pred_full"].numpy(), cf["pred_occluded"].numpy())
+    return {
+        "station_ids": ds._station_ids.tolist(),
+        "horizons": list(HORIZONS),
+        "pred_full_ug": full_ug,
+        "pred_occluded_ug": occ_ug,
+        "delta_ug": full_ug - occ_ug,
+        "x_before": cf["x_before"].numpy(),
+        "x_after": cf["x_after"].numpy(),
+        "node_indices": cf["node_indices"],
+        "n_selected": cf["n_selected"],
+        "frp_removed": cf["frp_removed"],
+        "remaining": float(remaining),
+        "elapsed_ms": elapsed_ms,
+    }
+
+
+@st.cache_data(show_spinner="กำลังไล่ระดับการดับไฟ 0–100%…")
+def dose_response_at(
+    split: str, anchor_iso: str, node_indices: tuple[int, ...], station_id: int, horizon_idx: int
+) -> dict:
+    """Forecast at one station across suppression levels 0–100% of the selection.
+
+    The falsifiability exhibit: a lookup table keyed on "are foreign fires
+    present" can only step, so a smooth monotone curve here is evidence the number
+    comes from the network reading the FRP feature.
+
+    Returns:
+        Dict with ``suppressed_pct`` (list, 0→100) and ``pm25_ug`` (list, aligned).
+    """
+    ds = get_dataset(split)
+    model = load_model()
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+    sidx = int(np.where(ds._station_ids == station_id)[0][0])
+
+    fractions = (1.0, 0.9, 0.75, 0.5, 0.25, 0.1, 0.0)
+    dr = explain_gb_ig.dose_response(
+        model, sample, list(node_indices), fractions=fractions, device=_DEVICE
+    )
+    grids = dr["pred"].numpy()  # (K, N, H)
+    ug = [_denorm_grids(ds, g)[0][sidx, horizon_idx] for g in grids]
+    return {
+        "suppressed_pct": [round(100 * (1 - f)) for f in fractions],
+        "pm25_ug": [float(v) for v in ug],
+    }
+
+
+@st.cache_data(show_spinner="กำลังรันกลุ่มควบคุม (placebo)…")
+def placebo_at(split: str, anchor_iso: str, node_indices: tuple[int, ...], station_id: int) -> dict:
+    """Negative control: put out an FRP-matched set of fires the wind does *not* connect.
+
+    Same station, same day, comparable megawatts extinguished — but drawn from
+    clusters with no Type-C edge into this station. A near-zero response here is
+    what separates "the model read the graph" from "the model reacts to any fire".
+
+    Returns:
+        Dict with ``node_indices``, ``n_selected``, ``frp_removed`` and
+        ``delta_ug`` (N,H); ``n_selected`` is 0 when the day offers no control set.
+    """
+    ds = get_dataset(split)
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+    sidx = int(np.where(ds._station_ids == station_id)[0][0])
+
+    control = explain_gb_ig.matched_placebo_indices(sample, list(node_indices), sidx)
+    if not control:
+        return {"node_indices": [], "n_selected": 0, "frp_removed": 0.0, "delta_ug": None}
+
+    cf = counterfactual_nodes_at(split, anchor_iso, tuple(control), 0.0)
+    return {
+        "node_indices": control,
+        "n_selected": cf["n_selected"],
+        "frp_removed": cf["frp_removed"],
+        "delta_ug": cf["delta_ug"],
+    }
+
+
+@st.cache_data(show_spinner=False)
+def graph_facts(split: str, anchor_iso: str) -> dict:
+    """Shapes and counts of the graph the model consumes at this origin (glass-box panel)."""
+    ds = get_dataset(split)
+    model = load_model()
+    pos = pos_for_timestamp(ds, pd.Timestamp(anchor_iso))
+    sample = ds[pos]
+
+    def _n_edges(rel: tuple[str, str, str]) -> int:
+        ei = getattr(sample[rel], "edge_index", None)
+        return 0 if ei is None else int(ei.shape[1])
+
+    return {
+        "n_stations": int(sample["station"].x.shape[0]),
+        "station_x_shape": tuple(int(d) for d in sample["station"].x.shape),
+        "n_hotspots": int(sample["hotspot"].x.shape[0]),
+        "hotspot_x_shape": tuple(int(d) for d in sample["hotspot"].x.shape),
+        "hotspot_feature_names": ["total_frp", "centroid_lat", "centroid_lon"],
+        "edges_type_a": _n_edges(("station", "type_a", "station")),
+        "edges_type_b": _n_edges(("station", "type_b", "station")),
+        "edges_type_c": _n_edges(("hotspot", "type_c", "station")),
+        "n_params": int(sum(p.numel() for p in model.parameters())),
+        "checkpoint": str(da.CHECKPOINT_PATH.relative_to(da.CONFIGS_DIR.parent)),
     }
 
 

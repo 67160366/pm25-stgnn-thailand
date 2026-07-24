@@ -17,7 +17,16 @@ import streamlit as st
 
 from app.lib import inference as inf
 from app.lib import ui
-from app.views import about, attribution, cases, forecast, overview, performance, transboundary
+from app.views import (
+    about,
+    attribution,
+    cases,
+    forecast,
+    overview,
+    performance,
+    transboundary,
+    whatif,
+)
 
 st.set_page_config(page_title="PM2.5 ภาคเหนือ — STGNN", page_icon="🌫️", layout="wide")
 
@@ -50,6 +59,9 @@ def main() -> None:
     landing = st.Page(
         cases.render, title="ฝุ่นวันนั้นมาจากไหน", icon="🔎", url_path="cases", default=True
     )
+    # Second headline page, not a deep dive: the click-a-fire counterfactual is the
+    # demo's "show me it works" moment and must be one click from the landing page.
+    lab = st.Page(whatif.render, title="ปิดสวิตช์ไฟ (ทดลองเอง)", icon="🔥", url_path="whatif")
     deep = [
         st.Page(overview.render, title="ภาพรวม", icon="🏠", url_path="overview"),
         st.Page(forecast.render, title="พยากรณ์รายสถานี", icon="📈", url_path="forecast"),
@@ -61,13 +73,17 @@ def main() -> None:
         st.Page(about.render, title="เกี่ยวกับ", icon="ℹ️", url_path="about"),
     ]
     # position="hidden" suppresses the auto page list; we build a compact sidebar instead.
-    pg = st.navigation([landing, *deep], position="hidden")
+    pg = st.navigation([landing, lab, *deep], position="hidden")
+    # Pages are callable-based, so st.page_link needs the Page object itself; stash the
+    # ones other views link to rather than hard-coding a url_path string in each view.
+    st.session_state["_pages"] = {"landing": landing, "lab": lab}
 
     with st.sidebar:
         st.title("🌫️ PM2.5 ภาคเหนือ")
         st.caption("Explainable STGNN · NSC 2026 หมวด 14")
         st.divider()
         st.page_link(landing)
+        st.page_link(lab)
         with st.expander("🔬 หน้าวิเคราะห์เชิงลึก"):
             for p in deep:
                 st.page_link(p)

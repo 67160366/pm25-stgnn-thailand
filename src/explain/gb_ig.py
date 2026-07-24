@@ -106,6 +106,33 @@ def integrated_gradients(
     return {"station_x": attr.detach().cpu()}
 
 
+def _forward_with_hotspot_x(
+    model: PM25ModelBase, data: HeteroData, hx: torch.Tensor
+) -> torch.Tensor:
+    """Forward pass with ``data["hotspot"].x`` swapped for ``hx``, state always restored.
+
+    The single place where a counterfactual hotspot tensor reaches the model, so
+    every "what-if" in this module runs through the *same* unmodified
+    ``model(data)`` call as the real forecast — there is no branch anywhere that
+    inspects the country label, the date, or the size of the edit.
+
+    Args:
+        model: Trained PM25ModelBase (already on the target device, eval mode).
+        data: Single-sample HeteroData (already on the target device).
+        hx: Replacement hotspot feature tensor, same shape as ``data["hotspot"].x``.
+
+    Returns:
+        Detached ``(N, H)`` prediction grid in the model's normalised scale.
+    """
+    orig_hx = data["hotspot"].x
+    data["hotspot"].x = hx
+    try:
+        with torch.no_grad():
+            return model(data).detach().clone()
+    finally:
+        data["hotspot"].x = orig_hx  # restore
+
+
 def _occlude_country_forward(
     model: PM25ModelBase,
     data: HeteroData,
@@ -131,15 +158,9 @@ def _occlude_country_forward(
         with the country removed and ``n_occluded`` is the number of nodes zeroed.
     """
     mask = torch.tensor([c == country for c in hotspot_countries], dtype=torch.bool, device=device)
-    orig_hx = data["hotspot"].x
-    hx_occluded = orig_hx.clone()
+    hx_occluded = data["hotspot"].x.clone()
     hx_occluded[mask] = 0.0
-    data["hotspot"].x = hx_occluded
-    try:
-        with torch.no_grad():
-            pred = model(data).detach().clone()
-    finally:
-        data["hotspot"].x = orig_hx  # restore
+    pred = _forward_with_hotspot_x(model, data, hx_occluded)
     return pred, int(mask.sum().item())
 
 
@@ -267,3 +288,210 @@ def counterfactual_occlusion(
         "n_occluded": n_occluded,
         "available_countries": available,
     }
+
+
+# ---------------------------------------------------------------------------
+# Node-level counterfactuals ("switch off *these* fires")
+# ---------------------------------------------------------------------------
+
+
+def connected_hotspot_indices(data: HeteroData, station_idx: int) -> list[int]:
+    """Hotspot node indices wired to one station by a Type-C (wind-aligned) edge.
+
+    Type-C edges exist only where the graph builder found the fire within
+    ``type_c_max_km`` *and* the wind pointing from the fire toward the station, so
+    this is the model's own answer to "which fires can reach here today" — read
+    off the graph, not recomputed with a second heuristic.
+
+    Args:
+        data: Single-sample HeteroData carrying ``("hotspot","type_c","station")``.
+        station_idx: Station node index in ``[0, N)``.
+
+    Returns:
+        Sorted unique hotspot indices with an edge into ``station_idx`` (may be empty).
+    """
+    store = data["hotspot", "type_c", "station"]
+    ei = getattr(store, "edge_index", None)
+    if ei is None or ei.numel() == 0:
+        return []
+    src, dst = ei[0], ei[1]
+    return sorted({int(i) for i in src[dst == station_idx].tolist()})
+
+
+def occlude_hotspot_nodes(
+    model: PM25ModelBase,
+    data: HeteroData,
+    node_indices: list[int],
+    remaining_fraction: float = 0.0,
+    device: str | torch.device = "cpu",
+) -> dict[str, object]:
+    """What-if: suppress *specific* fire clusters and re-run the same model.
+
+    Scales ``total_frp`` (hotspot feature column 0) of the selected nodes by
+    ``remaining_fraction`` and contrasts the model's prediction with the
+    unmodified one across all stations and horizons. This is the map-click
+    counterpart of :func:`counterfactual_occlusion`: the user picks the nodes
+    instead of a country label.
+
+    Deliberately differs from :func:`counterfactual_occlusion`, which zeroes the
+    *whole* feature row (frp, lat, lon) for one country and whose output is frozen
+    into the report JSONs. Here lat/lon are left intact, because a fire that has
+    been put out is a zero-intensity fire *at its own location*, not a phantom
+    node teleported to (0, 0) — and because partial suppression (0 < fraction < 1)
+    is only meaningful for intensity. Do not "harmonise" the two: the country
+    function's behaviour is load-bearing for reproducing published numbers.
+
+    The country label is not touched and cannot be: ``hotspot.x`` is
+    ``[total_frp, lat, lon]`` (see ``src/data/graph_builder.build_graph``), so the
+    network never sees which country a fire is in. Any country-level effect is
+    emergent from fire location, intensity and the wind-built Type-C edges.
+
+    Predictions are returned in the model's normalised scale; the caller
+    denormalises per station via ``src.training.evaluation.denorm_pred``.
+
+    This is a *what-if under the model*, not a validated causal claim: the
+    magnitude depends entirely on the trained model's learned sensitivity.
+
+    Args:
+        model: Trained PM25ModelBase.
+        data: Single-sample HeteroData with ``hotspot.x`` (n_hotspots, 3).
+        node_indices: Hotspot node indices to suppress. Out-of-range and duplicate
+            entries are ignored; an empty selection is a safe no-op.
+        remaining_fraction: Fraction of the original FRP left burning. ``0.0``
+            fully extinguishes, ``0.5`` halves, ``1.0`` changes nothing.
+        device: Torch device.
+
+    Returns:
+        Dict with:
+            - ``"pred_full"``: FloatTensor (N, H) — unmodified prediction.
+            - ``"pred_occluded"``: FloatTensor (N, H) — with the selection suppressed.
+            - ``"delta"``: FloatTensor (N, H) = ``pred_full - pred_occluded``
+              (positive = suppressing these fires lowers predicted PM2.5).
+            - ``"x_before"`` / ``"x_after"``: FloatTensor (k, 3) — the selected
+              hotspot feature rows as the model actually saw them, for display.
+            - ``"node_indices"``: the cleaned, sorted selection.
+            - ``"n_selected"``: ``k``, the number of nodes edited.
+            - ``"frp_removed"``: total MW of fire radiative power taken out.
+            - ``"remaining_fraction"``: echo of the requested fraction.
+    """
+    device = torch.device(device)
+    model = model.eval().to(device)
+    data = data.to(device)
+
+    orig_hx = data["hotspot"].x
+    n_nodes = int(orig_hx.shape[0])
+    sel = sorted({int(i) for i in node_indices if 0 <= int(i) < n_nodes})
+
+    pred_full = _forward_with_hotspot_x(model, data, orig_hx)
+
+    if not sel:
+        empty = orig_hx.new_zeros((0, orig_hx.shape[1]))
+        return {
+            "pred_full": pred_full.cpu(),
+            "pred_occluded": pred_full.clone().cpu(),
+            "delta": torch.zeros_like(pred_full).cpu(),
+            "x_before": empty.cpu(),
+            "x_after": empty.cpu(),
+            "node_indices": [],
+            "n_selected": 0,
+            "frp_removed": 0.0,
+            "remaining_fraction": float(remaining_fraction),
+        }
+
+    idx = torch.tensor(sel, dtype=torch.long, device=device)
+    hx = orig_hx.clone()
+    hx[idx, 0] = hx[idx, 0] * float(remaining_fraction)
+    pred_occluded = _forward_with_hotspot_x(model, data, hx)
+
+    frp_removed = float((orig_hx[idx, 0] - hx[idx, 0]).sum().item())
+    return {
+        "pred_full": pred_full.cpu(),
+        "pred_occluded": pred_occluded.cpu(),
+        "delta": (pred_full - pred_occluded).cpu(),
+        "x_before": orig_hx[idx].clone().cpu(),
+        "x_after": hx[idx].clone().cpu(),
+        "node_indices": sel,
+        "n_selected": len(sel),
+        "frp_removed": frp_removed,
+        "remaining_fraction": float(remaining_fraction),
+    }
+
+
+def dose_response(
+    model: PM25ModelBase,
+    data: HeteroData,
+    node_indices: list[int],
+    fractions: tuple[float, ...] = (1.0, 0.75, 0.5, 0.25, 0.0),
+    device: str | torch.device = "cpu",
+) -> dict[str, object]:
+    """Sweep the suppression level of one fire selection and record the response curve.
+
+    Runs :func:`occlude_hotspot_nodes` once per entry in ``fractions``. The point
+    of the sweep is falsifiability: a hand-written rule that "subtracts X when
+    Myanmar fires are present" produces a step, while a network responding to the
+    FRP feature produces a smooth, monotone curve. The caller plots it as-is.
+
+    Args:
+        model: Trained PM25ModelBase.
+        data: Single-sample HeteroData.
+        node_indices: Hotspot nodes to suppress.
+        fractions: Remaining-FRP fractions to evaluate, in the order plotted.
+        device: Torch device.
+
+    Returns:
+        Dict with ``"fractions"`` (list, echoed) and ``"pred"``: FloatTensor
+        ``(len(fractions), N, H)`` of normalised predictions, one grid per level.
+    """
+    grids = [
+        occlude_hotspot_nodes(model, data, node_indices, f, device=device)["pred_occluded"]
+        for f in fractions
+    ]
+    return {"fractions": list(fractions), "pred": torch.stack(grids)}
+
+
+def matched_placebo_indices(
+    data: HeteroData,
+    node_indices: list[int],
+    station_idx: int,
+    max_nodes: int | None = None,
+) -> list[int]:
+    """Pick a control set of fires the wind does *not* connect to the station.
+
+    The negative control for a map-click counterfactual: same station, same day,
+    a comparable amount of burning — but taken from clusters with no Type-C edge
+    into ``station_idx``. If the model is reading the graph rather than reacting
+    to "fire exists anywhere", suppressing this set should move the forecast far
+    less than suppressing the real selection.
+
+    Greedy by descending FRP until the removed power reaches the real selection's
+    total, so the control is matched on the quantity that actually feeds the model
+    (FRP), not merely on node count.
+
+    Args:
+        data: Single-sample HeteroData with ``hotspot.x`` (n_hotspots, 3).
+        node_indices: The real selection being controlled for.
+        station_idx: Station the real selection was chosen against.
+        max_nodes: Optional cap on the control set size.
+
+    Returns:
+        Sorted hotspot indices of the control set; empty when the day has no
+        unconnected fires to draw on.
+    """
+    hx = data["hotspot"].x
+    if hx.numel() == 0:
+        return []
+    connected = set(connected_hotspot_indices(data, station_idx))
+    selected = {int(i) for i in node_indices}
+    target_frp = float(sum(float(hx[i, 0]) for i in selected if 0 <= i < hx.shape[0]))
+
+    pool = [i for i in range(int(hx.shape[0])) if i not in connected and i not in selected]
+    pool.sort(key=lambda i: -float(hx[i, 0]))
+
+    chosen: list[int] = []
+    total = 0.0
+    for i in pool:
+        if total >= target_frp or (max_nodes is not None and len(chosen) >= max_nodes):
+            break
+        chosen.append(i)
+        total += float(hx[i, 0])
+    return sorted(chosen)
